@@ -1,0 +1,8 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+
+    <Project Path="Abp_Administration/Abp_Administration.csproj" />
+    <Project Path="Abp_Administration.Tests/Abp_Administration.Tests.csproj" />
+</Solution>

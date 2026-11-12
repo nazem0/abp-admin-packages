@@ -1,0 +1,21 @@
+{
+  "production": true,
+  "application": {
+    "baseUrl":"http://localhost:4200",
+    "name": "Abp_Administration",
+    "logoUrl": ""
+  },
+  "oAuthConfig": {
+    "issuer": "https://localhost:44366",
+    "redirectUri": "https://localhost:44366",
+    "clientId": "Abp_Administration_App",
+    "responseType": "code",
+    "scope": "offline_access openid profile email phone Abp_Administration"
+  },
+  "apis": {
+    "default": {
+      "url": "https://localhost:44366",
+      "rootNamespace": "Abp_Administration"
+    }
+  }
+}

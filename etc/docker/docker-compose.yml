@@ -1,0 +1,83 @@
+services:
+  abp_administration-web:
+    image: abp_administration-web:latest
+    container_name: abp_administration-web
+    build:
+      context: ../../../
+      dockerfile: angular/Dockerfile.local      
+    ports:
+      - "4200:80"
+    depends_on:
+      - abp_administration-api
+    volumes:
+      - ./dynamic-env.json://usr/share/nginx/html/dynamic-env.json
+    networks:
+      - abp-network  
+
+  abp_administration-api:
+    image: abp_administration-api:latest
+    container_name: abp_administration-api-container
+    build:
+      context: ../../
+      dockerfile: Abp_Administration/Dockerfile.local
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080;
+      - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
+      - Kestrel__Certificates__Default__Password=91f91912-5ab0-49df-8166-23377efaf3cc
+      - App__SelfUrl=https://localhost:44366
+      - App__HealthCheckUrl=http://abp_administration:8080/health-status
+      - AuthServer__Authority=http://abp_administration-api:8080
+      - AuthServer__RequireHttpsMetadata=false
+      - AuthServer__SetSelfAsIssuer=true 
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=Abp_Administration;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+    ports:
+      - "44366:8081"
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    restart: on-failure    
+    volumes:
+      - ./certs:/app/certs
+    networks:
+      - abp-network  
+  
+  db-migrator:
+    image: abp_administration-api:latest
+    container_name: db-migrator
+    build:
+      context: ../../
+      dockerfile: Abp_Administration/Dockerfile.local
+    environment:
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=Abp_Administration;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+    command:
+      - --migrate-database
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    networks:
+      - abp-network
+  sql-server:
+    container_name: sql-server
+    image: mcr.microsoft.com/azure-sql-edge:1.0.7
+    ports:
+      - "1434:1433"
+    environment:
+      SA_PASSWORD: "myPassw0rd"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sqldata:/var/opt/mssql
+    networks:
+      - abp-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S sql-server -U sa -P "myPassw0rd" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+volumes:
+  sqldata:
+    name: abp_administration_sqldata
+networks:
+  abp-network:
+    name: abp_administration-network
+    driver: bridge
