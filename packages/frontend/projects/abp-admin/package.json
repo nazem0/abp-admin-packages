@@ -1,0 +1,26 @@
+{
+  "name": "@abp-admin/ng",
+  "version": "0.1.0",
+  "description": "Headless Angular admin UI for ABP Framework: audit/security/entity-change logs, users, roles, organization units, permissions, OpenIddict applications and scopes, background jobs, features and settings.",
+  "license": "MIT",
+  "keywords": [
+    "abp",
+    "abp-framework",
+    "angular",
+    "admin",
+    "audit-log",
+    "openiddict"
+  ],
+  "peerDependencies": {
+    "@abp/ng.core": "~11.0.0-rc.2",
+    "@angular/aria": "~22.2.0",
+    "@angular/common": "~22.2.0",
+    "@angular/core": "~22.2.0",
+    "@angular/router": "~22.2.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,42 @@
+{
+  "name": "abp-admin-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "ng": "ng",
+    "build:lib": "ng build abp-admin",
+    "watch:lib": "ng build abp-admin --watch --configuration development",
+    "start": "ng serve demo",
+    "build:demo": "ng build demo",
+    "generate-proxy": "abp generate-proxy -t ng -m abp-admin -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m identity -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m permissionManagement -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m featureManagement -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m settingManagement -u https://localhost:44368 --target abp-admin"
+  },
+  "dependencies": {
+    "@abp/ng.core": "~11.0.0-rc.2",
+    "@abp/ng.oauth": "~11.0.0-rc.2",
+    "@angular/aria": "~22.2.0",
+    "@angular/common": "~22.2.0",
+    "@angular/compiler": "~22.2.0",
+    "@angular/core": "~22.2.0",
+    "@angular/forms": "~22.2.0",
+    "@angular/localize": "~22.2.0",
+    "@angular/platform-browser": "~22.2.0",
+    "@angular/platform-browser-dynamic": "~22.2.0",
+    "@angular/router": "~22.2.0",
+    "@ngx-validate/core": "^0.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.0.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@abp/ng.schematics": "~11.0.0-rc.2",
+    "@angular/build": "~22.2.0",
+    "@angular/cli": "~22.2.0",
+    "@angular/compiler-cli": "~22.2.0",
+    "@angular/language-service": "~22.2.0",
+    "@types/node": "^20.0.0",
+    "jsdom": "^27.1.0",
+    "typescript": "~6.0.3",
+    "vitest": "^4.0.0",
+    "ng-packagr": "~22.2.0"
+  }
+}
