@@ -1,0 +1,11 @@
+# Standalone ignores (this folder is also published as its own repository)
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+**/wwwroot/libs/
+node_modules/
+*.nupkg
+*.tgz
