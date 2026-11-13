@@ -1,0 +1,24 @@
+{
+  "culture": "en",
+  "texts": {
+    "AppName": "ABP Admin",
+    "Menu:Home": "Home",
+    "Menu:AuditLogs": "Audit Logs",
+    "Permission:AbpAdmin": "ABP Admin",
+    "Permission:AuditLogs": "Audit logs",
+    "Permission:SecurityLogs": "Security logs",
+    "Permission:IdentitySettings": "Identity settings",
+    "Permission:Applications": "OpenIddict applications",
+    "Permission:Scopes": "OpenIddict scopes",
+    "Permission:BackgroundJobs": "Background jobs",
+    "Permission:BackgroundJobs.Manage": "Retry and delete",
+    "Permission:Create": "Create",
+    "Permission:Edit": "Edit",
+    "Permission:Delete": "Delete",
+    "Permission:ManagePermissions": "Change permissions",
+    "Permission:OrganizationUnits": "Organization units",
+    "Permission:OrganizationUnits.ManageTree": "Manage the tree",
+    "Permission:OrganizationUnits.ManageMembers": "Manage members",
+    "Permission:OrganizationUnits.ManageRoles": "Manage roles"
+  }
+}

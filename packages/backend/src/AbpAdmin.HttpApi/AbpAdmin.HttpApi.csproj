@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.HttpApi</PackageId>
+    <Description>Exposes the ABP Admin application services as HTTP APIs under /api/abp-admin (remote service name "AbpAdmin").</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Application\AbpAdmin.Application.csproj" />
+  </ItemGroup>
+
+</Project>

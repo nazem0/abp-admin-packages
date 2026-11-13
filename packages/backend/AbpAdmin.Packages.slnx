@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AbpAdmin.Application/AbpAdmin.Application.csproj" />
+    <Project Path="src/AbpAdmin.HttpApi/AbpAdmin.HttpApi.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/AbpAdmin.Host/AbpAdmin.Host.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/AbpAdmin.Tests/AbpAdmin.Tests.csproj" />
+  </Folder>
+</Solution>
