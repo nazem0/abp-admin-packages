@@ -1,0 +1,50 @@
+{
+  "template": "app-nolayers",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.6.0",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    },
+    "Volo.Abp.BlobStoring.Database": {
+      "version": "11.0.0-rc.2",
+      "isInstalled": true,
+      "creationTime": "11/12/2026 14:03:59 +00:00"
+    }
+  },
+  "packages": {
+    "AbpAdmin": {
+      "path": "AbpAdmin/AbpAdmin.abppkg"
+    }
+  }
+}

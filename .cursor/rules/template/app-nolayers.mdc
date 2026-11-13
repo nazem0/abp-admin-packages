@@ -17,16 +17,16 @@ alwaysApply: true
 Single project containing everything:
 
 ```
-Abp_Administration/
+AbpAdmin/
 ├── src/
-│   └── Abp_Administration/
+│   └── AbpAdmin/
 │       ├── Data/              # EF Core DbContext, migrations
 │       ├── Entities/          # Domain entities
 │       ├── Services/          # Application services + DTOs
 │       ├── angular/           # Angular SPA (separate folder)
-│       └── Abp_AdministrationModule.cs
+│       └── AbpAdminModule.cs
 └── test/
-    └── Abp_Administration.Tests/
+    └── AbpAdmin.Tests/
 ```
 
 ## Key Differences from Layered
@@ -85,10 +85,10 @@ public class BookAppService : ApplicationService
 
 ## Database Configuration (EF Core)
 
-Configure entities in `Abp_AdministrationDbContext`:
+Configure entities in `AbpAdminDbContext`:
 
 ```csharp
-public class Abp_AdministrationDbContext : AbpDbContext<Abp_AdministrationDbContext>
+public class AbpAdminDbContext : AbpDbContext<AbpAdminDbContext>
 {
     public DbSet<Book> Books { get; set; }
 
@@ -109,7 +109,7 @@ public class Abp_AdministrationDbContext : AbpDbContext<Abp_AdministrationDbCont
 ### Adding Migrations
 
 ```bash
-cd src/Abp_Administration
+cd src/AbpAdmin
 dotnet ef migrations add Added_Book
 dotnet ef database update
 ```

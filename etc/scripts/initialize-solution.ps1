@@ -31,13 +31,13 @@ Run-Step "InstallLibs" {
 }
 
 Run-Step "DbMigrator" {
-    Set-Location (Join-Path $scriptRoot "../../Abp_Administration")
+    Set-Location (Join-Path $scriptRoot "../../AbpAdmin")
     dotnet run --migrate-database
     dotnet run --migrate-database
 }
 
 Run-Step "DevCert" {
-    Set-Location (Join-Path $scriptRoot "../../Abp_Administration")
+    Set-Location (Join-Path $scriptRoot "../../AbpAdmin")
     dotnet dev-certs https -v -ep openiddict.pfx -p cfa78763-54e8-47a4-9c2d-9a8a002aa5d5
 }
 

@@ -2,20 +2,20 @@ param ($version='latest')
 
 $currentFolder = $PSScriptRoot
 $slnFolder = Join-Path $currentFolder "../../"
-$appFolder = Join-Path $slnFolder "Abp_Administration"
+$appFolder = Join-Path $slnFolder "AbpAdmin"
 
 $angularAppFolder = Join-Path $appFolder "../angular"
 
 Write-Host "********* BUILDING Angular Application *********" -ForegroundColor Green
 Set-Location $angularAppFolder
-npx yarn
-npm run build:prod
-docker build -f Dockerfile.local -t abp_administration-web:$version .
+pnpm install
+pnpm run build:prod
+docker build -f Dockerfile.local -t abp-admin-web:$version .
 
 Write-Host "********* BUILDING Api.Host Application *********" -ForegroundColor Green
 Set-Location $appFolder
 dotnet publish -c Release
-docker build -f Dockerfile.local -t abp_administration-api:$version .
+docker build -f Dockerfile.local -t abp-admin-api:$version .
 
 
 ### ALL COMPLETED

@@ -1,35 +1,35 @@
 services:
-  abp_administration-web:
-    image: abp_administration-web:latest
-    container_name: abp_administration-web
+  abp-admin-web:
+    image: abp-admin-web:latest
+    container_name: abp-admin-web
     build:
       context: ../../../
       dockerfile: angular/Dockerfile.local      
     ports:
       - "4200:80"
     depends_on:
-      - abp_administration-api
+      - abp-admin-api
     volumes:
       - ./dynamic-env.json://usr/share/nginx/html/dynamic-env.json
     networks:
       - abp-network  
 
-  abp_administration-api:
-    image: abp_administration-api:latest
-    container_name: abp_administration-api-container
+  abp-admin-api:
+    image: abp-admin-api:latest
+    container_name: abp-admin-api-container
     build:
       context: ../../
-      dockerfile: Abp_Administration/Dockerfile.local
+      dockerfile: AbpAdmin/Dockerfile.local
     environment:
       - ASPNETCORE_URLS=https://+:8081;http://+:8080;
       - Kestrel__Certificates__Default__Path=/app/certs/localhost.pfx
       - Kestrel__Certificates__Default__Password=91f91912-5ab0-49df-8166-23377efaf3cc
       - App__SelfUrl=https://localhost:44366
-      - App__HealthCheckUrl=http://abp_administration:8080/health-status
-      - AuthServer__Authority=http://abp_administration-api:8080
+      - App__HealthCheckUrl=http://abp-admin:8080/health-status
+      - AuthServer__Authority=http://abp-admin-api:8080
       - AuthServer__RequireHttpsMetadata=false
       - AuthServer__SetSelfAsIssuer=true 
-      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=Abp_Administration;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=AbpAdmin;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
     ports:
       - "44366:8081"
     depends_on:
@@ -42,13 +42,13 @@ services:
       - abp-network  
   
   db-migrator:
-    image: abp_administration-api:latest
+    image: abp-admin-api:latest
     container_name: db-migrator
     build:
       context: ../../
-      dockerfile: Abp_Administration/Dockerfile.local
+      dockerfile: AbpAdmin/Dockerfile.local
     environment:
-      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=Abp_Administration;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - ConnectionStrings__Default=Data Source=sql-server;Initial Catalog=AbpAdmin;User Id=sa;Password=myPassw0rd;MultipleActiveResultSets=true;TrustServerCertificate=True;
     command:
       - --migrate-database
     depends_on:
@@ -76,8 +76,8 @@ services:
       start_period: 10s
 volumes:
   sqldata:
-    name: abp_administration_sqldata
+    name: abp-admin_sqldata
 networks:
   abp-network:
-    name: abp_administration-network
+    name: abp-admin-network
     driver: bridge

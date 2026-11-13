@@ -156,6 +156,8 @@ PublishScripts/
 **/packages/*
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
+# ...but /packages is ABP Admin's package sources (NuGet + npm), not a restore folder.
+!/packages/*
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/packages/repositories.config
 # NuGet v3's project.json files produces more ignoreable files
@@ -263,8 +265,8 @@ paket-files/
 !.vscode/extensions.json
 *.code-workspace
 
-# Abp_Administration
-Abp_Administration/Logs/*
+# AbpAdmin
+AbpAdmin/Logs/*
 
 *.db
 *.db-shm

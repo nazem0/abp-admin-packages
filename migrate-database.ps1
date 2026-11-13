@@ -1,3 +1,3 @@
-dotnet run --project Abp_Administration --migrate-database
+dotnet run --project ABP Admin --migrate-database
 
 exit $LASTEXITCODE

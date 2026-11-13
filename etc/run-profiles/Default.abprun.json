@@ -1,6 +1,6 @@
 {
   "applications": {
-    "Abp_Administration.Angular": {
+    "AbpAdmin.Angular": {
       "type": "cli",
       "workingDirectory": "../../angular",
       "startCommand": "./start.ps1",
@@ -9,12 +9,12 @@
         "order": 0
       }
     },
-    "Abp_Administration": {
+    "AbpAdmin": {
       "type": "dotnet-project",
       "launchUrl": "https://localhost:44366",
       "healthCheckEndpoint": "/health-status",
       "healthUiEndpoint": "/health-ui",
-      "path": "../../Abp_Administration/Abp_Administration.csproj",
+      "path": "../../AbpAdmin/AbpAdmin.csproj",
       "execution": {
         "order": 1
       }

@@ -1,0 +1,24 @@
+{
+  "culture": "ar",
+  "texts": {
+    "AppName": "ABP Admin",
+    "Menu:Home": "الرئيسية",
+    "Menu:AuditLogs": "سجلات التدقيق",
+    "Permission:AbpAdmin": "ABP Admin",
+    "Permission:AuditLogs": "سجلات التدقيق",
+    "Permission:SecurityLogs": "سجلات الأمان",
+    "Permission:IdentitySettings": "إعدادات الهوية",
+    "Permission:Applications": "تطبيقات OpenIddict",
+    "Permission:Scopes": "نطاقات OpenIddict",
+    "Permission:BackgroundJobs": "المهام الخلفية",
+    "Permission:BackgroundJobs.Manage": "إعادة المحاولة والحذف",
+    "Permission:Create": "إنشاء",
+    "Permission:Edit": "تعديل",
+    "Permission:Delete": "حذف",
+    "Permission:ManagePermissions": "تغيير الصلاحيات",
+    "Permission:OrganizationUnits": "الوحدات التنظيمية",
+    "Permission:OrganizationUnits.ManageTree": "إدارة الشجرة",
+    "Permission:OrganizationUnits.ManageMembers": "إدارة الأعضاء",
+    "Permission:OrganizationUnits.ManageRoles": "إدارة الأدوار"
+  }
+}

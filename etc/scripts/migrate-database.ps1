@@ -4,7 +4,7 @@ $jobs = @()
 
 $jobs += Start-Job -Name "DbMigrator" -ScriptBlock {
     $ErrorActionPreference = "Stop"
-    Set-Location (Join-Path $using:scriptRoot "../../Abp_Administration")
+    Set-Location (Join-Path $using:scriptRoot "../../AbpAdmin")
     dotnet run --migrate-database
 
     if ($LASTEXITCODE -ne 0) {
