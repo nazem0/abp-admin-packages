@@ -1,89 +1,178 @@
-# Abp_Administration
+# ABP Admin
 
-## About this solution
+An open-source, headless admin console for [ABP Framework](https://abp.io) applications.
+It gives the free ABP modules the admin screens they ship without: an **overview dashboard**,
+**audit, security and entity-change logs**, **users, roles, organization units and permissions**,
+**OpenIddict applications and scopes**, **background jobs**, **features**, and **identity, email and
+time-zone settings**.
 
-This is a minimalist, non-layered startup solution with the ABP Framework. All the fundamental ABP modules are already installed. Check the [Application (Single Layer) Startup Template](https://abp.io/docs/latest/solution-templates/application-single-layer) documentation for more info.
+> Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
 
-### Pre-requirements
+## Features
 
-* [.NET10.0+ SDK](https://dotnet.microsoft.com/download/dotnet)
-* [Node v18 or 20](https://nodejs.org/en)
+- **Overview** — users, sign-ins, requests and job health for the last 24 hours, with a "needs
+  attention" strip (lockouts, failed sign-ins, failing requests, abandoned jobs) linking to each screen.
+- **Audit log dashboard** — request volume, error rate, latency, active users and data changes over
+  24 h / 7 d / 30 d / 90 d, a daily traffic chart, status codes, methods, and the busiest and slowest
+  endpoints (ids in URLs are grouped as `{id}`). Click any figure to filter the request list.
+- **Request trace** — every request as a timing waterfall tree:
+  request → API controller → application service → the entity changes it caused.
+- **Entity changes** — a feed of every create, update and delete across all requests, with
+  created/updated/deleted totals. Filter by change type, id, time range and a searchable multi-select
+  entity-type picker (grouped by module, with per-type change counts); framework noise such as
+  OpenIddict tokens and security logs is hidden by default.
+- **Entity history** — the full life of any entity (old → new values per property, who and when),
+  linked to the request that made each change.
+- **Security logs** — ABP Identity's sign-in log: successes, failures, lockouts, sign-outs and
+  credential changes with user, client app, IP and browser; filter by action, user or IP; jump from
+  an event to the HTTP request that caused it (correlation id).
+- **Background jobs** — the persisted ABP job queue: waiting, retrying and abandoned jobs with their
+  arguments and schedule; run now (re-queue) or delete.
+- **Users** — search, create, edit (profile, password, roles, active/lockout), delete, lock/unlock,
+  per-user permissions and a link to each user's sign-in history.
+- **Organization units** — the free Identity module's OU tree with a UI: create, rename, move and
+  delete units; add members and roles (members inherit the roles of their unit and its parents).
+- **Roles** — create, edit (default/public flags), delete non-static roles, and manage each role's permissions.
+- **Permissions editor** — grouped tree with search, select-all per group, parent/child rules
+  (granting a child grants its parents, revoking a parent revokes its children), and grants
+  inherited from roles shown as locked "via role …".
+- **OpenIddict applications** — register clients: public/confidential (secret generation, hashed
+  storage, rotation), grant types (endpoint and response-type permissions are derived), PKCE,
+  redirect URIs, scopes, consent; plus **client permissions** for client-credentials backends.
+- **OpenIddict scopes** — API scopes and the resources (audiences) they map to.
+- **Features** — host feature values for toggle, free-text (numeric limits) and selection
+  features; children lock while their parent toggle is off; reset to defaults.
+- **Identity & sign-in settings** — password policy, lockout, email/phone confirmation,
+  self-registration and local login, rendered from ABP's own setting definitions.
+- **Email settings** — SMTP sender, server, SSL and credentials, plus a "send test email" form.
+- **Time-zone settings** — pick the zone (or keep each user's browser zone) used for every time,
+  day boundary and chart; backed by ABP's `Abp.Timing.TimeZone` setting with a UTC clock.
+- **Headless Angular UI** — no theme packages; only `@abp/ng.core` + `@abp/ng.oauth`, hand-built
+  accessible components on `@angular/aria`, light/dark/system theme switch, a **Ctrl+K command
+  palette** (pages and quick actions, filtered by permission), toasts, responsive down to phone width.
 
-### Configurations
+## Stack
 
-The solution comes with a default configuration that works out of the box. However, you may consider to change the following configuration before running your solution:
+| Layer    | Tech |
+|----------|------|
+| Backend  | .NET 11, ABP 11 (single-layer), EF Core + SQL Server, OpenIddict |
+| Frontend | Angular 22 (signals, standalone), `@angular/aria`, pnpm |
+| Mapping  | Mapperly, including ABP 11 `IQueryProjector` query projection |
 
-* Check the `ConnectionStrings` in `appsettings.json` file under the `Abp_Administration` project and change it if you need.
+> ABP 11 is currently a release candidate (`11.0.0-rc.2`); the project tracks it until 11.0 is stable.
 
-### Solution structure
+## Getting started
 
-This is a single-layer application that consists of the following projects:
-
-* `angular`: Angular SPA application.
-* `Abp_Administration`: ASP.NET Core API host application.
-* `Abp_Administration.Tests`: Test project for the application.
-
-## Before running the application
-
-### Generating a Signing Certificate
-
-In the production environment, you need to use a production signing certificate. ABP Framework sets up signing and encryption certificates in your application and expects an `openiddict.pfx` file in your application.
-
-This certificate is already generated when you created the solution, so most of the time you don't need to generate it yourself. However, if you need to generate a certificate, you can use the following command:
+Prerequisites: [.NET 11 SDK](https://dotnet.microsoft.com/download), [Node 20+](https://nodejs.org),
+[pnpm](https://pnpm.io), [ABP CLI](https://abp.io/docs/latest/cli), SQL Server (LocalDB works).
 
 ```bash
-dotnet dev-certs https -v -ep openiddict.pfx -p cfa78763-54e8-47a4-9c2d-9a8a002aa5d5
-```
+# 1. Database (creates and seeds the AbpAdmin database)
+cd AbpAdmin
+dotnet run -- --migrate-database
 
-> `cfa78763-54e8-47a4-9c2d-9a8a002aa5d5` is the password of the certificate, you can change it to any password you want.
-
-It is recommended to use **two** RSA certificates, distinct from the certificate(s) used for HTTPS: one for encryption, one for signing.
-
-For more information, please refer to: [OpenIddict Certificate Configuration](https://documentation.openiddict.com/configuration/encryption-and-signing-credentials.html#registering-a-certificate-recommended-for-production-ready-scenarios)
-
-> Also, see the [Configuring OpenIddict](https://abp.io/docs/latest/Deployment/Configuring-OpenIddict#production-environment) documentation for more information.
-
-### Install Client-Side libraries
-
-Run the following command in your solution directory. This step is automatically done when you create a new solution, if you didn't especially disabled it. However, you should run it yourself if you have first cloned this solution from your source control, or added a new client-side package dependency to your solution.
-
-```bash
+# 2. Backend client libraries for the login page, then the API
 abp install-libs
+dotnet run            # https://localhost:44366  (Swagger at /swagger)
+
+# 3. Angular app
+cd ../angular
+pnpm install
+pnpm start            # http://localhost:4200
 ```
 
-> This command installs all NPM packages for MVC/Razor Pages and Blazor Server UIs and this command is already run by the ABP CLI, so most of the time you don't need to run this command manually.
+Sign in with `admin` / `1q2w3E*` (change it right away outside development).
 
-## Deploying the application
+Edit `ConnectionStrings:Default` in `AbpAdmin/appsettings.json` for a different database.
 
-Deploying an ABP application follows the same process as deploying any .NET or ASP.NET Core application. However, there are important considerations to keep in mind. For detailed guidance, refer to ABP's [deployment documentation](https://abp.io/docs/latest/Deployment/Index).
+## Project layout
 
-### How to deploy on Docker
+```
+AbpAdmin/          ASP.NET Core host: app services, EF Core DbContext, OpenIddict, login UI
+  Services/AuditLogs/   AuditLogAppService (ReadOnlyAppService + statistics), DTOs, Mapperly projector
+  Services/SecurityLogs/  security log (ReadOnlyAppService + projection)
+  Services/Identity/    organization units, user lock/unlock
+  Services/OpenIddict/  applications and scopes (through OpenIddict's managers)
+  Services/BackgroundJobs/  job queue viewer, retry, delete
+  Services/Settings/    identity & account settings
+  Services/Dashboard/   overview numbers (permission-aware)
+AbpAdmin.Tests/    xUnit integration tests (SQLite in-memory)
+angular/           Headless Angular admin UI
+  src/app/audit-logs/   dashboard, request list, trace/changes sheet
+  src/app/entity-changes/  change feed, entity history sheet, shared diff/timeline
+  src/app/overview/     dashboard
+  src/app/security-logs/  security log
+  src/app/background-jobs/  job queue
+  src/app/identity/     users, roles, organization units
+  src/app/openiddict/   applications and scopes
+  src/app/permissions/  permissions editor sheet (roles, users, clients)
+  src/app/features/     host features
+  src/app/settings/     identity, time-zone and email settings
+  src/app/shared/       nav, command palette, toasts, theme, sheet directive, API error helper
+  src/app/proxy/        generated by `pnpm generate-proxy` — do not edit
+etc/               Docker build and compose scripts
+```
 
-The application provides the related `Dockerfiles` and `docker-compose` file with scripts. You can build the docker images and run them using docker-compose. The necessary database, DbMigrator, and the application will be running on docker with health checks in an isolated docker network.
+## How the APIs reach Angular
 
-#### Creating the Docker images
+The free ABP Audit Logging and OpenIddict modules ship **no HTTP API**, so ABP Admin wraps their
+repositories in its own application services (module `app`, routes under `/api/app/...`).
+ABP's built-in endpoints (e.g. `/api/setting-management/timezone`) are used as they are.
 
-Navigate to [etc/build](./etc/build) folder and run the `build-images-locally.ps1` script. You can examine the script to set **image tag** for your images. It is `latest` by default.
+With the API running, regenerate the typed Angular services:
 
-#### Running the Docker images using Docker-Compose
+```bash
+cd angular
+pnpm generate-proxy   # modules `app` (our services) and `settingManagement`
+```
 
-Navigate to [etc/docker](./etc/docker) folder and run the `run-docker.ps1` script. The script will generate developer certificates (if it doesn't exist already) with `dotnet dev-certs` command to use HTTPS. Then, the script runs the provided docker-compose file on detached mode.
+Always-present DTO members carry `[Required]` so the generated TypeScript types are non-optional.
 
-> Not: Developer certificate is only valid for **localhost** domain. If you want to deploy to a real DNS in a production environment, use LetsEncrypt or similar tools.
+## Notes
 
-#### Stopping the Docker containers
+- **New permissions need a seed.** ABP grants every permission to the `admin` role only when the data
+  seeder runs. After pulling a version that adds screens, run `dotnet run --migrate-database` in
+  `AbpAdmin/` once (or grant them in Roles › admin › Permissions).
+- **Client permissions** (provider `C`) are mapped to `AbpAdmin.Applications.ManagePermissions`;
+  the free OpenIddict module points them at a Pro-only policy that doesn't exist.
+- **Read-only services use ABP 11 query projection.** `AuditLogAppService` derives from
+  `ReadOnlyAppService`; `AuditLogDtoProjector` (Mapperly, `IQueryProjector<AuditLog, AuditLogDto>`)
+  turns `GetAsync`/`GetListAsync` into a single SQL `SELECT` of the DTO shape.
+- **Times are stored in UTC** (`AbpClockOptions.Kind = Utc`) and the pipeline calls `UseAbpTimeZone()`,
+  so statistics are bucketed into days in the viewer's zone.
+- **GET requests are not audited** by ABP's default. Enable `AbpAuditingOptions.IsEnabledForGetRequests`
+  if you want reads in the dashboard.
+- **Statistics are computed live** over at most 92 days; very large audit tables would want a
+  pre-aggregated rollup.
 
-Navigate to [etc/docker](./etc/docker) folder and run the `stop-docker.ps1` script. The script stops and removes the running containers.
+## Production checklist
 
-### Additional resources
+- Replace `AuthServer:CertificatePassPhrase` and `StringEncryption:DefaultPassPhrase` in `appsettings.json`.
+- Provide a real signing/encryption certificate (`openiddict.pfx` is git-ignored):
+  `dotnet dev-certs https -v -ep openiddict.pfx -p <passphrase>` — see
+  [Configuring OpenIddict](https://abp.io/docs/latest/Deployment/Configuring-OpenIddict#production-environment).
+- Restore the identity password rules relaxed in `appsettings.json` for development.
+- Docker: `etc/build/build-images-locally.ps1`, then `etc/docker/run-docker.ps1`.
 
-#### Internal Resources
+## Roadmap
 
-You can find detailed setup and configuration guide(s) for your solution below:
+- [x] Audit log dashboard, trace and entity history
+- [x] Entity change feed
+- [x] Time-zone and email settings
+- [x] Users, roles and permissions
+- [x] Host features
+- [x] Security logs, background jobs, overview dashboard
+- [x] OpenIddict applications, scopes and client permissions
+- [x] Organization units
+- [x] Identity & sign-in settings, user lock/unlock
+- [ ] Claim types and user/role claims
+- [ ] Session management (needs ABP session tracking enabled)
+- [ ] Localization of the admin UI (English only today)
 
-* [Angular](./angular/README.md)
+## Contributing
 
-#### External Resources
-You can see the following resources to learn more about your solution and the ABP Framework:
+Issues and pull requests are welcome. Please run `dotnet test` and `pnpm build` before opening a PR.
 
-* [Application (Single Layer) Startup Template](https://abp.io/docs/latest/solution-templates/application-single-layer)
+## License
+
+[MIT](LICENSE)
