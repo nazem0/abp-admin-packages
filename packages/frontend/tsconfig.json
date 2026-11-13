@@ -15,7 +15,7 @@
     "lib": ["ES2022", "dom", "esnext.disposable"],
     "useDefineForClassFields": false,
     "paths": {
-      "@abp-admin/ng": ["./dist/abp-admin"]
+      "@nazem0/abp-admin-ng": ["./dist/abp-admin"]
     }
   },
   "angularCompilerOptions": {

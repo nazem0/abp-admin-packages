@@ -11,7 +11,7 @@ packages/
     samples/AbpAdmin.Host/      an ordinary ABP host that only references the packages
     test/AbpAdmin.Tests/        integration tests, run against the sample host
   frontend/
-    projects/abp-admin/         npm: @abp-admin/ng (headless Angular library)
+    projects/abp-admin/         npm: @nazem0/abp-admin-ng (headless Angular library)
     projects/demo/              an Angular app consuming the built library
 ```
 
@@ -19,9 +19,24 @@ packages/
 |---|---|
 | `AbpAdmin.Application` | Audit / security / entity-change logs, background jobs, organization units, user lock/unlock, OpenIddict applications & scopes, identity settings, dashboard. Permissions (`AbpAdmin.*`) and localization (en, ar). Depends only on the **domain** packages of the free ABP modules. |
 | `AbpAdmin.HttpApi` | Conventional API controllers for the above: `/api/abp-admin/...`, remote service name `AbpAdmin`. |
-| `@abp-admin/ng` | Every admin page, the shell (sidebar, Ctrl+K palette, toasts, theme switch) and typed proxies. Depends only on `@abp/ng.core` (+ `@angular/aria`); no theme package. Styles are scoped under `.abp-admin`, so they never touch the host app. |
+| `@nazem0/abp-admin-ng` | Every admin page, the shell (sidebar, Ctrl+K palette, toasts, theme switch) and typed proxies. Depends only on `@abp/ng.core` (+ `@angular/aria`); no theme package. Styles are scoped under `.abp-admin`, so they never touch the host app. |
 
 ## Add it to an ABP application
+
+The packages are published privately to **GitHub Packages** (owner `nazem0`). Reading them needs a
+GitHub token with `read:packages` (`gh auth token` works after `gh auth refresh -s read:packages`).
+
+```bash
+# NuGet: add the feed once
+dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github-nazem0 \
+  -u <github-user> -p <token> --store-password-in-clear-text
+```
+
+```ini
+# .npmrc next to your Angular app's package.json (keep the token out of git: use an env var)
+@nazem0:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
 
 ### Backend
 
@@ -59,13 +74,13 @@ packages/
 
 ### Angular
 
-1. Install: `pnpm add @abp-admin/ng` (peer dependencies: `@abp/ng.core`, `@angular/aria`, Angular 22).
+1. Install: `pnpm add @nazem0/abp-admin-ng` (peer dependencies: `@abp/ng.core`, `@angular/aria`, Angular 22).
 2. Mount it under any path and enable component input binding (deep links such as
    `?user=`, `?correlation=`, `?new=1` are read as inputs):
 
    ```ts
    // app.routes.ts
-   { path: 'admin', loadChildren: () => import('@abp-admin/ng').then(m => m.ABP_ADMIN_ROUTES) }
+   { path: 'admin', loadChildren: () => import('@nazem0/abp-admin-ng').then(m => m.ABP_ADMIN_ROUTES) }
 
    // app.config.ts
    provideRouter(routes, withComponentInputBinding())
@@ -86,18 +101,19 @@ components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
 Prerequisites: .NET 11 SDK, Node 22+, pnpm, ABP CLI, SQL Server LocalDB.
 
 ```bash
-# backend: build, test, pack (→ packages/backend/artifacts/*.nupkg)
-cd packages/backend
+# backend: build, test, pack (→ backend/artifacts/*.nupkg)
+cd backend
 dotnet test AbpAdmin.Packages.slnx
 dotnet pack AbpAdmin.Packages.slnx -c Release
 
 # sample host: database "AbpAdminDemo", https://localhost:44368 (admin / 1q2w3E*)
 cd samples/AbpAdmin.Host
+abp install-libs                     # login page client libraries (not in git)
 dotnet run -- --migrate-database
 dotnet run
 
 # frontend: build the library, then run the demo app against the sample host
-cd packages/frontend
+cd frontend
 pnpm install
 pnpm build:lib            # → dist/abp-admin
 pnpm start                # demo on http://localhost:4201, admin at /admin
@@ -107,21 +123,23 @@ npm pack ./dist/abp-admin --pack-destination artifacts
 pnpm generate-proxy
 ```
 
-The demo app imports `@abp-admin/ng` from `dist/abp-admin` (tsconfig path), i.e. exactly what is
+The demo app imports `@nazem0/abp-admin-ng` from `dist/abp-admin` (tsconfig path), i.e. exactly what is
 published — rebuild the library after changing it (`pnpm watch:lib` keeps it rebuilding).
 
-### Publish
+### Publish (GitHub Packages)
+
+Needs a token with `write:packages` (`gh auth refresh -s write:packages`).
 
 ```bash
-dotnet nuget push packages/backend/artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k <key>
-cd packages/frontend/dist/abp-admin && npm publish --access public
+dotnet nuget push "backend/artifacts/*.nupkg" -s https://nuget.pkg.github.com/nazem0/index.json -k $(gh auth token)
+cd frontend/dist/abp-admin && NODE_AUTH_TOKEN=$(gh auth token) npm publish   # registry comes from publishConfig
 ```
 
-Bump the version in `backend/Directory.Build.props` and `frontend/projects/abp-admin/package.json`.
+Bump the version in `backend/Directory.Build.props` and `frontend/projects/abp-admin/package.json`
+first — a published version can't be overwritten.
 
-## Relationship to the root app
+## Origin
 
-The root `AbpAdmin` app and `angular` app are untouched. The packages were created from them:
-same code, same namespaces (`AbpAdmin.Services.*`), same permissions — only the API root changes
-from `/api/app` to `/api/abp-admin`, component selectors from `app-*` to `abp-*`, and links became
-relative so the UI can be mounted under any path.
+Extracted from the ABP Admin application: same code, namespaces (`AbpAdmin.Services.*`) and
+permissions. Only the API root changes from `/api/app` to `/api/abp-admin`, component selectors from
+`app-*` to `abp-*`, and links became relative so the UI can be mounted under any path.

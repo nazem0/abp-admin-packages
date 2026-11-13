@@ -14,6 +14,6 @@ public class YourHttpApiHostModule : AbpModule { }
 
 Requires the Audit Logging, Identity, OpenIddict, Background Jobs, Setting Management and Permission
 Management modules (any ABP app template has them). Run your data seeder once so the `admin` role
-gets the new permissions. Pair with the Angular UI package `@abp-admin/ng`.
+gets the new permissions. Pair with the Angular UI package `@nazem0/abp-admin-ng`.
 
 MIT licensed. Community project, not affiliated with Volosoft.

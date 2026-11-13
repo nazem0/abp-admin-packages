@@ -1,5 +1,5 @@
 /*
- * @abp-admin/ng — headless admin UI for ABP Framework.
+ * @nazem0/abp-admin-ng — headless admin UI for ABP Framework.
  * Mount ABP_ADMIN_ROUTES under any path; everything else is exported for custom composition.
  */
 export * from './lib/layout/abp-admin.routes';

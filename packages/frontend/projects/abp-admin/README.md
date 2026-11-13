@@ -1,4 +1,4 @@
-# @abp-admin/ng
+# @nazem0/abp-admin-ng
 
 Headless Angular admin UI for [ABP Framework](https://abp.io): overview dashboard, audit / security /
 entity-change logs, background jobs, users, roles, organization units, permissions (roles, users,
@@ -10,7 +10,7 @@ under `.abp-admin`, so they never affect your app.
 
 ```ts
 // app.routes.ts — mount it anywhere
-{ path: 'admin', loadChildren: () => import('@abp-admin/ng').then(m => m.ABP_ADMIN_ROUTES) }
+{ path: 'admin', loadChildren: () => import('@nazem0/abp-admin-ng').then(m => m.ABP_ADMIN_ROUTES) }
 
 // app.config.ts — deep links (?user=, ?correlation=, ?new=1) are bound as inputs
 provideRouter(routes, withComponentInputBinding())

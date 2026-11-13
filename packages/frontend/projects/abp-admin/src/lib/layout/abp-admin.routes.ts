@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { AbpAdminLayoutComponent } from './abp-admin-layout.component';
 
 /**
- * Mount anywhere: `{ path: 'admin', loadChildren: () => import('@abp-admin/ng').then(m => m.ABP_ADMIN_ROUTES) }`.
+ * Mount anywhere: `{ path: 'admin', loadChildren: () => import('@nazem0/abp-admin-ng').then(m => m.ABP_ADMIN_ROUTES) }`.
  * Needs `provideRouter(..., withComponentInputBinding())` for deep links (?user=, ?correlation=, ?new=1 ...).
  */
 export const ABP_ADMIN_ROUTES: Routes = [{

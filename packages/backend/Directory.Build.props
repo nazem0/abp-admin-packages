@@ -12,6 +12,9 @@
     <Version>0.1.0</Version>
     <Authors>ABP Admin contributors</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/nazem0/abp-admin-packages</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/nazem0/abp-admin-packages</PackageProjectUrl>
     <PackageTags>abp;abp-framework;admin;audit-log;openiddict;identity</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

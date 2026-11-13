@@ -1,5 +1,5 @@
 {
-  "name": "@abp-admin/ng",
+  "name": "@nazem0/abp-admin-ng",
   "version": "0.1.0",
   "description": "Headless Angular admin UI for ABP Framework: audit/security/entity-change logs, users, roles, organization units, permissions, OpenIddict applications and scopes, background jobs, features and settings.",
   "license": "MIT",
@@ -22,5 +22,14 @@
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nazem0/abp-admin-packages.git",
+    "directory": "frontend/projects/abp-admin"
+  },
+  "homepage": "https://github.com/nazem0/abp-admin-packages",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
