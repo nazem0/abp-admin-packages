@@ -1,0 +1,204 @@
+<dialog #dialog class="sheet" (cancel)="$event.preventDefault(); close()" (click)="onBackdrop($event)" aria-labelledby="sheet-title">
+  @if (log(); as l) {
+    @let url = f.splitUrl(l.url);
+    <header class="head" [class]="'head tone-' + tone()">
+      <div class="title-row">
+        <span class="pill">{{ l.httpStatusCode ?? '—' }}</span>
+        <span [class]="'method tone-' + f.methodTone(l.httpMethod)">{{ l.httpMethod }}</span>
+        <h2 id="sheet-title" class="url mono" [title]="l.url">{{ url.path }}<span class="muted">{{ url.query }}</span></h2>
+        <button class="icon-btn" (click)="close()" aria-label="Close details" autofocus>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+      <dl class="meta">
+        <div><dt>User</dt><dd><span class="avatar sm">{{ (l.userName ?? '?')[0].toUpperCase() }}</span>{{ l.userName ?? 'anonymous' }}
+          @if (l.impersonatorUserName) { <span class="muted">via {{ l.impersonatorUserName }}</span> }</dd></div>
+        <div><dt>When</dt><dd [title]="f.stamp(l.executionTime, full)">{{ f.relative(l.executionTime) }} <span class="muted">{{ f.stamp(l.executionTime, short) }}</span></dd></div>
+        <div><dt>Duration</dt><dd>{{ f.duration(l.executionDuration) }}</dd></div>
+        <div><dt>Client</dt><dd>{{ l.clientIpAddress ?? '—' }} <span class="muted">· {{ browser(l.browserInfo) }}</span></dd></div>
+        @if (l.clientId) { <div><dt>App</dt><dd class="mono">{{ l.clientId }}</dd></div> }
+        <div><dt>Correlation</dt>
+          <dd><button class="copy mono" (click)="copy(l.correlationId)" [title]="'Copy ' + l.correlationId">
+            {{ l.correlationId?.slice(0, 12) }}… <span class="muted">{{ copied() ? 'copied ✓' : 'copy' }}</span></button></dd></div>
+      </dl>
+    </header>
+
+    <div ngTabs class="tabs">
+      <ul ngTabList [(selectedTab)]="tab" class="tablist" aria-label="Audit log sections">
+        <li ngTab value="trace">Trace <span class="count">{{ l.actions.length }}</span></li>
+        <li ngTab value="changes" [disabled]="!l.entityChanges.length">Changes <span class="count">{{ l.entityChanges.length }}</span></li>
+        @if (l.exceptions) { <li ngTab value="exception" class="ex-tab">Exception</li> }
+        <li ngTab value="raw">Raw</li>
+      </ul>
+
+      <!-- TRACE: request → actions → entity changes on one time axis -->
+      <div ngTabPanel value="trace" class="panel">
+        <ng-template ngTabContent>
+          @if (l.exceptions) {
+            <button class="callout tone-err" (click)="tab.set('exception')">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5v.5M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" /></svg>
+              <span>{{ firstExceptionLine() }}</span>
+              <b>View exception →</b>
+            </button>
+          }
+
+          <div class="waterfall" role="tree" aria-label="Request trace">
+            <div class="axis" aria-hidden="true">
+              <span class="axis-label"></span>
+              <div class="track">
+                @for (t of ticks(); track t.left) {
+                  <span class="tick" [style.left.%]="t.left">{{ t.label }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- root: the HTTP request -->
+            <div class="row root" role="treeitem" aria-level="1" aria-expanded="true">
+              <span class="row-label">
+                <span [class]="'dot tone-' + tone()"></span>
+                <b>Request</b><span class="muted">{{ f.duration(l.executionDuration) }}</span>
+              </span>
+              <div class="track">
+                <span [class]="'bar tone-' + tone()" style="left:0" [style.width.%]="rootWidth()"></span>
+              </div>
+            </div>
+
+            <div ngAccordionGroup [multiExpandable]="true" class="tree">
+              @for (r of rows(); track r.id) {
+                @if (r.kind === 'action') {
+                  <div class="node">
+                    <button class="row" ngAccordionTrigger [panel]="p" role="treeitem" [attr.aria-level]="r.depth + 1" [style.--depth]="r.depth" [class.last]="r.last">
+                      <span class="row-label">
+                        @for (g of r.guides; track g) { <span class="guide" [style.--g]="g" aria-hidden="true"></span> }
+                        <span class="elbow" aria-hidden="true"></span>
+                        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                        <span [class]="'kind tone-' + r.tone">{{ r.badge }}</span>
+                        <span class="name" [title]="r.service">{{ r.label }}</span><span class="muted">{{ r.sub }}</span>
+                      </span>
+                      <div class="track"><span [class]="'bar tone-' + r.tone" [style.left.%]="r.left" [style.width.%]="r.width"></span></div>
+                    </button>
+                    <div ngAccordionPanel #p="ngAccordionPanel" class="params" [style.--depth]="r.depth">
+                      <ng-template ngAccordionContent>
+                        <div class="step-meta">
+                          <span class="step-no">Step {{ r.step }}</span>
+                          <span>starts <b>+{{ f.duration(r.offset!) }}</b></span>
+                          <span>takes <b>{{ r.sub }}</b><span class="muted">&nbsp;({{ r.share }}% of request)</span></span>
+                        </div>
+                        <p class="mono svc">{{ r.service }}</p>
+                        @if (r.args!.length) {
+                          <div class="params-head"><span>Parameters <span class="count">{{ r.args!.length }}</span></span>
+                            <button class="copy" (click)="copy(r.params)">{{ copied() ? 'copied ✓' : 'copy JSON' }}</button></div>
+                          <table class="kv">
+                            <tbody>
+                              @for (a of r.args; track a.path) {
+                                <tr><th scope="row" class="mono">{{ a.path }}</th>
+                                  <td class="mono" [class.nil]="a.value === null">{{ a.value ?? 'null' }}</td></tr>
+                              }
+                            </tbody>
+                          </table>
+                          <details class="raw-json"><summary>Raw JSON</summary><pre>{{ r.params }}</pre></details>
+                        } @else {
+                          <p class="muted none">No parameters</p>
+                        }
+                      </ng-template>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="node">
+                    <button class="row change" ngAccordionTrigger [panel]="cp" role="treeitem" [attr.aria-level]="r.depth + 1"
+                            [style.--depth]="r.depth" [class.last]="r.last" [title]="r.change!.entityTypeFullName + ' #' + r.change!.entityId">
+                      <span class="row-label">
+                        @for (g of r.guides; track g) { <span class="guide" [style.--g]="g" aria-hidden="true"></span> }
+                        <span class="elbow" aria-hidden="true"></span>
+                        <span [class]="'diamond tone-' + r.tone" aria-hidden="true"></span>
+                        <span class="name">{{ r.label }}</span><span [class]="'pill xs tone-' + r.tone">{{ r.sub }}</span>
+                      </span>
+                      <div class="track"><span [class]="'marker tone-' + r.tone" [style.left.%]="r.left"></span></div>
+                    </button>
+                    <div ngAccordionPanel #cp="ngAccordionPanel" class="params" [style.--depth]="r.depth">
+                      <ng-template ngAccordionContent>
+                        <div class="step-meta">
+                          <span class="mono muted">{{ r.change!.entityTypeFullName }} #{{ r.change!.entityId }}</span>
+                          <button class="copy link-btn" (click)="showChange(r.change!)">Open in Changes →</button>
+                        </div>
+                        <app-change-diff [change]="r.change!" />
+                      </ng-template>
+                    </div>
+                  </div>
+                }
+              } @empty {
+                <p class="muted none">No application service actions were recorded for this request.</p>
+              }
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- CHANGES: per entity, property-level diff, with full entity history on demand -->
+      <div ngTabPanel value="changes" class="panel">
+        <ng-template ngTabContent>
+          <div class="entities">
+            @for (g of entities(); track g.key) {
+              <article class="entity card">
+                <header>
+                  <span class="avatar sq">{{ f.shortType(g.first.entityTypeFullName)[0] }}</span>
+                  <div class="ent-title">
+                    <b>{{ f.shortType(g.first.entityTypeFullName) }}</b>
+                    <span class="mono muted" [title]="g.first.entityTypeFullName">#{{ g.first.entityId }}</span>
+                  </div>
+                  <button class="btn sm" (click)="toggleHistory(g.first)" [attr.aria-expanded]="!!historyOf(g.first)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 103-6.7L3 8M3 3v5h5M12 7v5l3 2" /></svg>
+                    {{ historyOf(g.first) ? 'Hide history' : 'History' }}
+                  </button>
+                </header>
+                @for (c of g.changes; track c.id) {
+                  <section class="change-block" [id]="'chg-' + c.id">
+                    <div class="change-meta">
+                      <span [class]="'pill tone-' + f.changeTone[c.changeType]">{{ f.changeLabel[c.changeType] }}</span>
+                      <span class="muted">{{ f.clock(c.changeTime) }}</span>
+                    </div>
+                    <app-change-diff [change]="c" />
+                  </section>
+                }
+
+                @if (historyOf(g.first); as h) {
+                  <div class="history">
+                    @if (h === 'loading') {
+                      <p class="muted">Loading history…</p>
+                    } @else {
+                      <h4>Timeline <span class="muted">{{ h.length }} change{{ h.length === 1 ? '' : 's' }}</span></h4>
+                      <app-entity-timeline [changes]="h" [currentRequest]="l.id" />
+                    }
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        </ng-template>
+      </div>
+
+      @if (l.exceptions) {
+        <div ngTabPanel value="exception" class="panel">
+          <ng-template ngTabContent>
+            <pre class="exception">{{ f.pretty(l.exceptions) }}</pre>
+          </ng-template>
+        </div>
+      }
+
+      <div ngTabPanel value="raw" class="panel">
+        <ng-template ngTabContent>
+          <dl class="raw">
+            <dt>Id</dt><dd class="mono">{{ l.id }}</dd>
+            <dt>Application</dt><dd>{{ l.applicationName ?? '—' }}</dd>
+            <dt>URL</dt><dd class="mono">{{ l.url }}</dd>
+            <dt>Correlation id</dt><dd class="mono">{{ l.correlationId }}</dd>
+            <dt>Client id</dt><dd class="mono">{{ l.clientId ?? '—' }}</dd>
+            <dt>Client name</dt><dd>{{ l.clientName ?? '—' }}</dd>
+            <dt>Browser</dt><dd class="mono small">{{ l.browserInfo ?? '—' }}</dd>
+            <dt>Comments</dt><dd>{{ l.comments || '—' }}</dd>
+          </dl>
+        </ng-template>
+      </div>
+    </div>
+  }
+</dialog>

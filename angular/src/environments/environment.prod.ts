@@ -5,9 +5,9 @@ const baseUrl = 'http://localhost:4200';
 const oAuthConfig = {
   issuer: 'https://localhost:44366/',
   redirectUri: baseUrl,
-  clientId: 'Abp_Administration_App',
+  clientId: 'AbpAdmin_App',
   responseType: 'code',
-  scope: 'offline_access Abp_Administration',
+  scope: 'offline_access AbpAdmin',
   requireHttps: true,
 };
 
@@ -15,13 +15,13 @@ export const environment = {
   production: true,
   application: {
     baseUrl,
-    name: 'Abp_Administration',
+    name: 'AbpAdmin',
   },
   oAuthConfig,
   apis: {
     default: {
       url: 'https://localhost:44366',
-      rootNamespace: 'Abp_Administration',
+      rootNamespace: 'AbpAdmin',
     },
     AbpAccountPublic: {
       url: oAuthConfig.issuer,

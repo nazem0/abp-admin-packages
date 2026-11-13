@@ -1,21 +1,21 @@
 {
   "production": true,
   "application": {
-    "baseUrl":"https://abp_administration-web",
-    "name": "Abp_Administration",
+    "baseUrl":"https://abp-admin-web",
+    "name": "AbpAdmin",
     "logoUrl": ""
   },
   "oAuthConfig": {
-    "issuer": "https://abp_administration-api/",
-    "redirectUri": "https://abp_administration",
-    "clientId": "Abp_Administration_App",
+    "issuer": "https://abp-admin-api/",
+    "redirectUri": "https://abp-admin",
+    "clientId": "AbpAdmin_App",
     "responseType": "code",
     "scope": "offline_access openid profile email phone"
   },
   "apis": {
     "default": {
-      "url": "https://abp_administration-api",
-      "rootNamespace": "Abp_Administration"
+      "url": "https://abp-admin-api",
+      "rootNamespace": "AbpAdmin"
     }
   }
 }
