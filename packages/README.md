@@ -138,6 +138,14 @@ cd frontend/dist/abp-admin && NODE_AUTH_TOKEN=$(gh auth token) npm publish   # r
 Bump the version in `backend/Directory.Build.props` and `frontend/projects/abp-admin/package.json`
 first — a published version can't be overwritten.
 
+### Live demo
+
+https://abp-admin.runasp.net (admin / 1q2w3E*) — the sample host serving the demo app under `/app/`, on SQLite.
+`pwsh deploy-demo.ps1` rebuilds both and pushes them with Web Deploy; it needs a gitignored `.deploy/` folder
+with the publish profile, `appsettings.Production.json` and `openiddict.pfx` (see the script header).
+The sample host's switches it relies on: a `Data Source=` connection string selects SQLite, `App:MigrateOnStartup`
+creates and seeds the database, `AuthServer:RequireHttps: false` allows plain-HTTP hosting.
+
 ## Origin
 
 Extracted from the ABP Admin application: same code, namespaces (`AbpAdmin.Services.*`) and

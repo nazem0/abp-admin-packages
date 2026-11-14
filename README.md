@@ -8,6 +8,9 @@ time-zone settings**.
 
 > Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
 
+**Live demo:** https://abp-admin.runasp.net (admin / 1q2w3E*). To add the console to your own ABP
+application, use the NuGet and npm packages in [`packages/`](packages/README.md).
+
 ## Features
 
 - **Overview** — users, sign-ins, requests and job health for the last 24 hours, with a "needs

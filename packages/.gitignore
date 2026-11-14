@@ -9,3 +9,6 @@ obj/
 node_modules/
 *.nupkg
 *.tgz
+
+# Demo deployment secrets
+.deploy/
