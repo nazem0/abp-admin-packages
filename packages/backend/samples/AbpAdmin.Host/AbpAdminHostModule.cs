@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using Volo.Abp.Auditing;
 using Volo.Abp.Timing;
 using Microsoft.AspNetCore.Cors;
@@ -58,6 +59,7 @@ using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
+using Volo.Abp.EntityFrameworkCore.Sqlite;
 using Volo.Abp.Studio.Client.AspNetCore;
 
 using Microsoft.Extensions.Hosting;
@@ -113,7 +115,8 @@ namespace AbpAdmin.Host;
     typeof(AbpBackgroundJobsEntityFrameworkCoreModule),
     typeof(BlobStoringDatabaseEntityFrameworkCoreModule),
     typeof(AbpBlobStoringFileSystemModule),
-    typeof(AbpEntityFrameworkCoreSqlServerModule)
+    typeof(AbpEntityFrameworkCoreSqlServerModule),
+    typeof(AbpEntityFrameworkCoreSqliteModule)
 )]
 /// <summary>Sample host: an ordinary ABP app that adds ABP Admin through its packages only.</summary>
 public class AbpAdminHostModule : AbpModule
@@ -145,8 +148,15 @@ public class AbpAdminHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                // MachineKeySet: IIS app pools without a loaded user profile have no user key store to import the key into.
+                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!, X509KeyStorageFlags.MachineKeySet);
             });
+        }
+
+        // Plain-HTTP hosting (e.g. a demo site without a certificate): let OpenIddict serve over http.
+        if (!configuration.GetValue("AuthServer:RequireHttps", true))
+        {
+            PreConfigure<OpenIddictServerBuilder>(serverBuilder => serverBuilder.UseAspNetCore().DisableTransportSecurityRequirement());
         }
 
         AbpAdminGlobalFeatureConfigurator.Configure();
@@ -191,7 +201,7 @@ public class AbpAdminHostModule : AbpModule
         ConfigureCors(context, configuration);
         ConfigureDataProtection(context);
         ConfigureVirtualFiles(hostingEnvironment);
-        ConfigureEfCore(context);
+        ConfigureEfCore(context, configuration);
 
         if (hostingEnvironment.IsDevelopment())
         {
@@ -358,7 +368,7 @@ public class AbpAdminHostModule : AbpModule
         });
     }
 
-    private void ConfigureEfCore(ServiceConfigurationContext context)
+    private void ConfigureEfCore(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddAbpDbContext<AbpAdminDbContext>(options =>
         {
@@ -369,14 +379,30 @@ public class AbpAdminHostModule : AbpModule
             options.AddDefaultRepositories(includeAllEntities: true);
         });
 
+        // A "Data Source=file.db" connection string switches to SQLite (used by the hosted demo).
+        var sqlite = configuration.GetConnectionString("Default")?.StartsWith("Data Source=") == true;
+
         Configure<AbpDbContextOptions>(options =>
         {
             options.Configure(configurationContext =>
             {
-                configurationContext.UseSqlServer();
+                if (sqlite)
+                {
+                    configurationContext.UseSqlite();
+                }
+                else
+                {
+                    configurationContext.UseSqlServer();
+                }
             });
         });
-        
+
+        if (sqlite)
+        {
+            // SQLite has one writer: an outer UoW transaction would block the nested (requiresNew) ones
+            // that write audit and security logs → "database is locked". Commit each save on its own.
+            Configure<AbpUnitOfWorkDefaultOptions>(options => options.TransactionBehavior = UnitOfWorkTransactionBehavior.Disabled);
+        }
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -396,6 +422,11 @@ public class AbpAdminHostModule : AbpModule
         if (!env.IsDevelopment())
         {
             app.UseErrorPage();
+        }
+
+        if (!env.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
         }
 
         app.UseCorrelationId();
@@ -425,6 +456,7 @@ public class AbpAdminHostModule : AbpModule
 
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
-        app.UseConfiguredEndpoints();
+        // The Angular demo, when deployed with the host, lives in wwwroot/app; deep links fall back to its index.
+        app.UseConfiguredEndpoints(endpoints => endpoints.MapFallbackToFile("app/{**path:nonfile}", "app/index.html"));
     }
 }

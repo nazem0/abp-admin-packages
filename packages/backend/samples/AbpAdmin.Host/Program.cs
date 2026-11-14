@@ -45,9 +45,14 @@ public class Program
             var app = builder.Build();
             await app.InitializeApplicationAsync();
 
-            if (IsMigrateDatabase(args))
+            // App:MigrateOnStartup: hosts where you can't run --migrate-database (the hosted demo) migrate and seed on start.
+            if (IsMigrateDatabase(args) || app.Configuration.GetValue<bool>("App:MigrateOnStartup"))
             {
                 await app.Services.GetRequiredService<AbpAdminDbMigrationService>().MigrateAsync();
+            }
+
+            if (IsMigrateDatabase(args))
+            {
                 var previous = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Migration completed.");

@@ -22,10 +22,17 @@ public class AbpAdminDbSchemaMigrator : ITransientDependency
          * current scope.
          */
 
-        await _serviceProvider
-            .GetRequiredService<AbpAdminDbContext>()
-            .Database
-            .MigrateAsync();
+        var database = _serviceProvider.GetRequiredService<AbpAdminDbContext>().Database;
+
+        // The migrations are SQL Server's; a SQLite demo database is created straight from the model.
+        if (database.IsSqlite())
+        {
+            await database.EnsureCreatedAsync();
+        }
+        else
+        {
+            await database.MigrateAsync();
+        }
 
     }
 }
