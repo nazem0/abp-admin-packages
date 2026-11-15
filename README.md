@@ -3,13 +3,41 @@
 An open-source, headless admin console for [ABP Framework](https://abp.io) applications.
 It gives the free ABP modules the admin screens they ship without: an **overview dashboard**,
 **audit, security and entity-change logs**, **users, roles, organization units and permissions**,
-**OpenIddict applications and scopes**, **background jobs**, **features**, and **identity, email and
-time-zone settings**.
+**OpenIddict applications and scopes**, **background jobs**, **tenants** (with per-tenant databases),
+**features**, and **identity, email and time-zone settings**, in English and Arabic.
 
 > Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
 
-**Live demo:** https://abp-admin.runasp.net (admin / 1q2w3E*). To add the console to your own ABP
-application, use the NuGet and npm packages in [`packages/`](packages/README.md).
+To add the console to your own ABP application, use the NuGet and npm packages in
+[`packages/`](packages/README.md).
+
+## Live demo
+
+**https://abp-admin.runasp.net/app/** — the [`packages/`](packages/README.md) sample host on SQLite,
+with sample data. Every password is `1q2w3E*`. To sign in to a tenant, pick it in the sign-in
+page's tenant box first.
+
+| Tenant | Users | Roles |
+| --- | --- | --- |
+| *(host)* | `admin`, `sara` (support), `omar` (auditor) | admin, support, auditor |
+| `acme` | `admin`, `lina` (support), `khaled` (auditor), `noor` (inactive) | admin, support, auditor |
+| `globex` | `admin`, `hana` (support), `ziad` | admin, support, auditor |
+
+*support* manages users and reads security logs; *auditor* reads audit and security logs.
+
+Things to try:
+
+- **Host `admin` › Users** — every tenant's users in one list, with a Tenant column and filter; edit,
+  lock, delete or set permissions of an `acme` user without signing in to `acme`.
+- **`acme` › `admin`** — the same panel scoped to the tenant: its own users, roles, logs and settings;
+  host-only screens (applications, scopes, tenants, features, background jobs) are hidden.
+- **`sara` or `omar`** — what a limited role sees: only the screens its permissions allow.
+- **Language menu** (sidebar footer) — switch to Arabic (right-to-left) and back.
+- **Tenants** — create a tenant (optionally with its own database), disable it, or switch
+  multi-tenancy off and see the sign-in page drop the tenant box.
+
+The demo is public and shared: anyone can change its data, and it may be reset (it is recreated
+whenever its schema changes). Don't put anything real in it.
 
 ## Features
 
@@ -32,7 +60,13 @@ application, use the NuGet and npm packages in [`packages/`](packages/README.md)
 - **Background jobs** — the persisted ABP job queue: waiting, retrying and abandoned jobs with their
   arguments and schedule; run now (re-queue) or delete.
 - **Users** — search, create, edit (profile, password, roles, active/lockout), delete, lock/unlock,
-  per-user permissions and a link to each user's sign-in history.
+  per-user permissions and a link to each user's sign-in history. With multi-tenancy on, the host
+  sees every tenant's users (Tenant column and filter) and manages each one inside its tenant.
+- **Tenants** — create, rename, enable/disable and delete tenants; switch multi-tenancy on or off at
+  runtime; give a tenant its own database (connection test, then created, migrated and seeded) or move
+  it back to the shared one.
+- **Tenant admins** — a tenant's admin uses the same console scoped to their tenant; settings they
+  save apply to their tenant only and fall back to the host's values.
 - **Organization units** — the free Identity module's OU tree with a UI: create, rename, move and
   delete units; add members and roles (members inherit the roles of their unit and its parents).
 - **Roles** — create, edit (default/public flags), delete non-static roles, and manage each role's permissions.
@@ -50,8 +84,10 @@ application, use the NuGet and npm packages in [`packages/`](packages/README.md)
 - **Email settings** — SMTP sender, server, SSL and credentials, plus a "send test email" form.
 - **Time-zone settings** — pick the zone (or keep each user's browser zone) used for every time,
   day boundary and chart; backed by ABP's `Abp.Timing.TimeZone` setting with a UTC clock.
+- **English and Arabic** — every screen localized through ABP's `AbpAdmin` resource, right-to-left
+  layout for Arabic, and a language menu in the sidebar (shown when the app has more than one language).
 - **Headless Angular UI** — no theme packages; only `@abp/ng.core` + `@abp/ng.oauth`, hand-built
-  accessible components on `@angular/aria`, light/dark/system theme switch, a **Ctrl+K command
+  accessible components on `@angular/aria`, light (default)/dark/system theme switch, a **Ctrl+K command
   palette** (pages and quick actions, filtered by permission), toasts, responsive down to phone width.
 
 ## Stack
@@ -86,6 +122,9 @@ pnpm start            # http://localhost:4200
 
 Sign in with `admin` / `1q2w3E*` (change it right away outside development).
 
+To try tenants locally: Tenants › switch multi-tenancy on › New tenant (its admin is created with the
+email and password you enter), then sign in with that tenant picked on the sign-in page.
+
 Edit `ConnectionStrings:Default` in `AbpAdmin/appsettings.json` for a different database.
 
 ## Project layout
@@ -97,7 +136,9 @@ AbpAdmin/          ASP.NET Core host: app services, EF Core DbContext, OpenIddic
   Services/Identity/    organization units, user lock/unlock
   Services/OpenIddict/  applications and scopes (through OpenIddict's managers)
   Services/BackgroundJobs/  job queue viewer, retry, delete
-  Services/Settings/    identity & account settings
+  Services/Settings/    identity & account settings (global for the host, per tenant for a tenant)
+  Services/Tenants/     tenants, multi-tenancy switch, tenant databases, users across tenants
+  Data/                 DbContext, migrations, TenantDatabaseMigrationHandler (sets up tenant databases)
   Services/Dashboard/   overview numbers (permission-aware)
 AbpAdmin.Tests/    xUnit integration tests (SQLite in-memory)
 angular/           Headless Angular admin UI
@@ -110,8 +151,10 @@ angular/           Headless Angular admin UI
   src/app/openiddict/   applications and scopes
   src/app/permissions/  permissions editor sheet (roles, users, clients)
   src/app/features/     host features
-  src/app/settings/     identity, time-zone and email settings
-  src/app/shared/       nav, command palette, toasts, theme, sheet directive, API error helper
+  src/app/settings/     identity, time-zone and email settings (one routed tab each)
+  src/app/tenants/      tenants and tenant databases
+  src/app/shared/       nav, command palette, toasts, theme, sheet directive, API error helper,
+                        i18n helpers, tenant scope (sends a screen's calls to another tenant)
   src/app/proxy/        generated by `pnpm generate-proxy` — do not edit
 etc/               Docker build and compose scripts
 ```
@@ -145,6 +188,18 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
   so statistics are bucketed into days in the viewer's zone.
 - **GET requests are not audited** by ABP's default. Enable `AbpAuditingOptions.IsEnabledForGetRequests`
   if you want reads in the dashboard.
+- **Multi-tenancy is switched at runtime.** `UseMultiTenancy()` is always in the pipeline; the
+  Tenants page stores the switch as a setting and re-applies it on start.
+- **The host acts in a tenant through ABP's `__tenant` header.** ABP ignores that header for
+  signed-in users, so `HostUserInTenantResolveContributor` honours it only for a host user with
+  `AbpAdmin.Tenants.ManageUsers`, and only on the user, lockout and user-permission endpoints; inside
+  the tenant that user keeps only their `AbpIdentity.Users*` permissions.
+- **Tenant databases** are set up by `TenantDatabaseMigrationHandler` (ABP's `TenantCreatedEto` /
+  `TenantConnectionStringUpdatedEto`): migrate (own database only), then seed the admin user. Data is
+  never copied between databases.
+- **Localization keys** live in `AbpAdmin/Localization/AbpAdmin/{en,ar}.json` and are written `::Key`
+  in Angular (`localization.defaultResourceName` is `AbpAdmin`). Arabic is a draft without a native
+  review yet.
 - **Statistics are computed live** over at most 92 days; very large audit tables would want a
   pre-aggregated rollup.
 
@@ -170,7 +225,8 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
 - [x] Identity & sign-in settings, user lock/unlock
 - [ ] Claim types and user/role claims
 - [ ] Session management (needs ABP session tracking enabled)
-- [ ] Localization of the admin UI (English only today)
+- [x] Tenants, per-tenant databases, users across tenants, tenant-scoped console
+- [x] Localization of the admin UI (English, Arabic)
 
 ## Contributing
 

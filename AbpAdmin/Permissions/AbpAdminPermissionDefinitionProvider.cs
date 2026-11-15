@@ -36,6 +36,7 @@ public class AbpAdminPermissionDefinitionProvider : PermissionDefinitionProvider
         tenants.AddChild(AbpAdminPermissions.Tenants.Delete, L("Permission:Delete"), MultiTenancySides.Host);
         tenants.AddChild(AbpAdminPermissions.Tenants.ManageMultiTenancy, L("Permission:Tenants.ManageMultiTenancy"), MultiTenancySides.Host);
         tenants.AddChild(AbpAdminPermissions.Tenants.ManageConnectionStrings, L("Permission:Tenants.ManageConnectionStrings"), MultiTenancySides.Host);
+        tenants.AddChild(AbpAdminPermissions.Tenants.ManageUsers, L("Permission:Tenants.ManageUsers"), MultiTenancySides.Host);
 
         var jobs = group.AddPermission(AbpAdminPermissions.BackgroundJobs.Default, L("Permission:BackgroundJobs"), MultiTenancySides.Host);
         jobs.AddChild(AbpAdminPermissions.BackgroundJobs.Manage, L("Permission:BackgroundJobs.Manage"));

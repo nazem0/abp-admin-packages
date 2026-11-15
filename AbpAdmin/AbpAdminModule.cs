@@ -192,6 +192,9 @@ public class AbpAdminModule : AbpModule
         Configure<PermissionManagementOptions>(options =>
             options.ProviderPolicies[ClientPermissionValueProvider.ProviderName] = AbpAdminPermissions.Applications.ManagePermissions);
 
+        // Host admins with Tenants.ManageUsers keep their user-management permissions inside a tenant (Users page).
+        Configure<AbpPermissionOptions>(options => options.ValueProviders.Add<HostUserInTenantPermissionValueProvider>());
+
         ConfigureStudio(hostingEnvironment);
         ConfigureAuthentication(context);
         ConfigureBundles(hostingEnvironment);
@@ -286,6 +289,8 @@ public class AbpAdminModule : AbpModule
         {
             options.IsEnabled = IsMultiTenant;
         });
+        // Host admins managing a tenant's users from the Users page (before ABP's current-user resolver).
+        Configure<AbpTenantResolveOptions>(options => options.TenantResolvers.Insert(0, new HostUserInTenantResolveContributor()));
     }
 
     private void ConfigureUrls(IConfiguration configuration)

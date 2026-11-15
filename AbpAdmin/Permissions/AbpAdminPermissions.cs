@@ -53,6 +53,8 @@ public static class AbpAdminPermissions
         public const string Delete = Default + ".Delete";
         public const string ManageMultiTenancy = Default + ".ManageMultiTenancy";
         public const string ManageConnectionStrings = Default + ".ManageConnectionStrings";
+        /// <summary>Host only: list users of every tenant and manage them inside their tenant.</summary>
+        public const string ManageUsers = Default + ".ManageUsers";
     }
 
     public static class BackgroundJobs
