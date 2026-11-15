@@ -41,20 +41,8 @@ target feature is installed.
 
 ## Add it to an ABP application
 
-The packages are published privately to **GitHub Packages** (owner `nazem0`). Reading them needs a
-GitHub token with `read:packages` (`gh auth token` works after `gh auth refresh -s read:packages`).
-
-```bash
-# NuGet: add the feed once
-dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github-nazem0 \
-  -u <github-user> -p <token> --store-password-in-clear-text
-```
-
-```ini
-# .npmrc next to your Angular app's package.json (keep the token out of git: use an env var)
-@nazem0:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
+The packages are public: NuGet packages on **nuget.org**, Angular packages on **npmjs.com** (scope `@nazem0`).
+No feed setup or token is needed.
 
 ### Backend
 
@@ -215,17 +203,18 @@ pnpm generate-proxy
 The demo app imports the packages from `dist/` (tsconfig paths), i.e. exactly what is published; rebuild after
 changing them (`pnpm watch:lib` keeps core rebuilding).
 
-### Publish (GitHub Packages)
+### Publish
 
-Needs a token with `write:packages` (`gh auth refresh -s write:packages`).
+- **NuGet (nuget.org):** push a version tag (`git tag v0.2.0 && git push origin v0.2.0`) or run the
+  *Publish NuGet packages* workflow (`.github/workflows/publish.yml`). It uses nuget.org Trusted Publishing
+  (no stored API key; the `NUGET_USER` repo secret holds the nuget.org profile name).
+- **npm (npmjs.com):** core first, then the features, then the all-in-one, signed in as `nazem0`:
 
-```bash
-dotnet nuget push "backend/artifacts/*.nupkg" -s https://nuget.pkg.github.com/nazem0/index.json -k $(gh auth token)
-# npm: core first, then the features, then the all-in-one (registry comes from publishConfig)
-for p in core audit-logging identity openiddict background-jobs tenant-management abp-admin; do
-  (cd frontend/dist/$p && NODE_AUTH_TOKEN=$(gh auth token) npm publish)
-done
-```
+  ```bash
+  for p in core audit-logging identity openiddict background-jobs tenant-management abp-admin; do
+    (cd frontend/dist/$p && npm publish --access public)
+  done
+  ```
 
 Bump the version first, in `backend/Directory.Build.props` and in every `frontend/projects/*/package.json`
 (including the `@nazem0/abp-admin-ng-*` peer dependency versions): a published version can't be overwritten.

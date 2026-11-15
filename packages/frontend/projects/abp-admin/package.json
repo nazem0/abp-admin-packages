@@ -36,6 +36,6 @@
   },
   "homepage": "https://github.com/nazem0/abp-admin-packages",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   }
 }
