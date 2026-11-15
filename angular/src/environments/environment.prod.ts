@@ -18,6 +18,7 @@ export const environment = {
     name: 'AbpAdmin',
   },
   oAuthConfig,
+  localization: { defaultResourceName: 'AbpAdmin' },
   apis: {
     default: {
       url: 'https://localhost:44366',

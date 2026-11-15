@@ -9,6 +9,7 @@ using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
 namespace AbpAdmin.Data;
 
@@ -36,6 +37,7 @@ public class AbpAdminDbContext : AbpDbContext<AbpAdminDbContext>
         builder.ConfigureBlobStoring();
         builder.ConfigureIdentity();
         builder.ConfigureOpenIddict();
+        builder.ConfigureTenantManagement();
 
         /* Configure your own entities here */
     }

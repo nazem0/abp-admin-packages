@@ -1,4 +1,5 @@
 import { Component, input } from '@angular/core';
+import { LocalizationPipe } from '@abp/ng.core';
 import { EntityChangeDto } from '../proxy/services/audit-logs';
 import { EntityChangeType } from '../proxy/volo/abp/auditing';
 import { plainValue } from '../audit-logs/format';
@@ -6,6 +7,7 @@ import { plainValue } from '../audit-logs/format';
 /** Property-level diff of one entity change: old → new per property. */
 @Component({
   selector: 'app-change-diff',
+  imports: [LocalizationPipe],
   template: `
     @let c = change();
     @if (c.propertyChanges.length) {
@@ -20,7 +22,7 @@ import { plainValue } from '../audit-logs/format';
                 @if (c.changeType !== Type.Created) {
                   <span class="old" [class.nil]="before === null">{{ before ?? 'null' }}</span>
                 }
-                @if (c.changeType === Type.Updated) { <span class="arrow" aria-label="changed to">→</span> }
+                @if (c.changeType === Type.Updated) { <span class="arrow" [attr.aria-label]="'::EntityChanges:ChangedTo' | abpLocalization">→</span> }
                 @if (c.changeType !== Type.Deleted) {
                   <span class="new" [class.nil]="after === null">{{ after ?? 'null' }}</span>
                 }
@@ -30,7 +32,7 @@ import { plainValue } from '../audit-logs/format';
         </tbody>
       </table>
     } @else {
-      <p class="muted none">No property-level changes recorded.</p>
+      <p class="muted none">{{ '::EntityChanges:NoPropertyLevelChanges' | abpLocalization }}</p>
     }
   `,
   styles: `

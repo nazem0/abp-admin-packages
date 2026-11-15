@@ -1,4 +1,4 @@
-import { ConfigStateService } from '@abp/ng.core';
+import { ConfigStateService, LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
@@ -22,25 +22,25 @@ const kind = (f: FeatureDto) => {
 
 @Component({
   selector: 'app-features-page',
+  imports: [LocalizationPipe],
   template: `
     <div class="page narrow">
       <header class="top">
         <div>
-          <h1>Features</h1>
-          <p class="muted">Switch application features on or off and set their limits for the host.</p>
+          <h1>{{ '::Features:Title' | abpLocalization }}</h1>
+          <p class="muted">{{ '::Features:Subtitle' | abpLocalization }}</p>
         </div>
       </header>
 
       @if (data.isLoading()) {
         <div class="skeleton rows card">@for (i of [1, 2, 3]; track i) { <i></i> }</div>
       } @else if (data.error()) {
-        <div class="card state err">Couldn't load features. <button class="btn" (click)="data.reload()">Retry</button></div>
+        <div class="card state err">{{ '::Features:LoadFailed' | abpLocalization }} <button class="btn" (click)="data.reload()">{{ '::Common:Retry' | abpLocalization }}</button></div>
       } @else if (!groups().length) {
         <div class="card state empty">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>
-          <b>No host features</b>
-          <span class="muted center">No module defines features available to the host. Add a
-            <code>FeatureDefinitionProvider</code> to define your own; they show up here automatically.</span>
+          <b>{{ '::Features:EmptyTitle' | abpLocalization }}</b>
+          <span class="muted center">{{ '::Features:EmptyHint' | abpLocalization: 'FeatureDefinitionProvider' }}</span>
         </div>
       } @else {
         @for (g of groups(); track g.name) {
@@ -80,10 +80,10 @@ const kind = (f: FeatureDto) => {
 
         <footer class="card bar">
           @if (status(); as s) { <span [class]="'alert tone-' + (s.error ? 'err' : 'ok')" role="status">{{ s.text }}</span> }
-          @else { <span class="muted">{{ changes().length ? changes().length + ' unsaved change' + (changes().length === 1 ? '' : 's') : 'No changes' }}</span> }
+          @else { <span class="muted">{{ (changes().length ? (changes().length === 1 ? '::Features:UnsavedOne' : '::Features:UnsavedMany') : '::Features:NoChanges') | abpLocalization: changes().length.toString() }}</span> }
           <span class="spacer"></span>
-          <button class="btn" (click)="reset()" [disabled]="saving()" title="Remove host overrides and use each feature's default">Reset to defaults</button>
-          <button class="btn primary" (click)="save()" [disabled]="!changes().length || saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+          <button class="btn" (click)="reset()" [disabled]="saving()" [title]="'::Features:ResetTitle' | abpLocalization">{{ '::Features:ResetToDefaults' | abpLocalization }}</button>
+          <button class="btn primary" (click)="save()" [disabled]="!changes().length || saving()">{{ (saving() ? '::Common:Saving' : '::Common:Save') | abpLocalization }}</button>
         </footer>
       }
     </div>
@@ -107,6 +107,7 @@ const kind = (f: FeatureDto) => {
 export class FeaturesPage {
   private readonly service = inject(FeaturesService);
   private readonly config = inject(ConfigStateService);
+  private readonly l = inject(LocalizationService);
   protected readonly kind = kind;
 
   protected readonly data = rxResource({ stream: () => this.service.get(PROVIDER, HOST) });
@@ -145,11 +146,11 @@ export class FeaturesPage {
   }
 
   protected save() {
-    this.run(this.service.update(PROVIDER, HOST, { features: this.changes() }), 'Saved.');
+    this.run(this.service.update(PROVIDER, HOST, { features: this.changes() }), this.l.instant('::Features:Saved'));
   }
 
   protected reset() {
-    this.run(this.service.delete(PROVIDER, HOST), 'Reset to defaults.');
+    this.run(this.service.delete(PROVIDER, HOST), this.l.instant('::Features:ResetDone'));
   }
 
   private run(req: ReturnType<FeaturesService['delete']>, done: string) {

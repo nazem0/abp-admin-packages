@@ -18,6 +18,8 @@ export const environment = {
     name: 'AbpAdmin',
   },
   oAuthConfig,
+  // '::Key' in templates/code means the AbpAdmin resource (AbpAdmin/Localization/AbpAdmin/*.json on the server).
+  localization: { defaultResourceName: 'AbpAdmin' },
   apis: {
     default: {
       url: 'https://localhost:44366',

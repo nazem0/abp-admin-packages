@@ -1,7 +1,7 @@
-import { PermissionService } from '@abp/ng.core';
+import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, ElementRef, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { NAV } from './nav';
+import { NAV, sectionKey } from './nav';
 import { ThemeService } from './theme';
 
 interface Command { id: string; label: string; hint: string; icon: string; keywords: string; run: () => void }
@@ -12,13 +12,14 @@ const MOON = 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z';
 /** Ctrl/⌘+K: jump to any page or run a quick action. Only shows what the user is allowed to do. */
 @Component({
   selector: 'app-command-palette',
+  imports: [LocalizationPipe],
   host: { '(document:keydown)': 'onGlobalKey($event)' },
   template: `
-    <dialog #dialog class="palette" (close)="open.set(false)" (click)="$event.target === dialog && dialog.close()" aria-label="Command palette">
+    <dialog #dialog class="palette" (close)="open.set(false)" (click)="$event.target === dialog && dialog.close()" [attr.aria-label]="'::Palette:Title' | abpLocalization">
       <div class="box">
           <label class="q">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input #input type="text" autofocus placeholder="Go to page or run a command…" aria-label="Search commands" autocomplete="off"
+            <input #input type="text" autofocus [placeholder]="'::Palette:Placeholder' | abpLocalization" [attr.aria-label]="'::Palette:SearchAria' | abpLocalization" autocomplete="off"
                    role="combobox" aria-controls="cp-list" [attr.aria-activedescendant]="'cp-' + active()"
                    [value]="q()" (input)="q.set($any($event.target).value)" (keydown)="onKey($event)" />
             <kbd>Esc</kbd>
@@ -31,10 +32,10 @@ const MOON = 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z';
                 <small>{{ c.hint }}</small>
               </li>
             } @empty {
-              <li class="none">No command matches “{{ q() }}”.</li>
+              <li class="none">{{ '::Palette:NoMatch' | abpLocalization: q() }}</li>
             }
           </ul>
-          <footer><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span></footer>
+          <footer><span><kbd>↑</kbd><kbd>↓</kbd> {{ '::Palette:Move' | abpLocalization }}</span><span><kbd>Enter</kbd> {{ '::Palette:Open' | abpLocalization }}</span></footer>
       </div>
     </dialog>
   `,
@@ -64,6 +65,7 @@ export class CommandPaletteComponent {
   private readonly router = inject(Router);
   private readonly permissions = inject(PermissionService);
   private readonly theme = inject(ThemeService);
+  private readonly l = inject(LocalizationService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   private readonly input = viewChild<ElementRef<HTMLInputElement>>('input');
 
@@ -75,23 +77,29 @@ export class CommandPaletteComponent {
     this.open(); // re-evaluate grants each time it opens
     const can = (p: string) => !p || this.permissions.getGrantedPolicy(p);
     const go = (path: string, query?: Record<string, string>) => () => this.router.navigate([path], { queryParams: query });
-    const pages = NAV.filter(n => can(n.policy)).map(n => ({
-      id: n.path, label: n.label, hint: n.section || 'Page', icon: n.icon, keywords: n.keywords ?? '', run: go(n.path),
+    const t = (key: string) => this.l.instant(key);
+    const pages = NAV.flatMap(n => [n, ...(n.children ?? [])]).filter(n => can(n.policy)).map(n => ({
+      // English label and keywords stay searchable next to the translated ones.
+      id: n.path, label: t(n.labelKey), hint: t(n.section ? sectionKey(n.section) : '::Palette:Page'), icon: n.icon,
+      keywords: `${n.label} ${n.keywords ?? ''}`, run: go(n.path),
     }));
     const actions: (Command & { policy: string })[] = [
-      { id: 'new-user', label: 'New user', hint: 'Action', icon: PLUS, keywords: 'create add account', policy: 'AbpIdentity.Users.Create', run: go('/users', { new: '1' }) },
-      { id: 'new-role', label: 'New role', hint: 'Action', icon: PLUS, keywords: 'create add', policy: 'AbpIdentity.Roles.Create', run: go('/roles', { new: '1' }) },
-      { id: 'new-app', label: 'New application', hint: 'Action', icon: PLUS, keywords: 'create client oauth', policy: 'AbpAdmin.Applications.Create', run: go('/applications', { new: '1' }) },
-      { id: 'new-scope', label: 'New scope', hint: 'Action', icon: PLUS, keywords: 'create api', policy: 'AbpAdmin.Scopes.Create', run: go('/scopes', { new: '1' }) },
-      { id: 'failed', label: 'Failed sign-ins', hint: 'Security logs', icon: NAV.find(n => n.path === '/security-logs')!.icon, keywords: 'login invalid password', policy: 'AbpAdmin.SecurityLogs', run: go('/security-logs', { failed: '1' }) },
-      { id: 'theme', label: 'Switch theme', hint: 'Appearance', icon: MOON, keywords: 'dark light mode', policy: '', run: () => this.theme.cycle() },
+      { id: 'new-user', label: t('::Palette:NewUser'), hint: t('::Palette:Action'), icon: PLUS, keywords: 'create add account', policy: 'AbpIdentity.Users.Create', run: go('/users', { new: '1' }) },
+      { id: 'new-role', label: t('::Palette:NewRole'), hint: t('::Palette:Action'), icon: PLUS, keywords: 'create add', policy: 'AbpIdentity.Roles.Create', run: go('/roles', { new: '1' }) },
+      { id: 'new-app', label: t('::Palette:NewApplication'), hint: t('::Palette:Action'), icon: PLUS, keywords: 'create client oauth', policy: 'AbpAdmin.Applications.Create', run: go('/applications', { new: '1' }) },
+      { id: 'new-scope', label: t('::Palette:NewScope'), hint: t('::Palette:Action'), icon: PLUS, keywords: 'create api', policy: 'AbpAdmin.Scopes.Create', run: go('/scopes', { new: '1' }) },
+      { id: 'failed', label: t('::Palette:FailedSignIns'), hint: t('::Nav:SecurityLogs'), icon: NAV.find(n => n.path === '/security-logs')!.icon, keywords: 'login invalid password', policy: 'AbpAdmin.SecurityLogs', run: go('/security-logs', { failed: '1' }) },
+      { id: 'theme', label: t('::Palette:SwitchTheme'), hint: t('::Palette:Appearance'), icon: MOON, keywords: 'dark light mode', policy: '', run: () => this.theme.cycle() },
     ];
     return [...pages, ...actions.filter(a => can(a.policy))];
   });
 
   protected readonly results = computed(() => {
     const words = this.q().trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return this.commands().filter(c => words.every(w => `${c.label} ${c.hint} ${c.keywords}`.toLowerCase().includes(w)));
+    const inLabel = (c: Command) => words.every(w => c.label.toLowerCase().includes(w));
+    return this.commands()
+      .filter(c => words.every(w => `${c.label} ${c.hint} ${c.keywords}`.toLowerCase().includes(w)))
+      .sort((a, b) => +inLabel(b) - +inLabel(a)); // label matches first ("time zone" → Time zone, not Settings)
   });
 
   show() {

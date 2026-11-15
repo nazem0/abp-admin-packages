@@ -1,5 +1,6 @@
 import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { LocalizationPipe } from '@abp/ng.core';
 import { AuditLogService } from '../proxy/services/audit-logs';
 import { EntityChangeType } from '../proxy/volo/abp/auditing';
 import { relative, shortType, stamp } from '../audit-logs/format';
@@ -15,7 +16,7 @@ export interface EntityRef {
 /** Side sheet with the full life of one entity: every create, update and delete, oldest first. */
 @Component({
   selector: 'app-entity-history',
-  imports: [EntityTimelineComponent],
+  imports: [EntityTimelineComponent, LocalizationPipe],
   template: `
     <dialog #dialog class="sheet" (cancel)="$event.preventDefault(); closed.emit()" (click)="onBackdrop($event)" aria-labelledby="eh-title">
       @if (entity(); as e) {
@@ -26,22 +27,22 @@ export interface EntityRef {
               <h2 id="eh-title">{{ shortType(e.type) }}</h2>
               <span class="muted small" [title]="e.type">{{ e.type }}</span>
             </div>
-            <button class="icon-btn" (click)="closed.emit()" aria-label="Close">
+            <button class="icon-btn" (click)="closed.emit()" [attr.aria-label]="'::Common:Close' | abpLocalization">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
             </button>
           </div>
-          <button class="id mono" (click)="copy(e.id)" title="Copy id">
-            #{{ e.id }} <span class="muted">{{ copied() ? 'copied' : 'copy' }}</span>
+          <button class="id mono" (click)="copy(e.id)" [title]="'::EntityChanges:CopyId' | abpLocalization">
+            #{{ e.id }} <span class="muted">{{ (copied() ? '::EntityChanges:CopiedLower' : '::EntityChanges:CopyLower') | abpLocalization }}</span>
           </button>
 
           @if (summary(); as s) {
             <dl class="facts">
-              <div><dt>Created</dt><dd>{{ s.created ? stamp(s.created.changeTime, day) : 'before auditing' }}
-                @if (s.created) { <span class="muted">by {{ s.created.userName ?? 'system' }}</span> }</dd></div>
-              <div><dt>Updates</dt><dd>{{ s.updates }}</dd></div>
-              <div><dt>{{ s.deleted ? 'Deleted' : 'Last change' }}</dt>
-                <dd>{{ relative(s.last.changeTime) }} <span class="muted">by {{ s.last.userName ?? 'system' }}</span></dd></div>
-              <div><dt>Status</dt><dd><span [class]="'pill tone-' + (s.deleted ? 'err' : 'ok')">{{ s.deleted ? 'Deleted' : 'Exists' }}</span></dd></div>
+              <div><dt>{{ '::EntityChanges:Created' | abpLocalization }}</dt><dd>{{ s.created ? stamp(s.created.changeTime, day) : ('::EntityChanges:BeforeAuditing' | abpLocalization) }}
+                @if (s.created) { <span class="muted">{{ '::EntityChanges:ByUser' | abpLocalization: (s.created.userName ?? ('::EntityChanges:System' | abpLocalization)) }}</span> }</dd></div>
+              <div><dt>{{ '::EntityChanges:Updates' | abpLocalization }}</dt><dd>{{ s.updates }}</dd></div>
+              <div><dt>{{ (s.deleted ? '::EntityChanges:Deleted' : '::EntityChanges:LastChange') | abpLocalization }}</dt>
+                <dd>{{ relative(s.last.changeTime) }} <span class="muted">{{ '::EntityChanges:ByUser' | abpLocalization: (s.last.userName ?? ('::EntityChanges:System' | abpLocalization)) }}</span></dd></div>
+              <div><dt>{{ '::Common:Status' | abpLocalization }}</dt><dd><span [class]="'pill tone-' + (s.deleted ? 'err' : 'ok')">{{ (s.deleted ? '::EntityChanges:Deleted' : '::EntityChanges:Exists') | abpLocalization }}</span></dd></div>
             </dl>
           }
         </header>
@@ -50,7 +51,7 @@ export interface EntityRef {
           @if (history.isLoading()) {
             <div class="skeleton rows">@for (i of [1, 2, 3]; track i) { <i></i> }</div>
           } @else if (history.error()) {
-            <div class="state err">Couldn't load the history. <button class="btn" (click)="history.reload()">Retry</button></div>
+            <div class="state err">{{ '::EntityChanges:HistoryLoadFailed' | abpLocalization }} <button class="btn" (click)="history.reload()">{{ '::Common:Retry' | abpLocalization }}</button></div>
           } @else {
             <app-entity-timeline [changes]="history.value()" [focus]="e.focus ?? null" [canOpenRequest]="true"
                                  (openRequest)="openRequest.emit($event)" />

@@ -1,43 +1,53 @@
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { IdentitySettingsService, SettingItemDto } from '../proxy/services/settings';
 import { apiError } from '../shared/api-error';
 import { Toaster } from '../shared/toast';
 
+/** The API groups settings under English names; their headings are translated here. */
+const GROUP_TITLE: Record<string, string> = {
+  Password: '::Settings:Identity:Group:Password',
+  Lockout: '::Settings:Identity:Group:Lockout',
+  'Sign-in': '::Settings:Identity:Group:SignIn',
+  User: '::Settings:Identity:Group:User',
+};
+
 const GROUP_INTRO: Record<string, string> = {
-  Password: 'Rules every new password must satisfy.',
-  Lockout: 'What happens after repeated wrong passwords.',
-  'Sign-in': 'Who may sign in and how accounts get created.',
-  User: 'What users may change on their own profile.',
+  Password: '::Settings:Identity:Intro:Password',
+  Lockout: '::Settings:Identity:Intro:Lockout',
+  'Sign-in': '::Settings:Identity:Intro:SignIn',
+  User: '::Settings:Identity:Intro:User',
 };
 
 /** Identity & account settings (password policy, lockout, sign-in, self-registration), rendered from the API's list. */
 @Component({
   selector: 'app-identity-settings',
+  imports: [LocalizationPipe],
   template: `
     <section class="card ids" aria-labelledby="ids-h">
       <header>
         <div>
-          <h2 id="ids-h">Identity & sign-in</h2>
-          <p class="muted">ABP Identity and Account settings, stored globally. Values from <code>appsettings.json</code> show as the effective default.</p>
+          <h2 id="ids-h">{{ '::Settings:Identity:Title' | abpLocalization }}</h2>
+          <p class="muted">{{ '::Settings:Identity:Intro' | abpLocalization: 'appsettings.json' }}</p>
         </div>
         <div class="acts">
-          @if (changes().length) { <span class="muted small">{{ changes().length }} unsaved</span> }
-          <button class="btn" (click)="values.set(saved())" [disabled]="!changes().length || saving()">Reset</button>
-          <button class="btn primary" (click)="save()" [disabled]="!changes().length || saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+          @if (changes().length) { <span class="muted small">{{ '::Settings:Unsaved' | abpLocalization: changes().length.toString() }}</span> }
+          <button class="btn" (click)="values.set(saved())" [disabled]="!changes().length || saving()">{{ '::Common:Reset' | abpLocalization }}</button>
+          <button class="btn primary" (click)="save()" [disabled]="!changes().length || saving()">{{ (saving() ? '::Common:Saving' : '::Common:Save') | abpLocalization }}</button>
         </div>
       </header>
 
       @if (data.isLoading()) {
         <div class="skeleton rows">@for (i of [1, 2, 3, 4]; track i) { <i></i> }</div>
       } @else if (data.error()) {
-        <div class="state err">Couldn't load identity settings. <button class="btn" (click)="data.reload()">Retry</button></div>
+        <div class="state err">{{ '::Settings:Identity:LoadFailed' | abpLocalization }} <button class="btn" (click)="data.reload()">{{ '::Common:Retry' | abpLocalization }}</button></div>
       } @else {
         <div class="groups">
           @for (g of data.value(); track g.name) {
             <fieldset>
-              <legend>{{ g.name }}</legend>
-              <p class="muted small intro">{{ intro[g.name!] }}</p>
+              <legend>{{ title[g.name!] ? (title[g.name!] | abpLocalization) : g.name }}</legend>
+              <p class="muted small intro">{{ intro[g.name!] ? (intro[g.name!] | abpLocalization) : '' }}</p>
               @for (s of g.settings; track s.name) {
                 <div class="row" [class.changed]="isChanged(s)">
                   <label [for]="s.name">
@@ -83,7 +93,9 @@ const GROUP_INTRO: Record<string, string> = {
 export class IdentitySettingsComponent {
   private readonly service = inject(IdentitySettingsService);
   private readonly toaster = inject(Toaster);
+  private readonly l = inject(LocalizationService);
   protected readonly intro = GROUP_INTRO;
+  protected readonly title = GROUP_TITLE;
 
   protected readonly data = rxResource({ stream: () => this.service.get(), defaultValue: [] });
   /** Effective value: the stored one, else the definition default. */
@@ -110,7 +122,7 @@ export class IdentitySettingsComponent {
   protected save() {
     this.saving.set(true);
     this.service.update(this.changes()).subscribe({
-      next: () => { this.saving.set(false); this.toaster.ok('Identity settings saved.'); this.data.reload(); },
+      next: () => { this.saving.set(false); this.toaster.ok(this.l.instant('::Settings:Identity:Saved')); this.data.reload(); },
       error: e => { this.saving.set(false); this.toaster.error(apiError(e)); },
     });
   }

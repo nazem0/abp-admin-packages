@@ -1,23 +1,23 @@
 <div class="page">
   <header class="top">
     <div>
-      <h1>Entity changes</h1>
-      <p class="muted">Every create, update and delete — who did it, when, and what changed.</p>
+      <h1>{{ '::EntityChanges:Title' | abpLocalization }}</h1>
+      <p class="muted">{{ '::EntityChanges:Subtitle' | abpLocalization }}</p>
     </div>
     <div class="top-actions">
-      <div class="seg" role="radiogroup" aria-label="Time range">
+      <div class="seg" role="radiogroup" [attr.aria-label]="'::EntityChanges:TimeRange' | abpLocalization">
         @for (r of ranges; track r.key) {
-          <button role="radio" [attr.aria-checked]="range() === r.key" (click)="set(range, r.key)">{{ r.label }}</button>
+          <button role="radio" [attr.aria-checked]="range() === r.key" (click)="set(range, r.key)">{{ r.labelKey | abpLocalization }}</button>
         }
       </div>
-      <button class="icon-btn" (click)="refresh()" aria-label="Refresh" title="Refresh" [class.spin]="changes.isLoading()">
+      <button class="icon-btn" (click)="refresh()" [attr.aria-label]="'::Common:Refresh' | abpLocalization" [title]="'::Common:Refresh' | abpLocalization" [class.spin]="changes.isLoading()">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>
       </button>
     </div>
   </header>
 
   <!-- Change-type tiles: totals for the current range/type/id, and a toggle filter -->
-  <div class="kinds" role="group" aria-label="Filter by change type">
+  <div class="kinds" role="group" [attr.aria-label]="'::EntityChanges:FilterByChangeType' | abpLocalization">
     @for (k of kinds; track k.type) {
       <button [class]="'kind card tone-' + f.changeTone[k.type]" [attr.aria-pressed]="changeType() === k.type"
               [class.dim]="changeType() !== null && changeType() !== k.type" (click)="toggleKind(k.type)">
@@ -29,9 +29,9 @@
           }
         </span>
         <span class="kind-text">
-          <span class="muted">{{ k.label }}</span>
+          <span class="muted">{{ k.label | abpLocalization }}</span>
           <strong>{{ counts.value()?.[k.type] ?? '–' }}</strong>
-          <small class="muted">{{ k.hint }}</small>
+          <small class="muted">{{ k.hint | abpLocalization }}</small>
         </span>
       </button>
     }
@@ -43,26 +43,26 @@
                               [hideSystem]="hideSystem()" (hideSystemChange)="set(hideSystem, $event)" />
       <label class="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-        <span class="sr-only">Entity id</span>
-        <input class="input" placeholder="Search by entity id…" [value]="entityId()" (change)="set(entityId, text($event))" />
+        <span class="sr-only">{{ '::EntityChanges:EntityId' | abpLocalization }}</span>
+        <input class="input" [placeholder]="'::EntityChanges:SearchById' | abpLocalization" [value]="entityId()" (change)="set(entityId, text($event))" />
       </label>
-      @if (filtered()) { <button class="link" (click)="clearAll()">Clear filters</button> }
+      @if (filtered()) { <button class="link" (click)="clearAll()">{{ '::EntityChanges:ClearFilters' | abpLocalization }}</button> }
     </div>
 
     @if (entityTypes().length || hideSystem()) {
-      <div class="chips" aria-label="Active type filters">
+      <div class="chips" [attr.aria-label]="'::EntityChanges:ActiveTypeFilters' | abpLocalization">
         @for (t of entityTypes(); track t) {
-          <button class="chip" (click)="removeType(t)" [title]="'Remove ' + t">{{ f.shortType(t) }} <span aria-hidden="true">×</span></button>
+          <button class="chip" (click)="removeType(t)" [title]="'::EntityChanges:RemoveFilter' | abpLocalization: t">{{ f.shortType(t) }} <span aria-hidden="true">×</span></button>
         }
         @if (hideSystem()) {
-          <button class="chip ghost" (click)="set(hideSystem, false)" title="Show tokens, security logs and sessions">System entities hidden <span aria-hidden="true">×</span></button>
+          <button class="chip ghost" (click)="set(hideSystem, false)" [title]="'::EntityChanges:ShowSystemHint' | abpLocalization">{{ '::EntityChanges:SystemHidden' | abpLocalization }} <span aria-hidden="true">×</span></button>
         }
       </div>
     }
 
     <div class="list" [class.loading]="changes.isLoading()" aria-live="polite">
       @if (changes.error()) {
-        <div class="state err">Couldn't load entity changes. <button class="btn" (click)="refresh()">Retry</button></div>
+        <div class="state err">{{ '::EntityChanges:LoadFailed' | abpLocalization }} <button class="btn" (click)="refresh()">{{ '::Common:Retry' | abpLocalization }}</button></div>
       }
       @for (g of groups(); track g.day) {
         <h2 class="day-head"><span>{{ g.day }}</span></h2>
@@ -70,19 +70,19 @@
           @for (c of g.items; track c.id) {
             <li>
               <button [class]="'row tone-' + f.changeTone[c.changeType]" (click)="open(c)"
-                      [attr.aria-label]="f.changeLabel[c.changeType] + ' ' + f.shortType(c.entityTypeFullName) + ' ' + c.entityId">
+                      [attr.aria-label]="(f.changeLabelKey[c.changeType] | abpLocalization) + ' ' + f.shortType(c.entityTypeFullName) + ' ' + c.entityId">
                 <span class="dot" aria-hidden="true"></span>
                 <span class="ent">
                   <b>{{ f.shortType(c.entityTypeFullName) }}</b>
                   <span class="mono muted">#{{ c.entityId }}</span>
                 </span>
                 <span class="what">
-                  <span class="verb">{{ f.changeLabel[c.changeType] }}</span>
+                  <span class="verb">{{ f.changeLabelKey[c.changeType] | abpLocalization }}</span>
                   <span class="muted">{{ summary(c) }}</span>
                 </span>
                 <span class="who">
                   <span class="avatar xs" aria-hidden="true">{{ (c.userName ?? '·')[0].toUpperCase() }}</span>
-                  <span>{{ c.userName ?? 'system' }}</span>
+                  <span>{{ c.userName ?? ('::EntityChanges:System' | abpLocalization) }}</span>
                 </span>
                 <span class="time">{{ f.clock(c.changeTime) }}</span>
               </button>
@@ -95,9 +95,9 @@
         } @else if (!changes.error()) {
           <div class="state empty">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></svg>
-            <b>No entity changes</b>
-            <span class="muted">Nothing was created, updated or deleted for these filters.</span>
-            @if (filtered()) { <button class="btn" (click)="clearAll()">Clear filters</button> }
+            <b>{{ '::EntityChanges:Empty:Title' | abpLocalization }}</b>
+            <span class="muted">{{ '::EntityChanges:Empty:Text' | abpLocalization }}</span>
+            @if (filtered()) { <button class="btn" (click)="clearAll()">{{ '::EntityChanges:ClearFilters' | abpLocalization }}</button> }
           </div>
         }
       }
@@ -105,11 +105,11 @@
 
     @if (total() > 0) {
       <footer class="pager">
-        <span class="muted">{{ total() }} change{{ total() === 1 ? '' : 's' }}</span>
+        <span class="muted">{{ (total() === 1 ? '::EntityChanges:CountOne' : '::EntityChanges:CountMany') | abpLocalization: total().toString() }}</span>
         <div>
-          <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">Previous</button>
-          <span class="muted">Page {{ page() + 1 }} of {{ pages() }}</span>
-          <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">Next</button>
+          <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ '::Common:Previous' | abpLocalization }}</button>
+          <span class="muted">{{ '::EntityChanges:PageOf' | abpLocalization: (page() + 1).toString() : pages().toString() }}</span>
+          <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ '::Common:Next' | abpLocalization }}</button>
         </div>
       </footer>
     }

@@ -60,6 +60,8 @@ using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using AbpAdmin.Services.Tenants;
 using Volo.Abp.Studio.Client.AspNetCore;
 
 using Microsoft.Extensions.Hosting;
@@ -112,11 +114,13 @@ namespace AbpAdmin;
     typeof(AbpBackgroundJobsEntityFrameworkCoreModule),
     typeof(BlobStoringDatabaseEntityFrameworkCoreModule),
     typeof(AbpBlobStoringFileSystemModule),
-    typeof(AbpEntityFrameworkCoreSqlServerModule)
+    typeof(AbpEntityFrameworkCoreSqlServerModule),
+    typeof(AbpTenantManagementEntityFrameworkCoreModule)
 )]
 public class AbpAdminModule : AbpModule
 {
     /* Single point to enable/disable multi-tenancy */
+    /// <summary>Initial value; the Tenants page switch overrides it at runtime (stored as a setting).</summary>
     public const bool IsMultiTenant = false;
 
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -403,6 +407,12 @@ public class AbpAdminModule : AbpModule
         
     }
 
+    public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        using var scope = context.ServiceProvider.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<MultiTenancySwitch>().LoadAsync(scope.ServiceProvider);
+    }
+
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
@@ -431,10 +441,8 @@ public class AbpAdminModule : AbpModule
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
-        if (IsMultiTenant)
-        {
-            app.UseMultiTenancy();
-        }
+        // Always on: multi-tenancy can be switched on at runtime from the Tenants page.
+        app.UseMultiTenancy();
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();

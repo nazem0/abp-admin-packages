@@ -1,9 +1,10 @@
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { AccordionContent, AccordionGroup, AccordionPanel, AccordionTrigger } from '@angular/aria/accordion';
 import { Tab, TabContent, TabList, TabPanel, Tabs } from '@angular/aria/tabs';
 import { AuditLogActionDto, AuditLogDto, AuditLogService, EntityChangeDto, EntityChangeListItemDto } from '../proxy/services/audit-logs';
 import {
-  actionLabel, browserName, changeLabel, changeTone, clock, duration, flatParams, methodTone, plainValue, pretty, relative,
+  actionLabel, browserName, changeLabelKey, changeTone, clock, duration, flatParams, methodTone, plainValue, pretty, relative,
   shortType, splitUrl, stamp, statusTone, toMs,
 } from './format';
 import { ChangeDiffComponent } from '../entity-changes/change-diff.component';
@@ -32,12 +33,13 @@ interface TraceRow {
 
 @Component({
   selector: 'app-audit-log-detail',
-  imports: [ChangeDiffComponent, EntityTimelineComponent, Tabs, TabList, Tab, TabPanel, TabContent, AccordionGroup, AccordionTrigger, AccordionPanel, AccordionContent],
+  imports: [LocalizationPipe, ChangeDiffComponent, EntityTimelineComponent, Tabs, TabList, Tab, TabPanel, TabContent, AccordionGroup, AccordionTrigger, AccordionPanel, AccordionContent],
   templateUrl: './audit-log-detail.component.html',
   styleUrl: './audit-log-detail.component.scss',
 })
 export class AuditLogDetailComponent {
   private readonly service = inject(AuditLogService);
+  private readonly loc = inject(LocalizationService);
 
   readonly log = input<AuditLogDto | null>(null);
   readonly closed = output<void>();
@@ -48,7 +50,7 @@ export class AuditLogDetailComponent {
   protected readonly copied = signal(false);
   protected readonly history = signal<Record<string, EntityChangeListItemDto[] | 'loading'>>({});
 
-  protected readonly f = { actionLabel, browserName, changeLabel, changeTone, clock, duration, flatParams, methodTone, plainValue, pretty, relative, shortType, splitUrl, stamp, statusTone };
+  protected readonly f = { actionLabel, browserName, changeLabelKey, changeTone, clock, duration, flatParams, methodTone, plainValue, pretty, relative, shortType, splitUrl, stamp, statusTone };
   protected readonly short: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
   protected readonly full: Intl.DateTimeFormatOptions = { dateStyle: 'full', timeStyle: 'long' };
 
@@ -145,7 +147,7 @@ export class AuditLogDetailComponent {
     const changeRow = (c: EntityChangeDto, depth: number, last: boolean, trail: boolean[]): TraceRow => ({
       kind: 'change', id: c.id!, depth, last, guides: guidesOf(trail),
       label: shortType(c.entityTypeFullName),
-      sub: `${changeLabel[c.changeType]} · ${c.propertyChanges.length} propert${c.propertyChanges.length === 1 ? 'y' : 'ies'}`,
+      sub: `${this.loc.instant(changeLabelKey[c.changeType])} · ${this.loc.instant(c.propertyChanges.length === 1 ? '::AuditLogs:Detail:PropertyCountOne' : '::AuditLogs:Detail:PropertyCountMany', String(c.propertyChanges.length))}`,
       left: pct(toMs(c.changeTime) - origin), width: 0, tone: changeTone[c.changeType], change: c,
     });
     const walk = (nodes: Node[], changes: EntityChangeDto[], depth: number, trail: boolean[]) => {

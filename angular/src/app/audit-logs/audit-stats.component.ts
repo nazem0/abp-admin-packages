@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, input, output, signal } from '@angular/core';
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { AuditLogStatisticsDto } from '../proxy/services/audit-logs';
 import { calendarDay, duration, methodTone, statusTone } from './format';
 
@@ -11,57 +12,57 @@ const W = 720, H = 190, PAD_L = 34, PAD_R = 40, PAD_T = 12, PAD_B = 26;
   selector: 'app-audit-stats',
   template: `
     @let s = stats();
-    <section class="kpis" aria-label="Key figures">
+    <section class="kpis" [attr.aria-label]="'::AuditLogs:Stats:KeyFigures' | abpLocalization">
       <div class="kpi card">
-        <span class="label">Requests</span>
+        <span class="label">{{ '::AuditLogs:Stats:Requests' | abpLocalization }}</span>
         <strong>{{ s.totalRequests | number }}</strong>
         <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
           <path [attr.d]="spark()" />
         </svg>
       </div>
       <div class="kpi card" [class]="errorRate() > 5 ? 'kpi card tone-err' : 'kpi card tone-ok'">
-        <span class="label">Error rate</span>
+        <span class="label">{{ '::AuditLogs:Stats:ErrorRate' | abpLocalization }}</span>
         <strong>{{ errorRate() | number: '1.0-1' }}<small>%</small></strong>
-        <span class="sub">{{ s.failedRequests }} failed</span>
+        <span class="sub">{{ '::AuditLogs:Stats:FailedCount' | abpLocalization: s.failedRequests.toString() }}</span>
       </div>
       <div class="kpi card">
-        <span class="label">Avg. duration</span>
+        <span class="label">{{ '::AuditLogs:Stats:AvgDuration' | abpLocalization }}</span>
         <strong>{{ fmt(s.averageDuration) }}</strong>
-        <span class="sub">max {{ fmt(s.maxDuration) }}</span>
+        <span class="sub">{{ '::AuditLogs:Stats:Max' | abpLocalization: fmt(s.maxDuration) }}</span>
       </div>
       <div class="kpi card">
-        <span class="label">Active users</span>
+        <span class="label">{{ '::AuditLogs:Stats:ActiveUsers' | abpLocalization }}</span>
         <strong>{{ s.uniqueUsers }}</strong>
-        <span class="sub">{{ s.topUsers[0]?.key ?? '—' }} most active</span>
+        <span class="sub">{{ '::AuditLogs:Stats:MostActive' | abpLocalization: (s.topUsers[0]?.key ?? '—') }}</span>
       </div>
       <div class="kpi card">
-        <span class="label">Entity changes</span>
+        <span class="label">{{ '::AuditLogs:Stats:EntityChanges' | abpLocalization }}</span>
         <strong>{{ s.entityChanges | number }}</strong>
-        <span class="sub">rows written</span>
+        <span class="sub">{{ '::AuditLogs:Stats:RowsWritten' | abpLocalization }}</span>
       </div>
     </section>
 
     <section class="grid">
       <div class="card panel chart">
         <header>
-          <h3>Traffic</h3>
+          <h3>{{ '::AuditLogs:Stats:Traffic' | abpLocalization }}</h3>
           <div class="legend">
-            <span><i class="sw ok"></i>Succeeded</span>
-            <span><i class="sw err"></i>Failed</span>
-            <span><i class="sw line"></i>Avg. duration</span>
+            <span><i class="sw ok"></i>{{ '::AuditLogs:Stats:Succeeded' | abpLocalization }}</span>
+            <span><i class="sw err"></i>{{ '::AuditLogs:Stats:Failed' | abpLocalization }}</span>
+            <span><i class="sw line"></i>{{ '::AuditLogs:Stats:AvgDuration' | abpLocalization }}</span>
           </div>
         </header>
         <div class="readout" aria-live="polite">
           @if (hoverDay(); as d) {
             <b>{{ calendarDay(d.date, { weekday: 'short', month: 'short', day: 'numeric' }) }}</b>
-            <span>{{ d.requests }} requests</span>
-            <span class="err-t">{{ d.failed }} failed</span>
-            <span>{{ fmt(d.averageDuration) }} avg</span>
+            <span>{{ '::AuditLogs:Stats:RequestsCount' | abpLocalization: d.requests.toString() }}</span>
+            <span class="err-t">{{ '::AuditLogs:Stats:FailedCount' | abpLocalization: d.failed.toString() }}</span>
+            <span>{{ '::AuditLogs:Stats:Avg' | abpLocalization: fmt(d.averageDuration) }}</span>
           } @else {
-            <span class="muted">Hover a day for details</span>
+            <span class="muted">{{ '::AuditLogs:Stats:HoverHint' | abpLocalization }}</span>
           }
         </div>
-        <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img" aria-label="Requests per day with failures and average duration">
+        <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img" [attr.aria-label]="'::AuditLogs:Stats:ChartLabel' | abpLocalization">
           @for (t of yTicks(); track t.v) {
             <line class="gridline" [attr.x1]="PAD_L" [attr.x2]="W - PAD_R" [attr.y1]="t.y" [attr.y2]="t.y" />
             <text class="axis" [attr.x]="PAD_L - 8" [attr.y]="t.y + 4" text-anchor="end">{{ t.v }}</text>
@@ -86,8 +87,8 @@ const W = 720, H = 190, PAD_L = 34, PAD_R = 40, PAD_T = 12, PAD_B = 26;
       </div>
 
       <div class="card panel">
-        <header><h3>Status codes</h3></header>
-        <div class="stack" role="img" [attr.aria-label]="'Status code distribution'">
+        <header><h3>{{ '::AuditLogs:Stats:StatusCodes' | abpLocalization }}</h3></header>
+        <div class="stack" role="img" [attr.aria-label]="'::AuditLogs:Stats:StatusDistribution' | abpLocalization">
           @for (c of s.statusCodes; track c.key) {
             <span [class]="'tone-' + tone(c.key)" [style.flex-grow]="c.count" [title]="c.key + ': ' + c.count"></span>
           }
@@ -103,7 +104,7 @@ const W = 720, H = 190, PAD_L = 34, PAD_R = 40, PAD_T = 12, PAD_B = 26;
             </li>
           }
         </ul>
-        <header class="sub-h"><h3>Methods</h3></header>
+        <header class="sub-h"><h3>{{ '::AuditLogs:Stats:Methods' | abpLocalization }}</h3></header>
         <div class="methods">
           @for (m of s.httpMethods; track m.key) {
             <button [class]="'pill tone-' + mTone(m.key)" (click)="pick.emit({ method: m.key })">
@@ -132,7 +133,7 @@ const W = 720, H = 190, PAD_L = 34, PAD_R = 40, PAD_T = 12, PAD_B = 26;
                 </button>
               </li>
             } @empty {
-              <li class="muted empty">No traffic in this range</li>
+              <li class="muted empty">{{ '::AuditLogs:Stats:NoTraffic' | abpLocalization }}</li>
             }
           </ol>
         </div>
@@ -140,9 +141,10 @@ const W = 720, H = 190, PAD_L = 34, PAD_R = 40, PAD_T = 12, PAD_B = 26;
     </section>
   `,
   styleUrl: './audit-stats.component.scss',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, LocalizationPipe],
 })
 export class AuditStatsComponent {
+  private readonly loc = inject(LocalizationService);
   protected readonly calendarDay = calendarDay;
   readonly stats = input.required<AuditLogStatisticsDto>();
   readonly pick = output<StatsPick>();
@@ -232,12 +234,12 @@ export class AuditStatsComponent {
     const maxDur = Math.max(1, ...s.slowestEndpoints.map(e => e.averageDuration));
     return [
       {
-        title: 'Busiest endpoints', hint: 'by requests', items: s.topEndpoints, max: maxCount, maxCount,
+        title: this.loc.instant('::AuditLogs:Stats:Busiest'), hint: this.loc.instant('::AuditLogs:Stats:ByRequests'), items: s.topEndpoints, max: maxCount, maxCount,
         metric: (e: { count: number }) => e.count,
-        value: (e: { count: number; failed: number }) => (e.failed ? `${e.count} · ${e.failed} failed` : `${e.count}`),
+        value: (e: { count: number; failed: number }) => (e.failed ? `${e.count} · ${this.loc.instant('::AuditLogs:Stats:FailedCount', String(e.failed))}` : `${e.count}`),
       },
       {
-        title: 'Slowest endpoints', hint: 'by average duration', items: s.slowestEndpoints, max: maxDur,
+        title: this.loc.instant('::AuditLogs:Stats:Slowest'), hint: this.loc.instant('::AuditLogs:Stats:ByAvgDuration'), items: s.slowestEndpoints, max: maxDur,
         maxCount: Math.max(1, ...s.slowestEndpoints.map(e => e.count)),
         metric: (e: { averageDuration: number }) => e.averageDuration,
         value: (e: { averageDuration: number }) => duration(e.averageDuration),

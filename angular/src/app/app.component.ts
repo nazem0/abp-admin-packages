@@ -1,20 +1,21 @@
-import { AuthService, ConfigStateService, PermissionService } from '@abp/ng.core';
+import { AuthService, ConfigStateService, LocalizationPipe, LocalizationService, PermissionService, SessionStateService } from '@abp/ng.core';
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { displayZone } from './audit-logs/format';
+import { setApiErrorFallback } from './shared/api-error';
 import { CommandPaletteComponent } from './shared/command-palette.component';
-import { NAV, NavItem } from './shared/nav';
+import { NAV, NavItem, sectionKey } from './shared/nav';
 import { ThemeService } from './shared/theme';
 import { ToastsComponent } from './shared/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommandPaletteComponent, ToastsComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommandPaletteComponent, ToastsComponent, LocalizationPipe],
   template: `
     <div class="shell">
       <aside class="rail">
-        <a class="brand" routerLink="/" aria-label="ABP Admin home">
+        <a class="brand" routerLink="/" [attr.aria-label]="'::Shell:Home' | abpLocalization">
           <svg viewBox="0 0 32 32" aria-hidden="true">
             <path d="M16 3 27 7.5v8c0 6.6-4.6 11.4-11 13.5C9.6 26.9 5 22.1 5 15.5v-8Z" />
             <path d="m11 16 3.5 3.5L21.5 12" />
@@ -23,26 +24,48 @@ import { ToastsComponent } from './shared/toast';
         </a>
 
         @if (user()?.isAuthenticated) {
-          <button class="find" (click)="palette().show()" aria-label="Search pages and commands (Ctrl+K)">
+          <button class="find" (click)="palette().show()" [attr.aria-label]="'::Shell:SearchAria' | abpLocalization">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <span>Search…</span><kbd>Ctrl K</kbd>
+            <span>{{ '::Shell:Search' | abpLocalization }}</span><kbd>Ctrl K</kbd>
           </button>
         }
 
-        <nav aria-label="Main">
+        <nav [attr.aria-label]="'::Shell:MainNav' | abpLocalization">
           @for (g of sections(); track g.name) {
-            @if (g.name) { <span class="section">{{ g.name }}</span> }
+            @if (g.name) { <span class="section">{{ sectionKey(g.name) | abpLocalization }}</span> }
             @for (n of g.items; track n.path) {
-              <a [routerLink]="n.path" routerLinkActive="active" [title]="n.label">
+              <a [routerLink]="n.path" routerLinkActive="active" [title]="n.labelKey | abpLocalization">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="n.icon" /></svg>
-                <span>{{ n.label }}</span>
+                <span>{{ n.labelKey | abpLocalization }}</span>
               </a>
+              @if (n.children) {
+                <div class="sub">
+                  @for (c of n.children; track c.path) {
+                    @if (permissions.getGrantedPolicy(c.policy)) {
+                      <a [routerLink]="c.path" routerLinkActive="active" [title]="c.labelKey | abpLocalization"><span>{{ c.labelKey | abpLocalization }}</span></a>
+                    }
+                  }
+                </div>
+              }
             }
           }
         </nav>
 
         <div class="me">
-          <button class="icon-btn" (click)="theme.cycle()" [title]="'Theme: ' + theme.mode()" [attr.aria-label]="'Theme: ' + theme.mode() + '. Switch theme'">
+          @if (languages().length > 1) {
+            <button class="icon-btn" popovertarget="lang-menu" [title]="'::Shell:LanguageTitle' | abpLocalization: languageName()" [attr.aria-label]="'::Shell:LanguageAria' | abpLocalization: languageName()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg>
+            </button>
+            <div id="lang-menu" class="lang-menu" popover role="menu" [attr.aria-label]="'::Shell:Language' | abpLocalization">
+              @for (l of languages(); track l.cultureName) {
+                <button role="menuitemradio" [attr.aria-checked]="l.cultureName === language()" [class.on]="l.cultureName === language()"
+                        (click)="setLanguage(l.cultureName!)" popovertarget="lang-menu" popovertargetaction="hide">
+                  <span>{{ l.displayName }}</span><small>{{ l.cultureName }}</small>
+                </button>
+              }
+            </div>
+          }
+          <button class="icon-btn" (click)="theme.cycle()" [title]="'::Shell:ThemeTitle' | abpLocalization: (themeKey() | abpLocalization)" [attr.aria-label]="'::Shell:ThemeAria' | abpLocalization: (themeKey() | abpLocalization)">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               @switch (theme.mode()) {
                 @case ('light') { <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /> }
@@ -54,11 +77,11 @@ import { ToastsComponent } from './shared/toast';
           @if (user()?.isAuthenticated) {
             <span class="avatar" aria-hidden="true">{{ initial() }}</span>
             <span class="who"><b>{{ user()?.userName }}</b><small>{{ user()?.email }}</small></span>
-            <button class="icon-btn" (click)="auth.logout().subscribe()" title="Sign out" aria-label="Sign out">
+            <button class="icon-btn" (click)="auth.logout().subscribe()" [title]="'::Shell:SignOut' | abpLocalization" [attr.aria-label]="'::Shell:SignOut' | abpLocalization">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" /></svg>
             </button>
           } @else {
-            <button class="btn primary" (click)="auth.navigateToLogin()">Sign in</button>
+            <button class="btn primary" (click)="auth.navigateToLogin()">{{ '::Shell:SignIn' | abpLocalization }}</button>
           }
         </div>
       </aside>
@@ -85,7 +108,19 @@ import { ToastsComponent } from './shared/toast';
     nav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 500; }
     nav a:hover { background: var(--surface-2); color: var(--text); }
     nav a.active { background: var(--accent-soft); color: var(--accent); }
+    /* Nested items: indented under their parent, with a guide line; the parent stays highlighted but quieter. */
+    .sub { display: grid; gap: 1px; margin-block: 1px 4px; margin-inline-start: 19px; padding-inline-start: 10px; border-inline-start: 1px solid var(--border); }
+    .sub a { padding: 6px 10px; font-size: 13px; }
+    nav a.active:has(+ .sub a.active) { background: none; }
     nav svg, .icon-btn svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .lang-menu { position: fixed; inset: auto auto 76px 14px; margin: 0; min-width: 190px; padding: 6px; border: 1px solid var(--border);
+      border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    :host-context([dir=rtl]) .lang-menu { inset: auto 14px 76px auto; }
+    .lang-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 8px 10px;
+      border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+    .lang-menu button:hover { background: var(--surface-2); }
+    .lang-menu button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .lang-menu small { color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
     .me { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 12px 4px 0; border-top: 1px solid var(--border); }
     .who { display: grid; min-width: 0; flex: 1; }
     .who b, .who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -94,7 +129,9 @@ import { ToastsComponent } from './shared/toast';
       .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
       .rail { position: sticky; z-index: 5; height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px;
         border-inline-end: 0; border-bottom: 1px solid var(--border); overflow: visible; }
-      .brand span, nav span, .who, .find span, .find kbd { display: none; }
+      .brand span, nav span, .who, .find span, .find kbd, .sub { display: none; } /* icon rail: the page's tabs cover sub-pages */
+      .lang-menu { inset: 58px 12px auto auto; }
+      :host-context([dir=rtl]) .lang-menu { inset: 58px auto auto 12px; }
       .find { width: 34px; padding: 0; justify-content: center; flex: none; }
       nav { display: flex; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
       nav a { flex: none; }
@@ -108,9 +145,16 @@ export class AppComponent {
   protected readonly auth = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   protected readonly palette = viewChild.required(CommandPaletteComponent);
-  private readonly permissions = inject(PermissionService);
+  protected readonly permissions = inject(PermissionService);
   private readonly state = toSignal(inject(ConfigStateService).getAll$());
   protected readonly user = computed(() => this.state()?.currentUser);
+  private readonly session = inject(SessionStateService);
+  private readonly l = inject(LocalizationService);
+  protected readonly sectionKey = sectionKey;
+  protected readonly themeKey = computed(() => `::Shell:Theme:${this.theme.mode()}`);
+  protected readonly languages = computed(() => this.state()?.localization?.languages ?? []);
+  protected readonly language = computed(() => this.state()?.localization?.currentCulture?.name ?? this.session.getLanguage());
+  protected readonly languageName = computed(() => this.languages().find(l => l.cultureName === this.language())?.displayName ?? this.language());
   protected readonly initial = computed(() => (this.user()?.userName ?? '?')[0].toUpperCase());
 
   /** Nav grouped by section, filtered by the granted policies (recomputed when app state refreshes). */
@@ -125,7 +169,25 @@ export class AppComponent {
     return groups;
   });
 
+  /**
+   * Stores the language (ABP sends it on every API call), then reloads: texts are translated once per render
+   * (the pure abpLocalization pipe), so a reload renders the whole panel from the new language's file.
+   */
+  protected setLanguage(culture: string) {
+    if (culture === this.language()) return;
+    this.session.setLanguage(culture);
+    setTimeout(() => location.reload()); // after ABP has persisted the session language
+  }
+
   constructor() {
+    // Right-to-left languages (Arabic) flip the layout.
+    effect(() => {
+      const culture = this.state()?.localization?.currentCulture;
+      if (!culture) return;
+      setApiErrorFallback(this.l.instant('::Common:SomethingWentWrong'));
+      document.documentElement.lang = culture.name ?? 'en';
+      document.documentElement.dir = culture.isRightToLeft ? 'rtl' : 'ltr';
+    });
     // Times display in Abp.Timing.TimeZone when the server clock is UTC; otherwise in the browser's zone.
     effect(() => {
       const s = this.state();
