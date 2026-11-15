@@ -1,0 +1,9 @@
+@page
+@attribute [Authorize("AbpAdmin.BackgroundJobs")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:BackgroundJobs";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/background-jobs/background-jobs.css" /> }
+<div class="page" id="abp-background-jobs"></div>
+@section scripts { <script src="/abp-admin/background-jobs/background-jobs.js"></script> }

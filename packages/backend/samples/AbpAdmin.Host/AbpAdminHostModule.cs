@@ -70,6 +70,7 @@ namespace AbpAdmin.Host;
 [DependsOn(
     // ABP Admin packages
     typeof(AbpAdminHttpApiModule),
+    typeof(AbpAdmin.Web.AbpAdminWebModule), // Razor Pages console at /AbpAdmin
 
     // ABP Framework packages
     typeof(AbpAspNetCoreMvcModule),

@@ -1,0 +1,20 @@
+#abp-tenants .avatar.sq { border-radius: 9px; }
+#abp-tenants .mt { padding: 14px 18px; margin-bottom: 16px; }
+#abp-tenants .mt b { font-weight: 600; }
+#abp-tenants .status { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+#abp-tenants tr.inactive .who-cell { opacity: 0.6; }
+#abp-tenants .sh-foot .err-slot { flex: 1; }
+#abp-tenants .sh-foot .err-slot:empty { display: none; }
+#abp-tenants .sh-foot .alert { display: block; }
+#abp-tenants textarea.input { height: auto; padding: 8px 11px; resize: vertical; line-height: 1.5; font-size: 12.5px; }
+#abp-tenants .csf { display: grid; gap: 10px; }
+#abp-tenants .test { display: flex; align-items: center; gap: 10px; }
+#abp-tenants .dbseg { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--border); border-radius: 10px; width: fit-content; }
+#abp-tenants .dbseg label { display: flex; align-items: center; padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; }
+#abp-tenants .dbseg label:has(:checked) { background: var(--accent-soft, var(--hover)); color: var(--accent); font-weight: 600; }
+#abp-tenants .dbseg input { position: absolute; opacity: 0; pointer-events: none; }
+#abp-tenants .dbseg label:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+#abp-tenants .admin { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+#abp-tenants .admin[open] { display: grid; gap: 12px; padding-bottom: 14px; }
+#abp-tenants .admin summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+#abp-tenants .admin p { font-size: 12.5px; margin: 0; }

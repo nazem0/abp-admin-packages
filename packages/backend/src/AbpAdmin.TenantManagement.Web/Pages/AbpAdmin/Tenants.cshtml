@@ -1,0 +1,9 @@
+@page
+@attribute [Authorize("AbpAdmin.Tenants")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:Tenants";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/tenant-management/tenants.css" /> }
+<div class="page" id="abp-tenants"></div>
+@section scripts { <script src="/abp-admin/tenant-management/tenants.js"></script> }

@@ -1,0 +1,41 @@
+/* Overview page (port of the Angular overview's component styles), scoped to #abp-overview. */
+#abp-overview .alerts { display: grid; gap: 8px; }
+#abp-overview .alert-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none;
+  background: var(--tone-soft); color: var(--tone); border: 1px solid color-mix(in srgb, var(--tone) 25%, transparent); }
+#abp-overview .alert-row span { flex: 1; color: var(--text); font-weight: 500; }
+#abp-overview .alert-row svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+#abp-overview .alert-row b { font-size: 13px; }
+#abp-overview .calm { display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: var(--muted); }
+#abp-overview .calm .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px var(--ok-soft); }
+#abp-overview .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+#abp-overview .kpi { display: grid; gap: 2px; padding: 16px 18px; color: var(--text); text-decoration: none; transition: border-color 0.15s, transform 0.15s; }
+#abp-overview a.kpi:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); transform: translateY(-1px); }
+#abp-overview .label { color: var(--muted); font-size: 12.5px; font-weight: 550; }
+#abp-overview .kpi strong { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+#abp-overview .sub { color: var(--muted); font-size: 12.5px; }
+#abp-overview .sub b { font-weight: 600; color: var(--text); }
+#abp-overview .sub b.ok { color: var(--ok); }
+#abp-overview .sub b.err { color: var(--err); }
+#abp-overview .cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 960px) { #abp-overview .cols { grid-template-columns: minmax(0, 1fr); } }
+#abp-overview .feed header { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 18px 8px; }
+#abp-overview .feed h2 { font-size: 15px; font-weight: 650; margin: 0; }
+#abp-overview .feed header a { font-size: 13px; text-decoration: none; }
+#abp-overview .small { font-size: 12.5px; }
+#abp-overview ul { list-style: none; margin: 0; padding: 0 8px 8px; }
+#abp-overview li { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 10px; }
+#abp-overview li:hover { background: var(--surface-2); }
+#abp-overview .ico { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--tone-soft); color: var(--tone); }
+#abp-overview .ico svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#abp-overview .what { flex: 1; display: grid; min-width: 0; }
+#abp-overview .what small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-overview time { font-size: 12.5px; white-space: nowrap; }
+#abp-overview .none { justify-content: center; padding: 24px; }
+#abp-overview .links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 12px 14px; }
+#abp-overview .links a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 13.5px; }
+#abp-overview .links a:hover { border-color: var(--accent); color: var(--accent); }
+#abp-overview .links svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#abp-overview kbd { padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; font: 11px var(--mono); }
+#abp-overview .skeleton.kpis i { height: 110px; }
+#abp-overview .spin svg { animation: abp-spin 0.8s linear infinite; }
+@keyframes abp-spin { to { transform: rotate(360deg); } }

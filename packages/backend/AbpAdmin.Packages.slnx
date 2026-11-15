@@ -1,5 +1,18 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/AbpAdmin.Core/AbpAdmin.Core.csproj" />
+    <Project Path="src/AbpAdmin.AuditLogging/AbpAdmin.AuditLogging.csproj" />
+    <Project Path="src/AbpAdmin.Identity/AbpAdmin.Identity.csproj" />
+    <Project Path="src/AbpAdmin.OpenIddict/AbpAdmin.OpenIddict.csproj" />
+    <Project Path="src/AbpAdmin.BackgroundJobs/AbpAdmin.BackgroundJobs.csproj" />
+    <Project Path="src/AbpAdmin.TenantManagement/AbpAdmin.TenantManagement.csproj" />
+    <Project Path="src/AbpAdmin.Core.Web/AbpAdmin.Core.Web.csproj" />
+    <Project Path="src/AbpAdmin.AuditLogging.Web/AbpAdmin.AuditLogging.Web.csproj" />
+    <Project Path="src/AbpAdmin.Identity.Web/AbpAdmin.Identity.Web.csproj" />
+    <Project Path="src/AbpAdmin.OpenIddict.Web/AbpAdmin.OpenIddict.Web.csproj" />
+    <Project Path="src/AbpAdmin.BackgroundJobs.Web/AbpAdmin.BackgroundJobs.Web.csproj" />
+    <Project Path="src/AbpAdmin.TenantManagement.Web/AbpAdmin.TenantManagement.Web.csproj" />
+    <Project Path="src/AbpAdmin.Web/AbpAdmin.Web.csproj" />
     <Project Path="src/AbpAdmin.Application/AbpAdmin.Application.csproj" />
     <Project Path="src/AbpAdmin.HttpApi/AbpAdmin.HttpApi.csproj" />
   </Folder>

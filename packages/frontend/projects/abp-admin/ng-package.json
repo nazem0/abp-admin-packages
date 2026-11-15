@@ -7,11 +7,6 @@
   "inlineStyleLanguage": "scss",
   "assets": [
     {
-      "input": "src/styles",
-      "glob": "*.scss",
-      "output": "styles"
-    },
-    {
       "input": ".",
       "glob": ".npmrc",
       "output": "."

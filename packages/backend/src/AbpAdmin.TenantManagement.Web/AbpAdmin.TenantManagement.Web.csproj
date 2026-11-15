@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.TenantManagement.Web</PackageId>
+    <Description>ABP Admin Razor Pages UI for tenants, the multi-tenancy switch and tenant databases.</Description>
+    <RootNamespace>AbpAdmin.Web</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="11.0.0" />
+    <ProjectReference Include="../AbpAdmin.Core.Web/AbpAdmin.Core.Web.csproj" />
+    <ProjectReference Include="../AbpAdmin.TenantManagement/AbpAdmin.TenantManagement.csproj" />
+  </ItemGroup>
+
+  <!-- Served by ABP's virtual file system at /abp-admin/... (no static web assets setup needed in the host). -->
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\**\*" />
+    <Content Remove="wwwroot\**\*" />
+  </ItemGroup>
+
+</Project>

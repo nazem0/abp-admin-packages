@@ -1,0 +1,15 @@
+@page
+@attribute [Authorize("AbpAdmin.AuditLogs")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:EntityChanges";
+}
+@section styles {
+    <link rel="stylesheet" href="/abp-admin/audit-logging/shared.css" />
+    <link rel="stylesheet" href="/abp-admin/audit-logging/entity-changes.css" />
+}
+<div class="page" id="abp-entity-changes"></div>
+@section scripts {
+    <script src="/abp-admin/audit-logging/shared.js"></script>
+    <script src="/abp-admin/audit-logging/entity-changes.js"></script>
+}

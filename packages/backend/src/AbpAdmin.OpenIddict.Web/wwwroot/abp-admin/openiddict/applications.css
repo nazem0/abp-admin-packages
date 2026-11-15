@@ -1,0 +1,49 @@
+#abp-applications .apps { list-style: none; margin: 0; padding: 6px 8px; }
+#abp-applications .app { display: flex; align-items: flex-start; gap: 14px; padding: 14px 10px; border-radius: 12px; }
+#abp-applications .app + .app { border-top: 1px solid var(--border); }
+#abp-applications .app:hover { background: var(--surface-2); }
+#abp-applications .logo { display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 11px; background: var(--accent-soft);
+  color: var(--accent); font-weight: 700; overflow: hidden; }
+#abp-applications .logo img { width: 100%; height: 100%; object-fit: cover; }
+#abp-applications .main { flex: 1; display: grid; gap: 3px; min-width: 0; }
+#abp-applications .name { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+#abp-applications .name b { font-weight: 650; }
+#abp-applications .main > .mono { font-size: 12px; overflow-wrap: anywhere; }
+#abp-applications .grants { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 4px; }
+#abp-applications .tag { padding: 1px 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); font-size: 11.5px; color: var(--muted); }
+#abp-applications .app:hover .tag { background: var(--surface); }
+#abp-applications .tag.ok { color: var(--ok); }
+#abp-applications .small { font-size: 12px; margin-inline-start: 4px; }
+#abp-applications .actions { display: flex; align-items: center; gap: 2px; flex: none; }
+@media (max-width: 640px) { #abp-applications .app { flex-wrap: wrap; } #abp-applications .actions { margin-inline-start: 56px; } }
+
+/* create / edit sheet (rendered inside the page root) */
+dialog.af { width: min(720px, 100vw); }
+dialog.af .avatar.sq { width: 36px; height: 36px; border-radius: 10px; }
+dialog.af fieldset { display: grid; gap: 12px; margin: 0; padding: 14px 0 0; border: 0; border-top: 1px solid var(--border); min-width: 0; }
+dialog.af fieldset[hidden], dialog.af [hidden] { display: none; }
+dialog.af legend { padding: 0 0 4px; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+dialog.af .choice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { dialog.af .choice { grid-template-columns: 1fr; } }
+dialog.af .choice label { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 12px; border: 1px solid var(--border); border-radius: 11px; cursor: pointer; }
+dialog.af .choice label.on { border-color: var(--accent); background: var(--accent-soft); }
+dialog.af .choice input { grid-row: span 2; accent-color: var(--accent); margin-top: 3px; }
+dialog.af .choice small { color: var(--muted); font-size: 12px; }
+dialog.af .secret { display: flex; gap: 6px; align-items: center; }
+dialog.af .secret .input { flex: 1; }
+dialog.af .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+@media (max-width: 560px) { dialog.af .checks { grid-template-columns: 1fr; } }
+dialog.af .add { display: flex; gap: 6px; max-width: 360px; }
+dialog.af .add .input { flex: 1; }
+dialog.af textarea.input { height: auto; padding: 8px 11px; resize: vertical; line-height: 1.6; }
+dialog.af .scopes { display: flex; flex-wrap: wrap; gap: 6px; }
+dialog.af .chip-check { position: relative; cursor: pointer; }
+dialog.af .chip-check input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+dialog.af .chip-check span { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px;
+  font: 12.5px var(--mono); color: var(--muted); background: var(--surface); }
+dialog.af .chip-check input:checked + span { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+dialog.af .chip-check input:checked + span::before { content: '✓'; margin-inline-end: 6px; }
+dialog.af .chip-check input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+dialog.af .more { border-top: 1px solid var(--border); padding-top: 12px; }
+dialog.af .more summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+dialog.af .sh-foot .alert { flex: 1; }

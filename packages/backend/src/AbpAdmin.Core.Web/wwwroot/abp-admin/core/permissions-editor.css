@@ -1,0 +1,41 @@
+/* Permissions editor sheet (port of permissions-editor.component.ts styles), scoped to dialog.pm. */
+.abp-admin dialog.pm { width: min(860px, 100vw); }
+.pm .avatar.sq { width: 36px; height: 36px; border-radius: 10px; }
+.pm .avatar svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pm .tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 22px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.pm .tools .search { flex: 1 1 220px; }
+.pm .count { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.pm .cols { flex: 1; display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 0; }
+.pm .cols.single { grid-template-columns: minmax(0, 1fr); }
+.pm .groups { display: grid; align-content: start; gap: 2px; padding: 12px 10px; border-inline-end: 1px solid var(--border); }
+.pm .groups[hidden] { display: none; }
+.pm .groups button { display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; border: 0; border-radius: 8px; background: none;
+  color: var(--muted); font: inherit; font-weight: 500; text-align: start; cursor: pointer; }
+.pm .groups button:hover { background: var(--surface-2); color: var(--text); }
+.pm .groups button[aria-current='true'] { background: var(--accent-soft); color: var(--accent); }
+.pm .n { font-size: 12px; font-variant-numeric: tabular-nums; opacity: 0.8; }
+.pm .n.full { color: var(--ok); opacity: 1; }
+.pm .perms { padding: 8px 22px 24px; }
+.pm .g-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 6px; }
+.pm .g-head h3 { font-size: 13px; font-weight: 650; }
+.pm .small { font-size: 12.5px; color: var(--muted); }
+.pm ul { list-style: none; margin: 0; padding: 0; }
+.pm li { padding-inline-start: calc(var(--d) * 26px); }
+.pm .perm { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 9px; cursor: pointer; }
+.pm .perm:hover { background: var(--surface-2); }
+.pm .perm.locked { cursor: default; }
+.pm .perm input { accent-color: var(--accent); margin: 3px 0 0; width: 16px; height: 16px; flex: none; }
+.pm .txt { display: grid; min-width: 0; }
+.pm .txt > span { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pm .txt small { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }
+.pm .pill { height: 19px; font-size: 11px; }
+.pm .none { padding: 24px 0; }
+.pm .sh-foot .alert { flex: 1; }
+@media (max-width: 720px) {
+  .pm .tools { padding-inline: 14px; }
+  .pm .cols { grid-template-columns: minmax(0, 1fr); }
+  .pm .groups { display: flex; overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--border); }
+  .pm .groups button { flex: none; }
+  .pm .perms { padding-inline: 14px; }
+  .pm li { padding-inline-start: calc(var(--d) * 16px); }
+}

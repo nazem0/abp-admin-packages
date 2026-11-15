@@ -1,0 +1,15 @@
+@page
+@attribute [Authorize("AbpAdmin.AuditLogs")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:AuditLogs";
+}
+@section styles {
+    <link rel="stylesheet" href="/abp-admin/audit-logging/shared.css" />
+    <link rel="stylesheet" href="/abp-admin/audit-logging/audit-logs.css" />
+}
+<div class="page" id="abp-audit-logs"></div>
+@section scripts {
+    <script src="/abp-admin/audit-logging/shared.js"></script>
+    <script src="/abp-admin/audit-logging/audit-logs.js"></script>
+}

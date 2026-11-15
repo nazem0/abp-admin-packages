@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.Identity</PackageId>
+    <Description>ABP Admin identity: security logs, organization units, user lock/unlock and identity and sign-in settings (per tenant for tenants). Needs the Identity and Setting Management modules.</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Identity.Domain" Version="$(AbpVersion)" />
+    <PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="$(AbpVersion)" />
+    <PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
+  </ItemGroup>
+
+</Project>

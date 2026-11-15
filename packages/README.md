@@ -1,25 +1,43 @@
 # ABP Admin as packages
 
-The same admin console as the app at the repository root, shipped as reusable packages so any
-ABP application can add it: **NuGet** packages for the backend, an **npm** library for Angular.
+The same admin console as the app at the repository root, shipped as reusable packages so any ABP application
+can add it, **feature by feature**: NuGet packages for the backend, npm packages for an Angular UI, and NuGet
+packages for a **Razor Pages UI** with the same look (for ABP MVC apps). Take everything, or only the features
+you want.
 
 ```
 packages/
   backend/
-    src/AbpAdmin.Application/   NuGet: app services, DTOs, permissions, localization
-    src/AbpAdmin.HttpApi/       NuGet: exposes them under /api/abp-admin
-    samples/AbpAdmin.Host/      an ordinary ABP host that only references the packages
-    test/AbpAdmin.Tests/        integration tests, run against the sample host
+    src/AbpAdmin.Core/                 NuGet: shared core (permission group, localization en/ar, dashboard, API conventions)
+    src/AbpAdmin.<Feature>/            NuGet: one per feature — services + APIs under /api/abp-admin
+    src/AbpAdmin.Core.Web/             NuGet: Razor Pages console core (layout, overview, settings, features, browser runtime)
+    src/AbpAdmin.<Feature>.Web/        NuGet: one per feature — its Razor pages
+    src/AbpAdmin.Application, .HttpApi NuGet: every backend feature in one reference
+    src/AbpAdmin.Web/                  NuGet: the whole Razor console (and every backend feature) in one reference
+    samples/AbpAdmin.Host/             an ordinary ABP host that only references the packages (serves both UIs)
+    test/AbpAdmin.Tests/               integration tests, run against the sample host
   frontend/
-    projects/abp-admin/         npm: @nazem0/abp-admin-ng (headless Angular library)
-    projects/demo/              an Angular app consuming the built library
+    projects/core/                     npm: @nazem0/abp-admin-ng-core
+    projects/<feature>/                npm: one per feature
+    projects/abp-admin/                npm: @nazem0/abp-admin-ng — every feature in one package
+    projects/demo/                     an Angular app consuming the built packages
 ```
 
-| Package | What it contains |
-|---|---|
-| `AbpAdmin.Application` | Audit / security / entity-change logs, background jobs, organization units, user lock/unlock, OpenIddict applications & scopes, tenants (multi-tenancy switch, tenant databases, users across tenants), identity settings, dashboard. Permissions (`AbpAdmin.*`) and localization (en, ar). Depends only on the **domain** packages of the free ABP modules. |
-| `AbpAdmin.HttpApi` | Conventional API controllers for the above: `/api/abp-admin/...`, remote service name `AbpAdmin`; the tenant resolver that lets a host admin manage a tenant's users. |
-| `@nazem0/abp-admin-ng` | Every admin page, the shell (sidebar, Ctrl+K palette, toasts, theme switch) and typed proxies. Depends only on `@abp/ng.core` (+ `@angular/aria`); no theme package. Styles are scoped under `.abp-admin`, so they never touch the host app. |
+## Pick what you need
+
+| Feature | Backend (NuGet) | Angular (npm) | Razor Pages (NuGet) | Needs in your host |
+| --- | --- | --- | --- | --- |
+| **Core**: overview, settings (time zone, email), host features, permissions editor, shell | `AbpAdmin.Core` | `@nazem0/abp-admin-ng-core` | `AbpAdmin.Core.Web` | Setting, Feature and Permission Management |
+| **Audit logging**: request log and dashboard, traces, entity changes and history | `AbpAdmin.AuditLogging` | `@nazem0/abp-admin-ng-audit-logging` | `AbpAdmin.AuditLogging.Web` | Audit Logging |
+| **Identity**: users, roles, organization units, security logs, identity settings | `AbpAdmin.Identity` | `@nazem0/abp-admin-ng-identity` | `AbpAdmin.Identity.Web` | Identity, Setting Management |
+| **OpenIddict**: client applications, client permissions, scopes | `AbpAdmin.OpenIddict` | `@nazem0/abp-admin-ng-openiddict` | `AbpAdmin.OpenIddict.Web` | OpenIddict, Permission Management |
+| **Background jobs**: the persisted job queue | `AbpAdmin.BackgroundJobs` | `@nazem0/abp-admin-ng-background-jobs` | `AbpAdmin.BackgroundJobs.Web` | Background Jobs |
+| **Tenants**: tenants, multi-tenancy switch, tenant databases, users across tenants | `AbpAdmin.TenantManagement` | `@nazem0/abp-admin-ng-tenant-management` | `AbpAdmin.TenantManagement.Web` | Tenant Management, Identity |
+| **Everything** | `AbpAdmin.HttpApi` (or `AbpAdmin.Application`) | `@nazem0/abp-admin-ng` | `AbpAdmin.Web` | all of the above |
+
+Each feature package depends only on `AbpAdmin.Core` (or its UI counterpart) and the **domain** package of its ABP
+module. Links between features (a security log's "open request trace", the overview's cards) appear only when the
+target feature is installed.
 
 ## Add it to an ABP application
 
@@ -40,24 +58,26 @@ dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github
 
 ### Backend
 
-1. Reference the HTTP API package in the project that hosts your APIs (it brings `AbpAdmin.Application`):
+1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
 
    ```xml
    <PackageReference Include="AbpAdmin.HttpApi" Version="0.1.0" />
+   <!-- or, for example: -->
+   <PackageReference Include="AbpAdmin.Identity" Version="0.1.0" />
+   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.1.0" />
    ```
 
-2. Depend on the module:
+2. Depend on the module(s). Each feature module publishes its own APIs under `/api/abp-admin`:
 
    ```csharp
-   [DependsOn(typeof(AbpAdminHttpApiModule) /* , ... */)]
+   [DependsOn(typeof(AbpAdminHttpApiModule) /* , ... */)]                                       // everything
+   [DependsOn(typeof(AbpAdminIdentityModule), typeof(AbpAdminAuditLoggingModule) /* , ... */)] // or pick
    public class YourHttpApiHostModule : AbpModule { }
    ```
 
-3. Your host must already include what ABP Admin reads from (any standard ABP app template does):
-   the **EF Core** integrations of Audit Logging, Identity, OpenIddict, Background Jobs,
-   Setting Management and Permission Management, plus Tenant Management for the Tenants screens.
-   (Tested with EF Core + SQL Server / SQLite; MongoDB is untested.) Areas whose module is missing
-   simply don't show up (see below).
+3. Your host must already include the **EF Core** integrations of the ABP modules your features read from
+   (any standard ABP app template does; see the table above). Tested with EF Core + SQL Server / SQLite;
+   MongoDB is untested. Areas whose module is missing simply don't show up (see below).
 
 4. Recommended host settings (the packages don't impose them):
 
@@ -71,31 +91,59 @@ dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github
    ```
 
 5. Run your DbMigrator / `--migrate-database` once: ABP's seeder grants the new `AbpAdmin.*`
-   permissions to the `admin` role. No database migration is needed — ABP Admin adds no tables.
+   permissions to the `admin` role. No database migration is needed; ABP Admin adds no tables.
 
 ### Angular
 
-1. Install: `pnpm add @nazem0/abp-admin-ng` (peer dependencies: `@abp/ng.core`, `@angular/aria`, Angular 22).
+1. Install everything (`pnpm add @nazem0/abp-admin-ng`), or core plus the features you want
+   (`pnpm add @nazem0/abp-admin-ng-core @nazem0/abp-admin-ng-identity ...`). Peer dependencies: `@abp/ng.core`,
+   `@angular/aria`, Angular 22.
 2. Mount it under any path and enable component input binding (deep links such as
    `?user=`, `?correlation=`, `?new=1` are read as inputs):
 
    ```ts
-   // app.routes.ts
+   // app.routes.ts: everything
    { path: 'admin', loadChildren: () => import('@nazem0/abp-admin-ng').then(m => m.ABP_ADMIN_ROUTES) }
+
+   // ...or pick features (core's overview, settings and features pages are always included)
+   { path: 'admin', loadChildren: async () => (await import('@nazem0/abp-admin-ng-core')).abpAdminRoutes(
+       (await import('@nazem0/abp-admin-ng-identity')).abpAdminIdentity,
+       (await import('@nazem0/abp-admin-ng-audit-logging')).abpAdminAuditLogging) }
 
    // app.config.ts
    provideRouter(routes, withComponentInputBinding())
    ```
 
 3. API URL: the proxies use `apiName: 'AbpAdmin'`. Without an `apis.AbpAdmin` entry in your
-   environment they use `apis.default` — add one only if ABP Admin's API lives elsewhere.
+   environment they use `apis.default`; add one only if ABP Admin's API lives elsewhere.
 
-That's it — no stylesheet to register (the layout loads its own, scoped under `.abp-admin`), no theme
-module. The theme switch writes `data-abp-admin-theme` on `<html>`, leaving your app's theme alone.
+No stylesheet to register (the layout loads its own, scoped under `.abp-admin`) and no theme module. The theme
+switch writes `data-abp-admin-theme` on `<html>`, leaving your app's theme alone.
 
-Everything is also exported for custom composition: `AbpAdminLayoutComponent`, `NAV`,
-`PermissionsEditorComponent`, `AuditLogDetailComponent`, the entity diff/timeline/history
-components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
+A feature is an `AbpAdminFeature` (`nav`, `routes`, `actions` for Ctrl+K, `settings` tabs): pass your own to
+`abpAdminRoutes(...)` to add pages to the console. Also exported for custom composition:
+`AbpAdminLayoutComponent`, `PermissionsEditorComponent`, `AuditLogDetailComponent`, the entity
+diff/timeline/history components, `Toaster`, `ThemeService`, and the typed API clients (from
+`@nazem0/abp-admin-ng-core`).
+
+### Razor Pages (ABP MVC apps)
+
+The same console as server-rendered Razor pages under **`/AbpAdmin`**, with the Angular UI's look (sidebar,
+Ctrl+K, light/dark/system theme, English and Arabic with right-to-left). Use it instead of, or next to, the
+Angular UI.
+
+1. Reference `AbpAdmin.Web` (everything, backend included), or `AbpAdmin.Core.Web` plus the
+   `AbpAdmin.<Feature>.Web` packages you want, in your MVC / Razor Pages host.
+2. Depend on `AbpAdminWebModule`, or on `AbpAdminCoreWebModule` and the feature web modules
+   (`AbpAdminIdentityWebModule`, `AbpAdminAuditLoggingWebModule`, ...; each brings its backend module).
+3. Your host needs what an ABP MVC app already has: Razor Pages, cookie sign-in (the Account module's login
+   page), `UseStaticFiles()` (the pages' CSS and JS are served from ABP's virtual file system under
+   `/abp-admin/...`) and ABP's language switch endpoint `/Abp/Languages/Switch`.
+
+Pages render on the server and call the same `/api/abp-admin` and ABP APIs from the browser (with ABP's
+antiforgery header), so both UIs behave the same. Feature web modules register their sidebar items, Ctrl+K
+actions and Settings tabs in `AbpAdminWebOptions`; add your own pages the same way. The Razor stylesheet is
+generated from the Angular SCSS (`pnpm build:razor-css` in `frontend/`), so both UIs share one design.
 
 ### Multi-tenancy
 
@@ -104,8 +152,8 @@ components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
 - **Tenant admins** use the same console, scoped to their tenant. Host-only areas are hidden, and
   identity settings they save apply to their tenant only, falling back to the host's values.
 - **Users across tenants.** A host user with `AbpAdmin.Tenants.ManageUsers` sees every tenant's users
-  on the Users page and manages each one inside its tenant. The Angular page sends ABP's `__tenant`
-  header; since ABP ignores it for signed-in users, `AbpAdminHttpApiModule` adds a tenant resolver that
+  on the Users page and manages each one inside its tenant. Both UIs send ABP's `__tenant`
+  header; since ABP ignores it for signed-in users, `AbpAdminTenantManagementModule` adds a tenant resolver that
   honours it for that permission only, and only on the user, lockout and user-permission endpoints.
 - **Own databases.** Tenants can get their own connection string when your host handles
   `TenantConnectionStringUpdatedEto` / `TenantCreatedEto` by migrating and seeding the database, the
@@ -115,7 +163,7 @@ components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
 ### Audit logs keep the real error
 
 ABP stores an audit log's exception with the same settings it uses for API responses, so with error
-details hidden from clients the log only says "An internal error occurred". `AbpAdmin.Application`
+details hidden from clients the log only says "An internal error occurred". `AbpAdmin.AuditLogging`
 replaces the audit-log converter to store the exception type, message and stack trace; API responses
 are unchanged.
 
@@ -151,19 +199,21 @@ abp install-libs                     # login page client libraries (not in git)
 dotnet run -- --migrate-database
 dotnet run
 
-# frontend: build the library, then run the demo app against the sample host
+# Razor console: https://localhost:44368/AbpAdmin (same sample host)
+
+# frontend: build the packages (core first), then run the demo app against the sample host
 cd frontend
 pnpm install
-pnpm build:lib            # → dist/abp-admin
+pnpm build:lib            # → dist/core, dist/<feature>..., dist/abp-admin
 pnpm start                # demo on http://localhost:4201, admin at /admin
-npm pack ./dist/abp-admin --pack-destination artifacts
+pnpm build:razor-css      # after changing the SCSS: regenerates the Razor console's stylesheet
 
-# regenerate the library's proxies (sample host running)
+# regenerate the API clients in the core package (sample host running)
 pnpm generate-proxy
 ```
 
-The demo app imports `@nazem0/abp-admin-ng` from `dist/abp-admin` (tsconfig path), i.e. exactly what is
-published — rebuild the library after changing it (`pnpm watch:lib` keeps it rebuilding).
+The demo app imports the packages from `dist/` (tsconfig paths), i.e. exactly what is published; rebuild after
+changing them (`pnpm watch:lib` keeps core rebuilding).
 
 ### Publish (GitHub Packages)
 
@@ -171,15 +221,19 @@ Needs a token with `write:packages` (`gh auth refresh -s write:packages`).
 
 ```bash
 dotnet nuget push "backend/artifacts/*.nupkg" -s https://nuget.pkg.github.com/nazem0/index.json -k $(gh auth token)
-cd frontend/dist/abp-admin && NODE_AUTH_TOKEN=$(gh auth token) npm publish   # registry comes from publishConfig
+# npm: core first, then the features, then the all-in-one (registry comes from publishConfig)
+for p in core audit-logging identity openiddict background-jobs tenant-management abp-admin; do
+  (cd frontend/dist/$p && NODE_AUTH_TOKEN=$(gh auth token) npm publish)
+done
 ```
 
-Bump the version in `backend/Directory.Build.props` and `frontend/projects/abp-admin/package.json`
-first — a published version can't be overwritten.
+Bump the version first, in `backend/Directory.Build.props` and in every `frontend/projects/*/package.json`
+(including the `@nazem0/abp-admin-ng-*` peer dependency versions): a published version can't be overwritten.
 
 ### Live demo
 
-https://abp-admin.runasp.net (admin / 1q2w3E*) — the sample host serving the demo app under `/app/`, on SQLite.
+https://abp-admin.runasp.net (admin / 1q2w3E*): the sample host on SQLite, serving the Angular demo app under
+`/app/` and the Razor Pages console under `/AbpAdmin`.
 `pwsh deploy-demo.ps1` rebuilds both and pushes them with Web Deploy; it needs a gitignored `.deploy/` folder
 with the publish profile, `appsettings.Production.json` and `openiddict.pfx` (see the script header).
 The sample host's switches it relies on: a `Data Source=` connection string selects SQLite, `App:MigrateOnStartup`

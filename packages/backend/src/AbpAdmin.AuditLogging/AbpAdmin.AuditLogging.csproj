@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.AuditLogging</PackageId>
+    <Description>ABP Admin audit logging: request log and dashboard, request traces, entity changes and entity history, and audit logs that keep the real error. Needs the Audit Logging module.</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AuditLogging.Domain" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
+  </ItemGroup>
+
+</Project>

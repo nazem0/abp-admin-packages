@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "build:lib": "ng build abp-admin",
-    "watch:lib": "ng build abp-admin --watch --configuration development",
+    "build:lib": "ng build core && ng build audit-logging && ng build identity && ng build openiddict && ng build background-jobs && ng build tenant-management && ng build abp-admin",
+    "watch:lib": "ng build core --watch --configuration development",
     "start": "ng serve demo",
     "build:demo": "ng build demo",
-    "generate-proxy": "abp generate-proxy -t ng -m abp-admin -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m identity -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m permissionManagement -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m featureManagement -u https://localhost:44368 --target abp-admin && abp generate-proxy -t ng -m settingManagement -u https://localhost:44368 --target abp-admin"
+    "generate-proxy": "abp generate-proxy -t ng -m abp-admin -u https://localhost:44368 --target core && abp generate-proxy -t ng -m identity -u https://localhost:44368 --target core && abp generate-proxy -t ng -m permissionManagement -u https://localhost:44368 --target core && abp generate-proxy -t ng -m featureManagement -u https://localhost:44368 --target core && abp generate-proxy -t ng -m settingManagement -u https://localhost:44368 --target core",
+    "build:razor-css": "sass --no-source-map --style=expanded projects/core/src/styles/abp-admin.scss ../backend/src/AbpAdmin.Core.Web/wwwroot/abp-admin/core/abp-admin.css"
   },
   "dependencies": {
     "@abp/ng.core": "~11.0.0-rc.2",
@@ -37,6 +38,7 @@
     "jsdom": "^27.1.0",
     "typescript": "~6.0.3",
     "vitest": "^4.0.0",
-    "ng-packagr": "~22.2.0"
+    "ng-packagr": "~22.2.0",
+    "sass": "1.108.2"
   }
 }

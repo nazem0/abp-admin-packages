@@ -104,6 +104,7 @@
   <ItemGroup>
     <!-- In your own app these are PackageReferences: AbpAdmin.HttpApi (brings AbpAdmin.Application). -->
     <ProjectReference Include="..\..\src\AbpAdmin.HttpApi\AbpAdmin.HttpApi.csproj" />
+    <ProjectReference Include="..\..\src\AbpAdmin.Web\AbpAdmin.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

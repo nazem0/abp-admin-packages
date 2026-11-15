@@ -12,10 +12,34 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
-    "lib": ["ES2022", "dom", "esnext.disposable"],
+    "lib": [
+      "ES2022",
+      "dom",
+      "esnext.disposable"
+    ],
     "useDefineForClassFields": false,
     "paths": {
-      "@nazem0/abp-admin-ng": ["./dist/abp-admin"]
+      "@nazem0/abp-admin-ng": [
+        "./dist/abp-admin"
+      ],
+      "@nazem0/abp-admin-ng-core": [
+        "./dist/core"
+      ],
+      "@nazem0/abp-admin-ng-audit-logging": [
+        "./dist/audit-logging"
+      ],
+      "@nazem0/abp-admin-ng-identity": [
+        "./dist/identity"
+      ],
+      "@nazem0/abp-admin-ng-openiddict": [
+        "./dist/openiddict"
+      ],
+      "@nazem0/abp-admin-ng-background-jobs": [
+        "./dist/background-jobs"
+      ],
+      "@nazem0/abp-admin-ng-tenant-management": [
+        "./dist/tenant-management"
+      ]
     }
   },
   "angularCompilerOptions": {

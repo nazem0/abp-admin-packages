@@ -2,12 +2,11 @@
 
   <PropertyGroup>
     <PackageId>AbpAdmin.HttpApi</PackageId>
-    <Description>Exposes the ABP Admin application services as HTTP APIs under /api/abp-admin (remote service name "AbpAdmin").</Description>
+    <Description>All of ABP Admin with its HTTP APIs under /api/abp-admin (remote service name "AbpAdmin"). Each feature package publishes its own APIs; reference those to pick only some.</Description>
     <RootNamespace>AbpAdmin</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="$(AbpVersion)" />
     <ProjectReference Include="..\AbpAdmin.Application\AbpAdmin.Application.csproj" />
   </ItemGroup>
 

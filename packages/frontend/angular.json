@@ -91,6 +91,144 @@
           "defaultConfiguration": "development"
         }
       }
+    },
+    "core": {
+      "projectType": "library",
+      "root": "projects/core",
+      "sourceRoot": "projects/core/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/core/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/core/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/core/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "audit-logging": {
+      "projectType": "library",
+      "root": "projects/audit-logging",
+      "sourceRoot": "projects/audit-logging/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/audit-logging/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/audit-logging/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/audit-logging/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "identity": {
+      "projectType": "library",
+      "root": "projects/identity",
+      "sourceRoot": "projects/identity/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/identity/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/identity/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/identity/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "openiddict": {
+      "projectType": "library",
+      "root": "projects/openiddict",
+      "sourceRoot": "projects/openiddict/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/openiddict/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/openiddict/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/openiddict/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "background-jobs": {
+      "projectType": "library",
+      "root": "projects/background-jobs",
+      "sourceRoot": "projects/background-jobs/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/background-jobs/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/background-jobs/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/background-jobs/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
+    "tenant-management": {
+      "projectType": "library",
+      "root": "projects/tenant-management",
+      "sourceRoot": "projects/tenant-management/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/tenant-management/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/tenant-management/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/tenant-management/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
     }
   }
 }

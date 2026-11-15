@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.Web</PackageId>
+    <Description>All of ABP Admin's Razor Pages UI in one reference (under /AbpAdmin): core, audit logging, identity, OpenIddict, background jobs and tenants, with their APIs. Reference the AbpAdmin.*.Web feature packages instead to pick only some.</Description>
+    <RootNamespace>AbpAdmin.Web</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AbpAdmin.HttpApi\AbpAdmin.HttpApi.csproj" />
+    <ProjectReference Include="..\AbpAdmin.Core.Web\AbpAdmin.Core.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.AuditLogging.Web\AbpAdmin.AuditLogging.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.Identity.Web\AbpAdmin.Identity.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.OpenIddict.Web\AbpAdmin.OpenIddict.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.BackgroundJobs.Web\AbpAdmin.BackgroundJobs.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.TenantManagement.Web\AbpAdmin.TenantManagement.Web.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,4 @@
+/* Roles page, scoped to #abp-roles. */
+#abp-roles .avatar.sq { border-radius: 9px; }
+#abp-roles .filters .alert { flex-basis: 100%; }
+#abp-roles .sh-foot .alert { flex: 1; }

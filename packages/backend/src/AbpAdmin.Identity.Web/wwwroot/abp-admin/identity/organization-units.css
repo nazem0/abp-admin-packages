@@ -1,0 +1,58 @@
+/* Organization units page (component styles of organization-units.page.ts), scoped to #abp-ous. */
+#abp-ous .split { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { #abp-ous .split { grid-template-columns: minmax(0, 1fr); } }
+#abp-ous .tree { padding: 8px; position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow: auto; }
+@media (max-width: 900px) { #abp-ous .tree { position: static; max-height: none; } }
+#abp-ous ul { list-style: none; margin: 0; padding: 0; }
+#abp-ous .tree li { display: flex; align-items: center; gap: 2px; padding-inline-start: calc(var(--d) * 18px); border-radius: 9px; }
+#abp-ous .tree li:hover { background: var(--surface-2); }
+#abp-ous .tree li.sel { background: var(--accent-soft); }
+#abp-ous .tree li.sel .name { color: var(--accent); font-weight: 600; }
+#abp-ous .chev { display: grid; place-items: center; width: 24px; height: 32px; flex: none; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0; }
+#abp-ous .chev.leaf { visibility: hidden; }
+#abp-ous .chev svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; transition: transform 0.15s; }
+#abp-ous .chev svg.open { transform: rotate(90deg); }
+[dir=rtl] #abp-ous .chev svg { scale: -1 1; }
+#abp-ous .name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px; border: 0; background: none; color: var(--text);
+  font: inherit; text-align: start; cursor: pointer; border-radius: 8px; }
+#abp-ous .folder svg { width: 17px; height: 17px; display: block; fill: color-mix(in srgb, var(--accent) 18%, transparent); stroke: var(--accent); stroke-width: 1.8; stroke-linejoin: round; }
+#abp-ous .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-ous .counts { font-size: 11.5px; color: var(--muted); padding: 1px 7px; border-radius: 999px; background: var(--surface-2); font-variant-numeric: tabular-nums; }
+#abp-ous li.sel .counts { background: var(--surface); }
+#abp-ous .add { width: 28px; height: 28px; opacity: 0; }
+#abp-ous li:hover .add, #abp-ous li.sel .add, #abp-ous .add:focus-visible { opacity: 1; }
+#abp-ous .add svg { width: 15px; height: 15px; }
+#abp-ous .new form { display: flex; gap: 6px; padding: 6px 4px 6px 26px; width: 100%; }
+#abp-ous .new .input { flex: 1; height: 30px; }
+#abp-ous .detail { min-height: 360px; overflow: hidden; }
+#abp-ous .dhead { padding: 18px 20px 12px; border-bottom: 1px solid var(--border); display: grid; gap: 10px; }
+#abp-ous .crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12.5px; color: var(--muted); min-height: 18px; }
+#abp-ous .crumbs .sep:last-child { display: none; }
+#abp-ous .title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+#abp-ous .title h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+#abp-ous .small { font-size: 12px; }
+#abp-ous .tools { margin-inline-start: auto; display: flex; align-items: center; gap: 4px; }
+#abp-ous .move { width: 150px; height: 30px; font-size: 13px; }
+#abp-ous .rename { display: flex; gap: 6px; }
+#abp-ous .rename .input { flex: 1; max-width: 360px; }
+#abp-ous .seg { width: fit-content; }
+#abp-ous .pane { padding: 12px 20px 20px; display: grid; gap: 10px; }
+#abp-ous .bar { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+#abp-ous .bar .search { flex: 1; max-width: 360px; position: relative; display: flex; }
+#abp-ous .hint { margin: 0; }
+#abp-ous .picker { border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: grid; gap: 8px; background: var(--surface-2); }
+#abp-ous .picker .input { width: 100%; }
+#abp-ous .picker ul { max-height: 240px; overflow: auto; display: grid; gap: 2px; }
+#abp-ous .picker li { padding: 6px 8px; border-radius: 8px; }
+#abp-ous .picker li:hover { background: var(--surface); }
+#abp-ous .picker small { color: var(--muted); }
+#abp-ous .pick-foot { display: flex; align-items: center; gap: 6px; }
+#abp-ous .pick-foot .muted { flex: 1; }
+#abp-ous .people li { display: flex; align-items: center; gap: 12px; padding: 9px 8px; border-radius: 10px; }
+#abp-ous .people li:hover { background: var(--surface-2); }
+#abp-ous .people li + li { border-top: 1px solid var(--border); }
+#abp-ous .avatar.sq { border-radius: 9px; }
+#abp-ous .who { flex: 1; display: grid; min-width: 0; }
+#abp-ous .who small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-ous .people .state { border: 0; }
+#abp-ous .pick-one { min-height: 340px; }

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.OpenIddict</PackageId>
+    <Description>ABP Admin OpenIddict: client applications (secrets, grant types, PKCE, redirect URIs, client permissions) and API scopes. Needs the OpenIddict and Permission Management modules.</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.OpenIddict.Domain" Version="$(AbpVersion)" />
+    <PackageReference Include="Volo.Abp.PermissionManagement.Domain" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
+  </ItemGroup>
+
+</Project>

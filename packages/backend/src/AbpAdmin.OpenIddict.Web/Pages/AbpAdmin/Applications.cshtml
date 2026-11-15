@@ -1,0 +1,12 @@
+@page
+@attribute [Authorize("AbpAdmin.Applications")]
+@{ Layout = "_AbpAdminLayout"; ViewData["Title"] = "AbpAdmin::Nav:Applications"; }
+@section styles {
+    <link rel="stylesheet" href="/abp-admin/core/permissions-editor.css" />
+    <link rel="stylesheet" href="/abp-admin/openiddict/applications.css" />
+}
+<div class="page" id="abp-applications"></div>
+@section scripts {
+    <script src="/abp-admin/core/permissions-editor.js"></script>
+    <script src="/abp-admin/openiddict/applications.js"></script>
+}

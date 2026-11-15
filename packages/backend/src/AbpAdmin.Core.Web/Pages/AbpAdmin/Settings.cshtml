@@ -1,0 +1,38 @@
+@page "{section?}"
+@attribute [Authorize]
+@model AbpAdmin.Web.Pages.SettingsModel
+@using Microsoft.Extensions.Localization
+@using AbpAdmin.Localization
+@inject IStringLocalizer<AbpAdminResource> L
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:Settings";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/core/settings.css" /> }
+<div class="page" id="abp-settings" data-tab="@Model.Active!.Path">
+    <header class="top">
+        <div>
+            <h1>@L["Settings:Title"]</h1>
+            <p class="muted">@L["Settings:Subtitle"]</p>
+        </div>
+    </header>
+
+    <nav class="tabs" aria-label="@L["Settings:Sections"]">
+        @foreach (var s in Model.Tabs)
+        {
+            var on = s == Model.Active;
+            <a href="@AbpAdminWebOptions.Url("Settings/" + s.Path)" class="@(on ? "active" : null)" aria-current="@(on ? "page" : null)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="@s.Icon" /></svg>@L[s.LabelKey.StartsWith("AbpAdmin::") ? s.LabelKey["AbpAdmin::".Length..] : s.LabelKey]</a>
+        }
+    </nav>
+
+    @if (Model.Active.Partial is { } partial)
+    {
+        <partial name="@partial" />
+    }
+    else
+    {
+        <div id="abp-settings-body"></div>
+    }
+</div>
+@section scripts { <script src="/abp-admin/core/settings.js"></script> }

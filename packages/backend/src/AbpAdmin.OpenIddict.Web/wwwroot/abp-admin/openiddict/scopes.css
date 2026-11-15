@@ -1,0 +1,3 @@
+#abp-scopes .avatar.sq, dialog.narrow .avatar.sq { border-radius: 9px; }
+dialog.narrow textarea.input { height: auto; padding: 8px 11px; resize: vertical; line-height: 1.6; }
+dialog.narrow .sh-foot .alert { flex: 1; }

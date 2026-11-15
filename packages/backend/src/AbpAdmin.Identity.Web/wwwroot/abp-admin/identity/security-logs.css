@@ -1,0 +1,31 @@
+/* Security logs page (component styles of security-logs.page.ts), scoped to #abp-security-logs. */
+#abp-security-logs .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { #abp-security-logs .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+#abp-security-logs .tile { display: grid; gap: 2px; padding: 14px 16px; text-align: start; font: inherit; color: var(--text); cursor: pointer; transition: border-color 0.15s; }
+#abp-security-logs .tile span { font-size: 12.5px; font-weight: 550; }
+#abp-security-logs .tile strong { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--tone, var(--text)); font-variant-numeric: tabular-nums; }
+#abp-security-logs .tile:hover { border-color: var(--tone, var(--accent)); }
+#abp-security-logs .tile[aria-pressed='true'] { border-color: var(--tone, var(--accent)); box-shadow: 0 0 0 3px var(--tone-soft, var(--accent-soft)), var(--shadow); }
+#abp-security-logs .ip { width: 150px; }
+#abp-security-logs .events { list-style: none; margin: 0; padding: 6px 8px; transition: opacity 0.15s; }
+#abp-security-logs .events.loading { opacity: 0.55; }
+#abp-security-logs .events li { border-radius: 10px; }
+#abp-security-logs .events li.open { background: var(--surface-2); }
+#abp-security-logs .ev { width: 100%; display: grid; grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 96px; gap: 12px; align-items: center;
+  padding: 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: start; cursor: pointer; }
+#abp-security-logs .ev:hover { background: var(--surface-2); }
+#abp-security-logs .ico { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--tone-soft); color: var(--tone); }
+#abp-security-logs .ico svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#abp-security-logs .what, #abp-security-logs .client, #abp-security-logs .net { display: grid; min-width: 0; }
+#abp-security-logs .what small, #abp-security-logs .client small, #abp-security-logs .net small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-security-logs .client .mono, #abp-security-logs .net .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-security-logs time { color: var(--muted); font-size: 12.5px; text-align: end; white-space: nowrap; }
+#abp-security-logs .details { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 14px; margin: 0; padding: 4px 16px 14px 56px; font-size: 13px; }
+#abp-security-logs .details dt { color: var(--muted); }
+#abp-security-logs .details dd { margin: 0; overflow-wrap: anywhere; }
+#abp-security-logs .details .link { margin-inline-start: 8px; }
+#abp-security-logs .small { font-size: 11.5px; }
+@media (max-width: 720px) {
+  #abp-security-logs .ev { grid-template-columns: 34px minmax(0, 1fr) auto; }
+  #abp-security-logs .details { grid-template-columns: 1fr; padding-inline-start: 14px; }
+}

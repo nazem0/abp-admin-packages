@@ -1,0 +1,36 @@
+{
+  "name": "@nazem0/abp-admin-ng-identity",
+  "version": "0.1.0",
+  "description": "ABP Admin users, roles, organization units, security logs and identity settings for Angular.",
+  "license": "MIT",
+  "keywords": [
+    "abp",
+    "abp-framework",
+    "angular",
+    "admin",
+    "audit-log",
+    "openiddict"
+  ],
+  "peerDependencies": {
+    "@abp/ng.core": "~11.0.0-rc.2",
+    "@angular/aria": "~22.2.0",
+    "@angular/common": "~22.2.0",
+    "@angular/core": "~22.2.0",
+    "@angular/router": "~22.2.0",
+    "rxjs": "~7.8.0",
+    "@nazem0/abp-admin-ng-core": "0.1.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nazem0/abp-admin-packages.git",
+    "directory": "frontend/projects/identity"
+  },
+  "homepage": "https://github.com/nazem0/abp-admin-packages",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}

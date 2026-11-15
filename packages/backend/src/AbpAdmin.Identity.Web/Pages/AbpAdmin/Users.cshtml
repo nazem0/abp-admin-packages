@@ -1,0 +1,7 @@
+@page
+@attribute [Authorize("AbpIdentity.Users")]
+@{ Layout = "_AbpAdminLayout"; ViewData["Title"] = "AbpAdmin::Nav:Users"; }
+@section styles { <link rel="stylesheet" href="/abp-admin/identity/users.css" /> <link rel="stylesheet" href="/abp-admin/core/permissions-editor.css" /> }
+<div class="page" id="abp-users"></div>
+@section scripts { <script src="/abp-admin/core/permissions-editor.js"></script>
+    <script src="/abp-admin/identity/users.js"></script> }

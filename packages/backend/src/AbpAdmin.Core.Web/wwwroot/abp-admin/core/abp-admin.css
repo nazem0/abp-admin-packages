@@ -1,0 +1,801 @@
+/* Generated from frontend/projects/core/src/styles/abp-admin.scss by `pnpm build:razor-css`; do not edit. */
+/* Design tokens. Everything visual derives from these. */
+.abp-admin {
+  color-scheme: light;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --border: #e3e6ec;
+  --text: #121620;
+  --muted: #667085;
+  --accent: #4f46e5;
+  --accent-soft: #eef0ff;
+  --ok: #12a150;
+  --ok-soft: #e7f7ee;
+  --warn: #c76a00;
+  --warn-soft: #fff4e5;
+  --err: #d92d20;
+  --err-soft: #fdecea;
+  --info: #0b7cc1;
+  --info-soft: #e6f3fb;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.05), 0 8px 24px -12px rgb(16 24 40 / 0.12);
+  --radius: 14px;
+  --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-abp-admin-theme=light]) .abp-admin {
+    color-scheme: dark;
+    --bg: #0d1017;
+    --surface: #151a23;
+    --surface-2: #1c2230;
+    --border: #283042;
+    --text: #e8ebf2;
+    --muted: #8d96a8;
+    --accent: #8b85ff;
+    --accent-soft: #232347;
+    --ok: #3ccf7f;
+    --ok-soft: #12301f;
+    --warn: #f2a33a;
+    --warn-soft: #33250f;
+    --err: #ff6b5e;
+    --err-soft: #3a1714;
+    --info: #4cb3f0;
+    --info-soft: #0f2a3b;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+:root[data-abp-admin-theme=dark] .abp-admin {
+  color-scheme: dark;
+  --bg: #0d1017;
+  --surface: #151a23;
+  --surface-2: #1c2230;
+  --border: #283042;
+  --text: #e8ebf2;
+  --muted: #8d96a8;
+  --accent: #8b85ff;
+  --accent-soft: #232347;
+  --ok: #3ccf7f;
+  --ok-soft: #12301f;
+  --warn: #f2a33a;
+  --warn-soft: #33250f;
+  --err: #ff6b5e;
+  --err-soft: #3a1714;
+  --info: #4cb3f0;
+  --info-soft: #0f2a3b;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+
+/* Base: what the app put on <body> goes on the wrapper. */
+.abp-admin {
+  display: block;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Everything below is scoped to the admin UI so it never leaks into the host app. */
+.abp-admin *, .abp-admin *::before, .abp-admin *::after {
+  box-sizing: border-box;
+}
+.abp-admin code, .abp-admin pre, .abp-admin .mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.abp-admin a {
+  color: var(--accent);
+}
+.abp-admin :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.abp-admin h1, .abp-admin h2, .abp-admin h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+.abp-admin {
+  /* Shared primitives */
+}
+.abp-admin .card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.abp-admin .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.abp-admin .btn:hover {
+  background: var(--surface-2);
+}
+.abp-admin .btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.abp-admin .btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.abp-admin .icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.abp-admin .icon-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.abp-admin .input {
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  min-width: 0;
+}
+.abp-admin .input::placeholder {
+  color: var(--muted);
+}
+.abp-admin .avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+}
+.abp-admin {
+  /* Status tones, used by pills, dots and bars */
+}
+.abp-admin .tone-ok {
+  --tone: var(--ok);
+  --tone-soft: var(--ok-soft);
+}
+.abp-admin .tone-warn {
+  --tone: var(--warn);
+  --tone-soft: var(--warn-soft);
+}
+.abp-admin .tone-err {
+  --tone: var(--err);
+  --tone-soft: var(--err-soft);
+}
+.abp-admin .tone-info {
+  --tone: var(--info);
+  --tone-soft: var(--info-soft);
+}
+.abp-admin .tone-accent {
+  --tone: var(--accent);
+  --tone-soft: var(--accent-soft);
+}
+.abp-admin .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--tone-soft, var(--surface-2));
+  color: var(--tone, var(--muted));
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.abp-admin .method {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.abp-admin .muted {
+  color: var(--muted);
+}
+.abp-admin .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .abp-admin *, .abp-admin *::before, .abp-admin *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.abp-admin {
+  /* ---- Page layout primitives shared by list pages ---- */
+}
+.abp-admin .page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px 28px 48px;
+  display: grid;
+  gap: 18px;
+}
+@media (max-width: 720px) {
+  .abp-admin .page {
+    padding: 18px 16px 32px;
+  }
+}
+.abp-admin .top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.abp-admin .top h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.abp-admin .top p {
+  margin: 4px 0 0;
+}
+.abp-admin .top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.abp-admin .icon-btn svg, .abp-admin .search svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.abp-admin .spin svg {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.abp-admin {
+  /* Segmented control */
+}
+.abp-admin .seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.abp-admin .seg button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.abp-admin .seg button:hover {
+  color: var(--text);
+}
+.abp-admin .seg button[aria-checked=true] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.abp-admin .seg.small button {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.abp-admin {
+  /* Stream */
+}
+.abp-admin .stream {
+  padding: 0;
+  overflow: hidden;
+}
+.abp-admin .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.abp-admin .filters label {
+  display: contents;
+}
+.abp-admin .search {
+  position: relative;
+  flex: 1 1 260px;
+  display: flex !important;
+}
+.abp-admin .search svg {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.abp-admin .search .input {
+  width: 100%;
+  padding-inline-start: 34px;
+}
+.abp-admin .filters select.input {
+  padding-inline-end: 6px;
+}
+.abp-admin .filters .dur .input, .abp-admin .filters input[type=number] {
+  width: 92px;
+}
+.abp-admin .filters input[placeholder=User] {
+  width: 130px;
+}
+.abp-admin .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px 0;
+  align-items: center;
+}
+.abp-admin .chip {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.abp-admin .chip span {
+  margin-inline-start: 4px;
+  font-size: 14px;
+}
+.abp-admin .link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.abp-admin .list {
+  padding: 6px 8px 8px;
+  transition: opacity 0.15s;
+  min-height: 160px;
+}
+.abp-admin .list.loading {
+  opacity: 0.55;
+}
+.abp-admin .list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.abp-admin .day-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 12px 10px 6px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.abp-admin .pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+}
+.abp-admin .pager div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.abp-admin .state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px;
+  flex-wrap: wrap;
+}
+.abp-admin .state.err {
+  color: var(--err);
+}
+.abp-admin .state.empty {
+  flex-direction: column;
+  gap: 6px;
+  padding: 48px 16px;
+}
+.abp-admin .state.empty svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  margin-bottom: 6px;
+}
+.abp-admin {
+  /* Loading skeletons */
+}
+.abp-admin .skeleton i {
+  display: block;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface), var(--surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+.abp-admin .skeleton.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.abp-admin .skeleton.kpis i {
+  height: 92px;
+}
+.abp-admin .skeleton.rows {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+.abp-admin .skeleton.rows i {
+  height: 38px;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.abp-admin {
+  /* Side sheet built on the native modal <dialog>: focus trap, Esc and backdrop for free. */
+}
+.abp-admin .sheet {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(880px, 100vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-inline-start: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, 0.35);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.abp-admin .sheet[open] {
+  animation: slide-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.abp-admin .sheet::backdrop {
+  background: rgba(10, 14, 22, 0.42);
+  backdrop-filter: blur(2px);
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(28px);
+    opacity: 0;
+  }
+}
+.abp-admin {
+  /* ---- Forms ---- */
+}
+.abp-admin .form {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.abp-admin .field {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  font-size: 13px;
+  min-width: 0;
+}
+.abp-admin .field > span {
+  font-weight: 550;
+}
+.abp-admin .field > span i {
+  color: var(--err);
+  font-style: normal;
+}
+.abp-admin .field small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.abp-admin .field .input {
+  width: 100%;
+  height: 38px;
+}
+.abp-admin .field .input:user-invalid {
+  border-color: var(--err);
+}
+.abp-admin .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 560px) {
+  .abp-admin .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+.abp-admin .input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.abp-admin .check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 13.5px;
+}
+.abp-admin .check input {
+  accent-color: var(--accent);
+  margin: 3px 0 0;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.abp-admin .check input.switch {
+  width: 34px;
+  height: 20px;
+  margin-top: 1px;
+}
+.abp-admin .check small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.abp-admin .alert {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: var(--tone-soft);
+  color: var(--tone);
+}
+.abp-admin .btn.danger {
+  background: var(--err);
+  border-color: var(--err);
+  color: #fff;
+}
+.abp-admin .btn.sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+.abp-admin .btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.abp-admin {
+  /* Switch: <input type="checkbox" class="switch"> */
+}
+.abp-admin .switch {
+  appearance: none;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.abp-admin .switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+.abp-admin .switch:checked {
+  background: var(--accent);
+}
+.abp-admin .switch:checked::after {
+  transform: translateX(14px);
+}
+.abp-admin .switch:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.abp-admin {
+  /* ---- Generic sheet layout (header / scrolling body / sticky footer) ---- */
+}
+.abp-admin .sheet.narrow {
+  width: min(560px, 100vw);
+}
+.abp-admin .sh-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.abp-admin .sh-head h2 {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 650;
+}
+.abp-admin .sh-head h2 small {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+.abp-admin .sh-body {
+  padding: 20px 22px 28px;
+}
+.abp-admin .sh-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.abp-admin .sh-foot .spacer {
+  flex: 1;
+}
+@media (max-width: 720px) {
+  .abp-admin .sh-head, .abp-admin .sh-body, .abp-admin .sh-foot {
+    padding-inline: 14px;
+  }
+}
+.abp-admin .sheet > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.abp-admin .sheet > form > .sh-body {
+  flex: 1;
+}
+.abp-admin {
+  /* ---- Data table ---- */
+}
+.abp-admin .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.abp-admin .table th {
+  padding: 10px 16px;
+  text-align: start;
+  font-size: 11.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.abp-admin .table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.abp-admin .table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.abp-admin .table tbody tr:hover td {
+  background: var(--surface-2);
+}
+.abp-admin .table .actions {
+  text-align: end;
+  white-space: nowrap;
+}
+.abp-admin .table .actions .icon-btn + .icon-btn {
+  margin-inline-start: 2px;
+}
+.abp-admin .who-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.abp-admin .who-cell > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+.abp-admin .who-cell b {
+  font-weight: 600;
+}
+.abp-admin .who-cell small {
+  color: var(--muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.abp-admin .pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.abp-admin .confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+@media (max-width: 720px) {
+  .abp-admin .hide-sm {
+    display: none;
+  }
+  .abp-admin .table th, .abp-admin .table td {
+    padding-inline: 10px;
+  }
+}
+.abp-admin {
+  /* Anchored sections clear the sticky jump bars. */
+}
+.abp-admin section.card {
+  scroll-margin-top: 72px;
+}

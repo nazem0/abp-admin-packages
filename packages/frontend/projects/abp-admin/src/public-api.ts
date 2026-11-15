@@ -1,17 +1,23 @@
 /*
- * @nazem0/abp-admin-ng — headless admin UI for ABP Framework.
- * Mount ABP_ADMIN_ROUTES under any path; everything else is exported for custom composition.
+ * @nazem0/abp-admin-ng: every ABP Admin feature in one package. Mount ABP_ADMIN_ROUTES under any path.
+ * To pick features, depend on @nazem0/abp-admin-ng-core and the feature packages and call abpAdminRoutes(...) instead.
  */
-export * from './lib/layout/abp-admin.routes';
-export * from './lib/layout/abp-admin-layout.component';
-export * from './lib/shared/nav';
-export * from './lib/shared/theme';
-export * from './lib/shared/toast';
-export * from './lib/shared/sheet.directive';
-export * from './lib/shared/api-error';
-export * from './lib/permissions/permissions-editor.component';
-export * from './lib/entity-changes/change-diff.component';
-export * from './lib/entity-changes/entity-timeline.component';
-export * from './lib/entity-changes/entity-history.component';
-export * from './lib/audit-logs/audit-log-detail.component';
-export * as AbpAdminProxy from './lib/proxy/abp-admin/services';
+import { abpAdminRoutes } from '@nazem0/abp-admin-ng-core';
+import { abpAdminAuditLogging } from '@nazem0/abp-admin-ng-audit-logging';
+import { abpAdminIdentity } from '@nazem0/abp-admin-ng-identity';
+import { abpAdminOpenIddict } from '@nazem0/abp-admin-ng-openiddict';
+import { abpAdminBackgroundJobs } from '@nazem0/abp-admin-ng-background-jobs';
+import { abpAdminTenantManagement } from '@nazem0/abp-admin-ng-tenant-management';
+
+export const ABP_ADMIN_FEATURES_ALL = [
+  abpAdminAuditLogging, abpAdminIdentity, abpAdminOpenIddict, abpAdminBackgroundJobs, abpAdminTenantManagement,
+];
+
+export const ABP_ADMIN_ROUTES = abpAdminRoutes(...ABP_ADMIN_FEATURES_ALL);
+
+export * from '@nazem0/abp-admin-ng-core';
+export * from '@nazem0/abp-admin-ng-audit-logging';
+export * from '@nazem0/abp-admin-ng-identity';
+export * from '@nazem0/abp-admin-ng-openiddict';
+export * from '@nazem0/abp-admin-ng-background-jobs';
+export * from '@nazem0/abp-admin-ng-tenant-management';

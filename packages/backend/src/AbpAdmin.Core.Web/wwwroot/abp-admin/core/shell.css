@@ -1,0 +1,85 @@
+/* Razor console shell: sidebar, language menu, Ctrl+K palette, toasts. Same look as the Angular layout. */
+body.abp-admin { margin: 0; }
+.abp-admin .shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100dvh; }
+.abp-admin .rail { position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; gap: 16px;
+  padding: 20px 14px 14px; border-inline-end: 1px solid var(--border); background: var(--surface); overflow-y: auto; box-sizing: border-box; }
+.abp-admin .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; padding: 0 8px; font-size: 17px; }
+.abp-admin .brand b { color: var(--accent); font-weight: 700; margin-inline-start: 2px; }
+.abp-admin .brand svg { width: 30px; height: 30px; fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; }
+.abp-admin .find { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px 0 10px; border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface-2); color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+.abp-admin .find:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.abp-admin .find span { flex: 1; text-align: start; }
+.abp-admin .find svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.abp-admin .rail kbd { padding: 1px 5px; border: 1px solid var(--border); border-radius: 5px; font: 10.5px var(--mono); background: var(--surface); }
+.abp-admin .rail nav { display: grid; gap: 1px; }
+.abp-admin .rail .section { padding: 12px 10px 4px; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.abp-admin .rail nav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; font-weight: 500; }
+.abp-admin .rail nav a:hover { background: var(--surface-2); color: var(--text); }
+.abp-admin .rail nav a.active { background: var(--accent-soft); color: var(--accent); }
+/* Nested items: indented under their parent, with a guide line; the parent stays highlighted but quieter. */
+.abp-admin .rail .sub { display: grid; gap: 1px; margin-block: 1px 4px; margin-inline-start: 19px; padding-inline-start: 10px; border-inline-start: 1px solid var(--border); }
+.abp-admin .rail .sub a { padding: 6px 10px; font-size: 13px; }
+.abp-admin .rail nav a.active:has(+ .sub a.active) { background: none; }
+.abp-admin .rail nav svg, .abp-admin .rail .icon-btn svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.abp-admin .lang-menu { position: fixed; inset: auto auto 76px 14px; margin: 0; min-width: 190px; padding: 6px; border: 1px solid var(--border);
+  border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+[dir=rtl] .abp-admin .lang-menu { inset: auto 14px 76px auto; }
+.abp-admin .lang-menu a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px;
+  border-radius: 8px; color: inherit; text-decoration: none; }
+.abp-admin .lang-menu a:hover { background: var(--surface-2); }
+.abp-admin .lang-menu a.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.abp-admin .lang-menu small { color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+.abp-admin .me { margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 12px 4px 0; border-top: 1px solid var(--border); }
+.abp-admin .who { display: grid; min-width: 0; flex: 1; }
+.abp-admin .who b, .abp-admin .who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.abp-admin .who small { color: var(--muted); font-size: 12px; }
+@media (max-width: 860px) {
+  .abp-admin .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+  .abp-admin .rail { position: sticky; z-index: 5; height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px;
+    border-inline-end: 0; border-bottom: 1px solid var(--border); overflow: visible; }
+  .abp-admin .brand span, .abp-admin .rail nav span, .abp-admin .who, .abp-admin .find span, .abp-admin .find kbd, .abp-admin .rail .sub { display: none; }
+  .abp-admin .lang-menu { inset: 58px 12px auto auto; }
+  [dir=rtl] .abp-admin .lang-menu { inset: 58px auto auto 12px; }
+  .abp-admin .find { width: 34px; padding: 0; justify-content: center; flex: none; }
+  .abp-admin .rail nav { display: flex; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .abp-admin .rail nav a { flex: none; }
+  .abp-admin .brand { flex: none; padding: 0; }
+  .abp-admin .me { margin: 0; border: 0; padding: 0; flex: none; }
+  .abp-admin .me .avatar { display: none; }
+}
+
+/* Ctrl+K palette */
+.abp-admin .palette { margin: 12vh auto auto; padding: 0; width: min(600px, calc(100vw - 24px)); max-height: 70vh; border: 1px solid var(--border);
+  border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.5); overflow: hidden; }
+.abp-admin .palette[open] { animation: abp-pop 0.14s ease-out; }
+.abp-admin .palette::backdrop { background: rgb(10 14 22 / 0.42); backdrop-filter: blur(2px); }
+@keyframes abp-pop { from { transform: scale(0.98); opacity: 0; } }
+.abp-admin .palette .box { display: flex; flex-direction: column; max-height: 70vh; }
+.abp-admin .palette .q { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.abp-admin .palette .q svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.abp-admin .palette .q input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--text); font: inherit; font-size: 15px; }
+.abp-admin .palette ul { list-style: none; margin: 0; padding: 6px; overflow: auto; }
+.abp-admin .palette li { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
+.abp-admin .palette li[aria-selected='true'] { background: var(--accent-soft); color: var(--accent); }
+.abp-admin .palette li svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
+.abp-admin .palette li span { flex: 1; font-weight: 500; }
+.abp-admin .palette li small { color: var(--muted); font-size: 12px; }
+.abp-admin .palette .none { cursor: default; color: var(--muted); justify-content: center; padding: 24px; }
+.abp-admin .palette footer { display: flex; gap: 16px; padding: 8px 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+.abp-admin .palette kbd { display: inline-block; min-width: 20px; margin-inline-end: 3px; padding: 1px 5px; border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 5px; font: 11px var(--mono); text-align: center; color: var(--muted); background: var(--surface-2); }
+
+/* Toasts */
+.abp-admin .toasts { position: fixed; inset: auto 16px 16px auto; z-index: 1000; display: grid; gap: 8px; width: min(380px, calc(100vw - 32px)); }
+.abp-admin .toast { display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; border-radius: 12px;
+  background: var(--text); color: var(--bg); box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.45); animation: abp-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.abp-admin .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tone); flex: none; }
+.abp-admin .toast .txt { flex: 1; font-size: 13.5px; }
+.abp-admin .toast .icon-btn { width: 26px; height: 26px; color: inherit; opacity: 0.7; }
+.abp-admin .toast .icon-btn:hover { background: transparent; color: inherit; opacity: 1; }
+.abp-admin .toast .icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+@keyframes abp-rise { from { transform: translateY(8px); opacity: 0; } }
+
+/* Shared page helper: an inline stroke icon from AbpAdmin.icon(). */
+.abp-admin svg.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

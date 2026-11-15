@@ -1,0 +1,19 @@
+/* Identity settings tab (component styles of identity-settings.component.ts), scoped to #abp-identity-settings. */
+#abp-identity-settings header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 22px 6px; }
+#abp-identity-settings h2 { font-size: 16px; font-weight: 650; }
+#abp-identity-settings header p { margin: 4px 0 0; max-width: 560px; line-height: 1.5; }
+#abp-identity-settings .acts { display: flex; align-items: center; gap: 8px; }
+#abp-identity-settings .small { font-size: 12.5px; }
+#abp-identity-settings .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; padding: 6px 22px 18px; }
+@media (max-width: 960px) { #abp-identity-settings .groups { grid-template-columns: minmax(0, 1fr); } }
+#abp-identity-settings fieldset { margin: 0; padding: 14px 0 6px; border: 0; min-width: 0; }
+#abp-identity-settings legend { float: left; width: 100%; padding: 0; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+#abp-identity-settings .intro { clear: both; margin: 2px 0 6px; padding-top: 2px; }
+#abp-identity-settings .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 10px; margin: 0 -10px; border-radius: 9px; }
+#abp-identity-settings .row + .row { border-top: 1px dashed var(--border); }
+#abp-identity-settings .row.changed { background: var(--warn-soft); }
+#abp-identity-settings .row label { display: grid; min-width: 0; cursor: pointer; }
+#abp-identity-settings .row b { font-weight: 550; font-size: 13.5px; }
+#abp-identity-settings .row small { color: var(--muted); font-size: 12px; }
+#abp-identity-settings .row .input { width: 96px; flex: none; }
+#abp-identity-settings .skeleton.rows { padding: 16px 22px; }

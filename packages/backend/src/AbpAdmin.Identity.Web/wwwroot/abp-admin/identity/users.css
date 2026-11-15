@@ -1,0 +1,13 @@
+/* Users page (component styles of users.page.ts and user-form.component.ts), scoped to #abp-users and the form sheet. */
+#abp-users .table.loading { opacity: 0.6; }
+#abp-users .ok { color: var(--ok); margin-inline-start: 4px; }
+#abp-users .filters .alert { flex-basis: 100%; }
+#abp-users .field.inline { display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap; }
+#abp-users .field.inline select { width: auto; min-width: 160px; }
+#abp-users fieldset { display: grid; gap: 12px; margin: 0; padding: 14px 0 0; border: 0; border-top: 1px solid var(--border); }
+#abp-users legend { padding: 0 0 4px; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+#abp-users .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+#abp-users .pw { position: relative; display: flex; }
+#abp-users .pw .link { position: absolute; inset-inline-end: 10px; top: 10px; }
+#abp-users .pw .input { padding-inline-end: 52px; }
+#abp-users .sh-foot .alert { flex: 1; }

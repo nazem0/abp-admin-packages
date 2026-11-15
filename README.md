@@ -8,13 +8,14 @@ It gives the free ABP modules the admin screens they ship without: an **overview
 
 > Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
 
-To add the console to your own ABP application, use the NuGet and npm packages in
-[`packages/`](packages/README.md).
+To add the console to your own ABP application, use the packages in [`packages/`](packages/README.md):
+NuGet for the backend, npm for an Angular UI, or NuGet for a Razor Pages UI with the same look, each split per
+feature so you take only what you need.
 
 ## Live demo
 
-**https://abp-admin.runasp.net/app/** — the [`packages/`](packages/README.md) sample host on SQLite,
-with sample data. Every password is `1q2w3E*`. To sign in to a tenant, pick it in the sign-in
+**https://abp-admin.runasp.net/app/** (Angular) and **https://abp-admin.runasp.net/AbpAdmin** (Razor Pages):
+the [`packages/`](packages/README.md) sample host on SQLite, with sample data. Both consoles show the same data. Every password is `1q2w3E*`. To sign in to a tenant, pick it in the sign-in
 page's tenant box first.
 
 | Tenant | Users | Roles |

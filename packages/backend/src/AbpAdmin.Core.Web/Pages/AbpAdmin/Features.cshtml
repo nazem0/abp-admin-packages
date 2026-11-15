@@ -1,0 +1,9 @@
+@page
+@attribute [Authorize("FeatureManagement.ManageHostFeatures")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:Features";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/core/features.css" /> }
+<div class="page narrow" id="abp-features"></div>
+@section scripts { <script src="/abp-admin/core/features.js"></script> }
