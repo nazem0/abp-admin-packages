@@ -96,6 +96,22 @@ Everything is also exported for custom composition: `AbpAdminLayoutComponent`, `
 `PermissionsEditorComponent`, `AuditLogDetailComponent`, the entity diff/timeline/history
 components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
 
+### What shows up follows your ABP setup
+
+Nothing to configure: each area turns its permissions off when your host isn't set up for it, and the UI
+hides whatever the user isn't granted.
+
+| Area | Shown when your host has |
+| --- | --- |
+| Audit logs, entity changes | `AbpAuditingOptions.IsEnabled` and the Audit Logging EF Core/MongoDB module |
+| Security logs, organization units | the Identity EF Core/MongoDB module |
+| Applications, scopes | the OpenIddict EF Core/MongoDB module |
+| Background jobs | the Background Jobs EF Core/MongoDB module |
+| Tenants | the Tenant Management EF Core/MongoDB module |
+| A tenant's own database | a `TenantConnectionStringUpdatedEto` handler that migrates and seeds it (ABP's template pattern) |
+| Language menu | more than one language in `AbpLocalizationOptions.Languages` |
+| Settings tabs, features | the matching Setting/Feature Management permissions |
+
 ## Develop the packages
 
 Prerequisites: .NET 11 SDK, Node 22+, pnpm, ABP CLI, SQL Server LocalDB.

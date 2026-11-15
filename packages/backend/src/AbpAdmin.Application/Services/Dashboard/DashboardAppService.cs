@@ -26,14 +26,18 @@ public class DashboardSignInsDto { public int Succeeded { get; set; } public int
 public class DashboardJobsDto { public int Waiting { get; set; } public int Abandoned { get; set; } }
 
 [Authorize]
-public class DashboardAppService(
-    IRepository<IdentityUser, Guid> users,
-    IRepository<IdentityRole, Guid> roles,
-    IRepository<OpenIddictApplication, Guid> applications,
-    IRepository<AuditLog, Guid> auditLogs,
-    IRepository<IdentitySecurityLog, Guid> securityLogs,
-    IRepository<BackgroundJobRecord, Guid> jobs) : AbpAdminAppService
+public class DashboardAppService : AbpAdminAppService
 {
+    // Resolved only for granted sections: an area the host doesn't support has no repository to inject.
+    private IRepository<T, Guid> Repo<T>() where T : class, Volo.Abp.Domain.Entities.IEntity<Guid> =>
+        LazyServiceProvider.LazyGetRequiredService<IRepository<T, Guid>>();
+    private IRepository<IdentityUser, Guid> users => Repo<IdentityUser>();
+    private IRepository<IdentityRole, Guid> roles => Repo<IdentityRole>();
+    private IRepository<OpenIddictApplication, Guid> applications => Repo<OpenIddictApplication>();
+    private IRepository<AuditLog, Guid> auditLogs => Repo<AuditLog>();
+    private IRepository<IdentitySecurityLog, Guid> securityLogs => Repo<IdentitySecurityLog>();
+    private IRepository<BackgroundJobRecord, Guid> jobs => Repo<BackgroundJobRecord>();
+
     public virtual async Task<DashboardDto> GetAsync()
     {
         var now = Clock.Now;
