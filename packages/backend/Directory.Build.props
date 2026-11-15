@@ -9,7 +9,7 @@
     <AbpVersion>11.0.0-rc.2</AbpVersion>
 
     <!-- NuGet package metadata -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Authors>ABP Admin contributors</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/nazem0/abp-admin-packages</RepositoryUrl>

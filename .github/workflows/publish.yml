@@ -1,0 +1,39 @@
+name: Publish NuGet packages
+
+# Runs when a version tag is pushed (git tag v0.2.0 && git push origin v0.2.0), or by hand from the Actions tab.
+# Publishes to nuget.org with Trusted Publishing: no API key is stored, the job gets a short-lived one via OIDC.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # needed for the nuget.org Trusted Publishing token
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+
+      - run: dotnet pack AbpAdmin.Packages.slnx -c Release
+
+      - name: nuget.org login (Trusted Publishing)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }} # your nuget.org profile name, not your email
+
+      - run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

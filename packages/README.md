@@ -61,10 +61,10 @@ dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github
 1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
 
    ```xml
-   <PackageReference Include="AbpAdmin.HttpApi" Version="0.1.0" />
+   <PackageReference Include="AbpAdmin.HttpApi" Version="0.2.0" />
    <!-- or, for example: -->
-   <PackageReference Include="AbpAdmin.Identity" Version="0.1.0" />
-   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.1.0" />
+   <PackageReference Include="AbpAdmin.Identity" Version="0.2.0" />
+   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.2.0" />
    ```
 
 2. Depend on the module(s). Each feature module publishes its own APIs under `/api/abp-admin`:
