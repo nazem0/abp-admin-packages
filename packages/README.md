@@ -49,10 +49,10 @@ No feed setup or token is needed.
 1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
 
    ```xml
-   <PackageReference Include="AbpAdmin.HttpApi" Version="0.2.0" />
+   <PackageReference Include="AbpAdmin.HttpApi" Version="0.2.1" />
    <!-- or, for example: -->
-   <PackageReference Include="AbpAdmin.Identity" Version="0.2.0" />
-   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.2.0" />
+   <PackageReference Include="AbpAdmin.Identity" Version="0.2.1" />
+   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.2.1" />
    ```
 
 2. Depend on the module(s). Each feature module publishes its own APIs under `/api/abp-admin`:
@@ -205,16 +205,10 @@ changing them (`pnpm watch:lib` keeps core rebuilding).
 
 ### Publish
 
-- **NuGet (nuget.org):** push a version tag (`git tag v0.2.0 && git push origin v0.2.0`) or run the
-  *Publish NuGet packages* workflow (`.github/workflows/publish.yml`). It uses nuget.org Trusted Publishing
-  (no stored API key; the `NUGET_USER` repo secret holds the nuget.org profile name).
-- **npm (npmjs.com):** core first, then the features, then the all-in-one, signed in as `nazem0`:
-
-  ```bash
-  for p in core audit-logging identity openiddict background-jobs tenant-management abp-admin; do
-    (cd frontend/dist/$p && npm publish --access public)
-  done
-  ```
+Push a version tag (`git tag v0.2.0 && git push origin v0.2.0`) or run the *Publish packages* workflow
+(`.github/workflows/publish.yml`). It publishes the NuGet packages to nuget.org and the Angular packages to
+npmjs.com with Trusted Publishing on both: no stored API keys (the `NUGET_USER` repo secret only holds the
+nuget.org profile name). Versions already published are skipped.
 
 Bump the version first, in `backend/Directory.Build.props` and in every `frontend/projects/*/package.json`
 (including the `@nazem0/abp-admin-ng-*` peer dependency versions): a published version can't be overwritten.

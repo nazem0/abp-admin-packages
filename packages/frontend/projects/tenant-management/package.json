@@ -1,6 +1,6 @@
 {
   "name": "@nazem0/abp-admin-ng-tenant-management",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ABP Admin tenants, multi-tenancy switch and tenant databases for Angular.",
   "license": "MIT",
   "keywords": [
@@ -18,7 +18,7 @@
     "@angular/core": "~22.2.0",
     "@angular/router": "~22.2.0",
     "rxjs": "~7.8.0",
-    "@nazem0/abp-admin-ng-core": "0.2.0"
+    "@nazem0/abp-admin-ng-core": "0.2.1"
   },
   "dependencies": {
     "tslib": "^2.3.0"
