@@ -1,3 +1,4 @@
+import { LocalizationPipe } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { IdentityUserDto, IdentityUserService } from '../proxy/volo/abp/identity';
@@ -9,7 +10,7 @@ export type UserEdit = IdentityUserDto | 'new';
 /** Create / edit a user, including role membership. Plain native form: values are read with FormData on submit. */
 @Component({
   selector: 'abp-user-form',
-  imports: [SheetDirective],
+  imports: [SheetDirective, LocalizationPipe],
   template: `
     <dialog [appSheet]="!!user()" (dismiss)="closed.emit()" class="narrow" aria-labelledby="uf-title">
       @if (user(); as u) {
@@ -17,63 +18,63 @@ export type UserEdit = IdentityUserDto | 'new';
         <form #f (submit)="$event.preventDefault(); save(f)">
           <header class="sh-head">
             <span class="avatar" aria-hidden="true">{{ (x?.userName ?? '+')[0].toUpperCase() }}</span>
-            <h2 id="uf-title">{{ x ? 'Edit user' : 'New user' }} @if (x) { <small>{{ x.userName }}</small> }</h2>
-            <button type="button" class="icon-btn" (click)="closed.emit()" aria-label="Close">
+            <h2 id="uf-title">{{ (x ? 'AbpAdmin::Users:Form:EditUser' : 'AbpAdmin::Users:NewUser') | abpLocalization }} @if (x) { <small>{{ x.userName }}</small> }</h2>
+            <button type="button" class="icon-btn" (click)="closed.emit()" [attr.aria-label]="'AbpAdmin::Common:Close' | abpLocalization">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
             </button>
           </header>
 
           <div class="sh-body form">
             <div class="grid-2">
-              <label class="field"><span>User name <i>*</i></span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Form:UserName' | abpLocalization }} <i>*</i></span>
                 <input class="input" name="userName" required maxlength="256" autocomplete="off" [value]="x?.userName ?? ''" /></label>
-              <label class="field"><span>Email <i>*</i></span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Email' | abpLocalization }} <i>*</i></span>
                 <input class="input" name="email" type="email" required maxlength="256" autocomplete="off" [value]="x?.email ?? ''" /></label>
-              <label class="field"><span>First name</span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Form:FirstName' | abpLocalization }}</span>
                 <input class="input" name="name" maxlength="64" [value]="x?.name ?? ''" /></label>
-              <label class="field"><span>Last name</span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Form:LastName' | abpLocalization }}</span>
                 <input class="input" name="surname" maxlength="64" [value]="x?.surname ?? ''" /></label>
-              <label class="field"><span>Phone</span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Phone' | abpLocalization }}</span>
                 <input class="input" name="phoneNumber" type="tel" maxlength="16" [value]="x?.phoneNumber ?? ''" /></label>
-              <label class="field"><span>Password @if (!x) { <i>*</i> }</span>
+              <label class="field"><span>{{ 'AbpAdmin::Users:Form:Password' | abpLocalization }} @if (!x) { <i>*</i> }</span>
                 <span class="pw">
                   <input class="input" name="password" [type]="showPw() ? 'text' : 'password'" [required]="!x" autocomplete="new-password" maxlength="128" />
-                  <button type="button" class="link" (click)="showPw.set(!showPw())">{{ showPw() ? 'Hide' : 'Show' }}</button>
+                  <button type="button" class="link" (click)="showPw.set(!showPw())">{{ (showPw() ? 'AbpAdmin::Users:Form:Hide' : 'AbpAdmin::Users:Form:Show') | abpLocalization }}</button>
                 </span>
-                <small>{{ x ? 'Leave empty to keep the current password.' : 'Must satisfy the Identity password policy.' }}</small></label>
+                <small>{{ (x ? 'AbpAdmin::Users:Form:PasswordKeep' : 'AbpAdmin::Users:Form:PasswordPolicy') | abpLocalization }}</small></label>
             </div>
 
             <fieldset>
-              <legend>Roles</legend>
+              <legend>{{ 'AbpAdmin::Users:Form:Roles' | abpLocalization }}</legend>
               @if (roles.isLoading() || current.isLoading()) {
-                <p class="muted">Loading roles…</p>
+                <p class="muted">{{ 'AbpAdmin::Users:Form:LoadingRoles' | abpLocalization }}</p>
               } @else {
                 <div class="roles">
                   @for (r of roles.value().items; track r.id) {
                     <label class="check">
                       <input type="checkbox" name="roleNames" [value]="r.name" [checked]="selected().has(r.name!)" />
                       <span>{{ r.name }}
-                        @if (r.isDefault) { <small>Default for new users</small> }</span>
+                        @if (r.isDefault) { <small>{{ 'AbpAdmin::Users:Form:DefaultForNew' | abpLocalization }}</small> }</span>
                     </label>
-                  } @empty { <p class="muted">No assignable roles.</p> }
+                  } @empty { <p class="muted">{{ 'AbpAdmin::Users:Form:NoRoles' | abpLocalization }}</p> }
                 </div>
               }
             </fieldset>
 
             <fieldset>
-              <legend>Account</legend>
+              <legend>{{ 'AbpAdmin::Users:Form:Account' | abpLocalization }}</legend>
               <label class="check"><input type="checkbox" class="switch" name="isActive" [checked]="x ? x.isActive : true" />
-                <span>Active <small>Inactive users can't sign in.</small></span></label>
+                <span>{{ 'AbpAdmin::Common:Active' | abpLocalization }} <small>{{ 'AbpAdmin::Users:Form:ActiveHint' | abpLocalization }}</small></span></label>
               <label class="check"><input type="checkbox" class="switch" name="lockoutEnabled" [checked]="x ? x.lockoutEnabled : true" />
-                <span>Lock out after failed sign-ins <small>Temporarily blocks the account after repeated wrong passwords.</small></span></label>
+                <span>{{ 'AbpAdmin::Users:Form:Lockout' | abpLocalization }} <small>{{ 'AbpAdmin::Users:Form:LockoutHint' | abpLocalization }}</small></span></label>
             </fieldset>
           </div>
 
           <footer class="sh-foot">
             @if (error(); as e) { <span class="alert tone-err">{{ e }}</span> }
             <span class="spacer"></span>
-            <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
-            <button class="btn primary" [disabled]="saving()">{{ saving() ? 'Saving…' : x ? 'Save' : 'Create user' }}</button>
+            <button type="button" class="btn" (click)="closed.emit()">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
+            <button class="btn primary" [disabled]="saving()">{{ (saving() ? 'AbpAdmin::Common:Saving' : x ? 'AbpAdmin::Common:Save' : 'AbpAdmin::Users:Form:CreateUser') | abpLocalization }}</button>
           </footer>
         </form>
       }

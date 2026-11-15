@@ -3,7 +3,7 @@ import { Injectable, effect, signal } from '@angular/core';
 export type ThemeMode = 'system' | 'light' | 'dark';
 const KEY = 'abp-admin.theme';
 
-/** Light / dark / follow-the-OS, remembered per browser. Drives `data-abp-admin-theme` on <html> (its own attribute, so the host app's theme is untouched). */
+/** Light (default) / dark / follow-the-OS, remembered per browser. Drives `data-abp-admin-theme` on <html> (its own attribute, so the host app's theme is untouched). */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   readonly mode = signal<ThemeMode>(read());
@@ -18,15 +18,15 @@ export class ThemeService {
   }
 
   cycle() {
-    this.mode.update(m => (m === 'system' ? 'light' : m === 'light' ? 'dark' : 'system'));
+    this.mode.update(m => (m === 'light' ? 'dark' : m === 'dark' ? 'system' : 'light'));
   }
 }
 
 function read(): ThemeMode {
   try {
     const v = localStorage.getItem(KEY);
-    return v === 'light' || v === 'dark' ? v : 'system';
+    return v === 'system' || v === 'dark' ? v : 'light'; // light unless the user picked another
   } catch {
-    return 'system';
+    return 'light';
   }
 }

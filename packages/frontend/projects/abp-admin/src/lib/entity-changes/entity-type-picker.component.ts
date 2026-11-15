@@ -1,4 +1,5 @@
-import { Component, ElementRef, computed, input, model, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, inject, input, model, signal, viewChild } from '@angular/core';
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { EntityTypeCountDto } from '../proxy/abp-admin/services/audit-logs';
 import { shortType } from '../audit-logs/format';
 
@@ -23,6 +24,7 @@ export const moduleOf = (type: string) => {
  */
 @Component({
   selector: 'abp-entity-type-picker',
+  imports: [LocalizationPipe],
   host: { '(window:resize)': 'place()', '(window:scroll)': 'place()' },
   template: `
     <button #trigger type="button" class="trigger" [class.on]="selected().length" (click)="toggle()"
@@ -33,17 +35,17 @@ export const moduleOf = (type: string) => {
       <svg class="caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
     </button>
 
-    <div #panel id="etp-panel" popover="auto" class="panel" role="dialog" aria-label="Filter by entity type"
+    <div #panel id="etp-panel" popover="auto" class="panel" role="dialog" [attr.aria-label]="'AbpAdmin::EntityChanges:FilterByEntityType' | abpLocalization"
          (toggle)="onToggle($event)" (keydown)="onKey($event)">
       <div class="head">
         <label class="search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-          <input #q class="input" type="search" placeholder="Search entity types…" aria-label="Search entity types" autocomplete="off"
+          <input #q class="input" type="search" [placeholder]="'AbpAdmin::EntityChanges:SearchEntityTypes' | abpLocalization" [attr.aria-label]="'AbpAdmin::EntityChanges:SearchEntityTypesLabel' | abpLocalization" autocomplete="off"
                  [value]="query()" (input)="query.set($any($event.target).value)" />
         </label>
         <label class="sys">
           <input type="checkbox" class="switch" [checked]="hideSystem()" (change)="hideSystem.set($any($event.target).checked)" />
-          <span>Hide system entities <small>tokens, security logs, sessions{{ hiddenCount() ? ' · ' + hiddenCount() + ' hidden' : '' }}</small></span>
+          <span>{{ 'AbpAdmin::EntityChanges:HideSystemEntities' | abpLocalization }} <small>{{ (hiddenCount() ? 'AbpAdmin::EntityChanges:HideSystemHintCount' : 'AbpAdmin::EntityChanges:HideSystemHint') | abpLocalization: hiddenCount().toString() }}</small></span>
         </label>
       </div>
 
@@ -51,7 +53,7 @@ export const moduleOf = (type: string) => {
         @if (!query()) {
           <button type="button" class="all" [class.on]="!selected().length" (click)="selected.set([])">
             <span class="box" aria-hidden="true">@if (!selected().length) { ✓ }</span>
-            <b>All entity types</b>
+            <b>{{ 'AbpAdmin::EntityChanges:AllEntityTypes' | abpLocalization }}</b>
             <span class="count">{{ total() }}</span>
           </button>
         }
@@ -59,7 +61,7 @@ export const moduleOf = (type: string) => {
           <section>
             <header>
               <span>{{ g.name }}</span>
-              <button type="button" class="link" (click)="toggleGroup(g.types)">{{ allIn(g.types) ? 'Clear' : 'Select all' }}</button>
+              <button type="button" class="link" (click)="toggleGroup(g.types)">{{ (allIn(g.types) ? 'AbpAdmin::Common:Clear' : 'AbpAdmin::EntityChanges:SelectAll') | abpLocalization }}</button>
             </header>
             @for (t of g.types; track t.entityTypeFullName) {
               <label class="opt" [class.on]="isOn(t)">
@@ -71,14 +73,14 @@ export const moduleOf = (type: string) => {
             }
           </section>
         } @empty {
-          <p class="none">{{ query() ? 'No entity type matches “' + query() + '”.' : 'No entity changes in this range.' }}</p>
+          <p class="none">{{ (query() ? 'AbpAdmin::EntityChanges:NoTypeMatches' : 'AbpAdmin::EntityChanges:NoChangesInRange') | abpLocalization: query() }}</p>
         }
       </div>
 
       <footer>
-        <span class="muted">{{ selected().length ? selected().length + ' selected' : 'Showing all types' }}</span>
-        @if (selected().length) { <button type="button" class="btn sm" (click)="selected.set([])">Clear</button> }
-        <button type="button" class="btn sm primary" (click)="close()">Done</button>
+        <span class="muted">{{ (selected().length ? 'AbpAdmin::EntityChanges:SelectedCount' : 'AbpAdmin::EntityChanges:ShowingAllTypes') | abpLocalization: selected().length.toString() }}</span>
+        @if (selected().length) { <button type="button" class="btn sm" (click)="selected.set([])">{{ 'AbpAdmin::Common:Clear' | abpLocalization }}</button> }
+        <button type="button" class="btn sm primary" (click)="close()">{{ 'AbpAdmin::EntityChanges:Done' | abpLocalization }}</button>
       </footer>
     </div>
   `,
@@ -146,6 +148,7 @@ export class EntityTypePickerComponent {
   readonly selected = model<string[]>([]);
   readonly hideSystem = model(true);
 
+  private readonly l = inject(LocalizationService);
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
   private readonly q = viewChild.required<ElementRef<HTMLInputElement>>('q');
@@ -175,7 +178,7 @@ export class EntityTypePickerComponent {
 
   protected readonly label = computed(() => {
     const s = this.selected();
-    if (!s.length) return 'All entity types';
+    if (!s.length) return this.l.instant('AbpAdmin::EntityChanges:AllEntityTypes');
     return s.length === 1 ? shortType(s[0]) : `${shortType(s[0])} +${s.length - 1}`;
   });
 

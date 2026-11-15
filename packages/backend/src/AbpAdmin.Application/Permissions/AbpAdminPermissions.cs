@@ -45,6 +45,16 @@ public static class AbpAdminPermissions
         public const string ManageRoles = Default + ".ManageRoles";
     }
 
+    public static class Tenants
+    {
+        public const string Default = GroupName + ".Tenants";
+        public const string Create = Default + ".Create";
+        public const string Update = Default + ".Update";
+        public const string Delete = Default + ".Delete";
+        public const string ManageMultiTenancy = Default + ".ManageMultiTenancy";
+        public const string ManageConnectionStrings = Default + ".ManageConnectionStrings";
+    }
+
     public static class BackgroundJobs
     {
         public const string Default = GroupName + ".BackgroundJobs";

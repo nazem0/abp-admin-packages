@@ -60,10 +60,14 @@ export const ABP_ADMIN_ROUTES: Routes = [{
     data: { requiredPolicy: 'AbpAdmin.AuditLogs' },
   },
   {
+    // settings opens the first section the user may see; settings/:section (identity, time-zone, email) a specific one.
     path: 'settings',
-    loadComponent: () => import('../settings/settings.page').then(c => c.SettingsPage),
     canActivate: [authGuard, permissionGuard],
     data: { requiredPolicy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings' },
+    children: [
+      { path: '', loadComponent: () => import('../settings/settings.page').then(c => c.SettingsPage) },
+      { path: ':section', loadComponent: () => import('../settings/settings.page').then(c => c.SettingsPage) },
+    ],
   },
   {
     path: 'users',
@@ -76,6 +80,12 @@ export const ABP_ADMIN_ROUTES: Routes = [{
     loadComponent: () => import('../identity/roles.page').then(c => c.RolesPage),
     canActivate: [authGuard, permissionGuard],
     data: { requiredPolicy: 'AbpIdentity.Roles' },
+  },
+  {
+    path: 'tenants',
+    loadComponent: () => import('../tenants/tenants.page').then(c => c.TenantsPage),
+    canActivate: [authGuard, permissionGuard],
+    data: { requiredPolicy: 'AbpAdmin.Tenants' },
   },
   {
     path: 'features',

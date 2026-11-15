@@ -6,6 +6,10 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
+    <script>
+      // ABP Admin theme before first paint (ThemeService takes over): light unless the user picked dark or system.
+      try { var t = localStorage.getItem('abp-admin.theme'); if (t !== 'system') document.documentElement.setAttribute('data-abp-admin-theme', t === 'dark' ? 'dark' : 'light'); } catch (e) { document.documentElement.setAttribute('data-abp-admin-theme', 'light'); }
+    </script>
   </head>
   <body>
     <app-root></app-root>

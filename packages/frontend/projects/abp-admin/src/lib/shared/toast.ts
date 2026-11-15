@@ -1,3 +1,4 @@
+import { LocalizationPipe } from '@abp/ng.core';
 import { Component, Injectable, inject, signal } from '@angular/core';
 
 export interface Toast { id: number; text: string; tone: 'ok' | 'err' | 'info' }
@@ -25,13 +26,14 @@ export class Toaster {
 
 @Component({
   selector: 'abp-toasts',
+  imports: [LocalizationPipe],
   template: `
     <div class="toasts" role="status" aria-live="polite">
       @for (t of toaster.toasts(); track t.id) {
         <div [class]="'toast tone-' + t.tone">
           <span class="dot" aria-hidden="true"></span>
           <span class="txt">{{ t.text }}</span>
-          <button class="icon-btn" (click)="toaster.dismiss(t.id)" aria-label="Dismiss">
+          <button class="icon-btn" (click)="toaster.dismiss(t.id)" [attr.aria-label]="'AbpAdmin::Toast:Dismiss' | abpLocalization">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
         </div>

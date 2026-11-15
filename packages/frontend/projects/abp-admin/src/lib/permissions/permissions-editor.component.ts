@@ -1,4 +1,4 @@
-import { ConfigStateService } from '@abp/ng.core';
+import { ConfigStateService, LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
@@ -29,7 +29,7 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
  */
 @Component({
   selector: 'abp-permissions-editor',
-  imports: [SheetDirective],
+  imports: [SheetDirective, LocalizationPipe],
   template: `
     <dialog [appSheet]="!!target()" (dismiss)="closed.emit()" aria-labelledby="pm-title" class="pm">
       @if (target(); as t) {
@@ -38,8 +38,8 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
             <span class="avatar sq" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z" /><path d="m9 12 2 2 4-4" /></svg>
             </span>
-            <h2 id="pm-title">Permissions <small>{{ t.title }}</small></h2>
-            <button type="button" class="icon-btn" (click)="closed.emit()" aria-label="Close">
+            <h2 id="pm-title">{{ 'AbpAdmin::Permissions:Title' | abpLocalization }} <small>{{ t.title }}</small></h2>
+            <button type="button" class="icon-btn" (click)="closed.emit()" [attr.aria-label]="'AbpAdmin::Common:Close' | abpLocalization">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
             </button>
           </header>
@@ -47,25 +47,25 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
           @if (perms.isLoading()) {
             <div class="sh-body"><div class="skeleton rows">@for (i of [1, 2, 3, 4, 5]; track i) { <i></i> }</div></div>
           } @else if (perms.error()) {
-            <div class="sh-body"><div class="state err">Couldn't load permissions. <button type="button" class="btn" (click)="perms.reload()">Retry</button></div></div>
+            <div class="sh-body"><div class="state err">{{ 'AbpAdmin::Permissions:LoadFailed' | abpLocalization }} <button type="button" class="btn" (click)="perms.reload()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></div></div>
           } @else {
             <div class="tools">
               <label class="search">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-                <input class="input" type="search" placeholder="Search permissions…" aria-label="Search permissions"
+                <input class="input" type="search" [placeholder]="'AbpAdmin::Permissions:SearchPlaceholder' | abpLocalization" [attr.aria-label]="'AbpAdmin::Permissions:Search' | abpLocalization"
                        [value]="q()" (input)="q.set($any($event.target).value)" />
               </label>
               <label class="check">
                 <input type="checkbox" [checked]="allState() === 'all'" [indeterminate]="allState() === 'some'"
                        (change)="setMany(all(), $any($event.target).checked)" />
-                Grant all
+                {{ 'AbpAdmin::Permissions:GrantAll' | abpLocalization }}
               </label>
-              <span class="muted count">{{ grantedCount() }} / {{ all().length }} granted</span>
+              <span class="muted count">{{ 'AbpAdmin::Permissions:GrantedCount' | abpLocalization: grantedCount().toString() : all().length.toString() }}</span>
             </div>
 
             <div class="cols">
               @if (!q()) {
-                <nav class="groups" aria-label="Permission groups">
+                <nav class="groups" [attr.aria-label]="'AbpAdmin::Permissions:Groups' | abpLocalization">
                   @for (g of groups(); track g.name) {
                     <button type="button" [attr.aria-current]="active() === g.name" (click)="active.set(g.name)">
                       <span>{{ g.label }}</span>
@@ -81,7 +81,7 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
                     <label class="check small">
                       <input type="checkbox" [checked]="g.granted === g.perms.length" [indeterminate]="g.granted > 0 && g.granted < g.perms.length"
                              (change)="setMany(g.perms, $any($event.target).checked)" />
-                      Select all
+                      {{ 'AbpAdmin::Permissions:SelectAll' | abpLocalization }}
                     </label>
                   </div>
                   <ul>
@@ -92,8 +92,8 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
                                  (change)="toggle(p, $any($event.target).checked)" />
                           <span class="txt">
                             <span>{{ p.label }}
-                              @for (via of p.inherited; track via) { <span class="pill tone-info">via {{ via }}</span> }
-                              @if (changed(p)) { <span class="pill tone-warn">{{ own().has(p.name) ? 'granting' : 'revoking' }}</span> }
+                              @for (via of p.inherited; track via) { <span class="pill tone-info">{{ 'AbpAdmin::Permissions:Via' | abpLocalization: via }}</span> }
+                              @if (changed(p)) { <span class="pill tone-warn">{{ (own().has(p.name) ? 'AbpAdmin::Permissions:Granting' : 'AbpAdmin::Permissions:Revoking') | abpLocalization }}</span> }
                             </span>
                             <small class="mono">{{ p.name }}</small>
                           </span>
@@ -102,7 +102,7 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
                     }
                   </ul>
                 } @empty {
-                  <p class="muted none">No permission matches “{{ q() }}”.</p>
+                  <p class="muted none">{{ 'AbpAdmin::Permissions:NoMatch' | abpLocalization: q() }}</p>
                 }
               </div>
             </div>
@@ -110,10 +110,10 @@ const PROVIDER: Record<string, string> = { R: 'role', U: 'user', C: 'client' };
 
           <footer class="sh-foot">
             @if (error(); as e) { <span class="alert tone-err">{{ e }}</span> }
-            @else { <span class="muted">{{ changes().length ? changes().length + ' unsaved change' + (changes().length === 1 ? '' : 's') : 'No changes' }}</span> }
+            @else { <span class="muted">{{ (changes().length ? (changes().length === 1 ? 'AbpAdmin::Permissions:UnsavedOne' : 'AbpAdmin::Permissions:UnsavedMany') : 'AbpAdmin::Permissions:NoChanges') | abpLocalization: changes().length.toString() }}</span> }
             <span class="spacer"></span>
-            <button type="button" class="btn" (click)="closed.emit()">Cancel</button>
-            <button class="btn primary" [disabled]="!changes().length || saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+            <button type="button" class="btn" (click)="closed.emit()">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
+            <button class="btn primary" [disabled]="!changes().length || saving()">{{ (saving() ? 'AbpAdmin::Common:Saving' : 'AbpAdmin::Common:Save') | abpLocalization }}</button>
           </footer>
         </form>
       }
@@ -165,6 +165,7 @@ export class PermissionsEditorComponent {
   private readonly service = inject(PermissionsService);
   private readonly config = inject(ConfigStateService);
   private readonly toaster = inject(Toaster);
+  private readonly l = inject(LocalizationService);
 
   readonly target = input<PermissionTarget | null>(null);
   readonly closed = output<void>();
@@ -282,7 +283,7 @@ export class PermissionsEditorComponent {
       // The signed-in user's own grants may have changed.
       .pipe(switchMap(() => this.config.refreshAppState()))
       .subscribe({
-        next: () => { this.saving.set(false); this.toaster.ok(`Permissions saved for ${t.title}.`); this.closed.emit(); },
+        next: () => { this.saving.set(false); this.toaster.ok(this.l.instant('AbpAdmin::Permissions:Saved', t.title)); this.closed.emit(); },
         error: e => { this.saving.set(false); this.error.set(apiError(e)); },
       });
   }

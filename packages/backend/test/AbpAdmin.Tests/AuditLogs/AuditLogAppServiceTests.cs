@@ -56,6 +56,18 @@ public class AuditLogAppServiceTests : AbpAdminTestBase
     }
 
     [Fact]
+    public async Task Stored_Exceptions_Keep_The_Real_Cause()
+    {
+        var info = new AuditLogInfo { ApplicationName = "t", HttpMethod = "GET", Url = "/x", ExecutionTime = DateTime.Now };
+        info.Exceptions.Add(new InvalidOperationException("no such table: AbpTenants"));
+
+        var log = await _converter.ConvertAsync(info);
+
+        log.Exceptions.ShouldContain("no such table: AbpTenants");
+        log.Exceptions.ShouldContain(nameof(InvalidOperationException));
+    }
+
+    [Fact]
     public async Task List_And_Get_Are_Projected_With_Nested_Details()
     {
         GetRequiredService<Volo.Abp.ObjectMapping.IQueryProjector<AuditLog, AuditLogDto>>().ShouldBeOfType<AuditLogDtoProjector>();

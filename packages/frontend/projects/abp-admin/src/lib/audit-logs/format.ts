@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import { locale } from '../shared/i18n';
 import { AuditLogDto } from '../proxy/abp-admin/services/audit-logs';
 import { EntityChangeType } from '../proxy/volo/abp/auditing';
 
@@ -17,10 +18,10 @@ export const toMs = (s?: string | null) => (s ? new Date(s).getTime() : 0);
 export const toApiDate = (d: Date) => d.toISOString();
 
 export const RANGES = [
-  { key: '24h', label: '24 hours', days: 1 },
-  { key: '7d', label: '7 days', days: 7 },
-  { key: '30d', label: '30 days', days: 30 },
-  { key: '90d', label: '90 days', days: 90 },
+  { key: '24h', label: '24 hours', labelKey: 'AbpAdmin::Format:Range24h', days: 1 },
+  { key: '7d', label: '7 days', labelKey: 'AbpAdmin::Format:Range7d', days: 7 },
+  { key: '30d', label: '30 days', labelKey: 'AbpAdmin::Format:Range30d', days: 30 },
+  { key: '90d', label: '90 days', labelKey: 'AbpAdmin::Format:Range90d', days: 90 },
 ] as const;
 export type RangeKey = (typeof RANGES)[number]['key'];
 
@@ -33,11 +34,11 @@ export function rangeWindow(key: RangeKey) {
 
 /** Format an instant in the display zone. */
 export const stamp = (s: string | null | undefined, opts: Intl.DateTimeFormatOptions) =>
-  s ? new Date(s).toLocaleString(undefined, { ...opts, timeZone: displayZone() }) : '';
+  s ? new Date(s).toLocaleString(locale(), { ...opts, timeZone: displayZone() }) : '';
 
 /** Format a calendar day ("yyyy-MM-dd", already cut in the display zone by the server). */
 export const calendarDay = (day: string, opts: Intl.DateTimeFormatOptions) =>
-  new Date(`${day}T00:00:00Z`).toLocaleDateString(undefined, { ...opts, timeZone: 'UTC' });
+  new Date(`${day}T00:00:00Z`).toLocaleDateString(locale(), { ...opts, timeZone: 'UTC' });
 
 /** "yyyy-MM-dd" of an instant in the display zone. */
 const dayKey = (ms: number) => new Date(ms).toLocaleDateString('en-CA', { timeZone: displayZone() });
@@ -64,6 +65,12 @@ export const changeLabel: Record<EntityChangeType, string> = {
   [EntityChangeType.Updated]: 'Updated',
   [EntityChangeType.Deleted]: 'Deleted',
 };
+/** Localization keys for `changeLabel` (translate with the abpLocalization pipe / LocalizationService). */
+export const changeLabelKey: Record<EntityChangeType, string> = {
+  [EntityChangeType.Created]: 'AbpAdmin::Format:Created',
+  [EntityChangeType.Updated]: 'AbpAdmin::Format:Updated',
+  [EntityChangeType.Deleted]: 'AbpAdmin::Format:Deleted',
+};
 export const changeTone: Record<EntityChangeType, Tone> = {
   [EntityChangeType.Created]: 'ok',
   [EntityChangeType.Updated]: 'warn',
@@ -79,16 +86,22 @@ export function actionLabel(service?: string | null, method?: string | null): st
   return `${svc} · ${(method ?? '').replace(/Async$/, '')}`;
 }
 
+const unit = (n: number, u: 'millisecond' | 'second', digits: number) =>
+  new Intl.NumberFormat(locale(), { style: 'unit', unit: u, unitDisplay: 'short', minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
+
 export function duration(ms: number): string {
+  if (!locale().startsWith('en')) return ms < 1000 ? unit(Math.round(ms), 'millisecond', 0) : unit(ms / 1000, 'second', ms < 10_000 ? 2 : 1);
   if (ms < 1000) return `${Math.round(ms)} ms`;
   return `${(ms / 1000).toFixed(ms < 10_000 ? 2 : 1)} s`;
 }
 
-const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+const upper = (s: string) => s.charAt(0).toLocaleUpperCase(locale()) + s.slice(1);
+
 export function relative(s?: string, now = Date.now()): string {
+  const rtf = new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' });
   const diff = (toMs(s) - now) / 1000;
   const abs = Math.abs(diff);
-  if (abs < 45) return 'just now';
+  if (abs < 45) return rtf.format(0, 'second'); // "now" / "الآن"
   if (abs < 3600) return rtf.format(Math.round(diff / 60), 'minute');
   if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
   return rtf.format(Math.round(diff / 86400), 'day');
@@ -96,8 +109,8 @@ export function relative(s?: string, now = Date.now()): string {
 
 export function dayLabel(s?: string | null): string {
   const key = dayKey(toMs(s));
-  if (key === dayKey(Date.now())) return 'Today';
-  if (key === dayKey(Date.now() - 86400000)) return 'Yesterday';
+  if (key === dayKey(Date.now())) return upper(new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' }).format(0, 'day'));
+  if (key === dayKey(Date.now() - 86400000)) return upper(new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' }).format(-1, 'day'));
   return calendarDay(key, { weekday: 'long', month: 'short', day: 'numeric' });
 }
 

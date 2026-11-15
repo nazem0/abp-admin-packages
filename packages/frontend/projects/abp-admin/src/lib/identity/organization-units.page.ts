@@ -1,4 +1,4 @@
-import { PermissionService } from '@abp/ng.core';
+import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -15,44 +15,44 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
  */
 @Component({
   selector: 'abp-organization-units-page',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
         <div>
-          <h1>Organization units</h1>
-          <p class="muted">Model departments and teams. Members inherit the roles of their unit and every unit above it.</p>
+          <h1>{{ 'AbpAdmin::OrganizationUnits:Title' | abpLocalization }}</h1>
+          <p class="muted">{{ 'AbpAdmin::OrganizationUnits:Subtitle' | abpLocalization }}</p>
         </div>
         @if (can('AbpAdmin.OrganizationUnits.ManageTree')) {
           <button class="btn primary" (click)="startAdd(null)">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg> New root unit
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg> {{ 'AbpAdmin::OrganizationUnits:NewRoot' | abpLocalization }}
           </button>
         }
       </header>
 
       <div class="split">
         <!-- Tree -->
-        <section class="card tree" aria-label="Organization tree">
+        <section class="card tree" [attr.aria-label]="'AbpAdmin::OrganizationUnits:TreeLabel' | abpLocalization">
           @if (tree.isLoading() && !nodes().length) {
             <div class="skeleton rows">@for (i of [1, 2, 3, 4]; track i) { <i></i> }</div>
           } @else if (tree.error()) {
-            <div class="state err">Couldn't load units. <button class="btn" (click)="tree.reload()">Retry</button></div>
+            <div class="state err">{{ 'AbpAdmin::OrganizationUnits:LoadFailed' | abpLocalization }} <button class="btn" (click)="tree.reload()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></div>
           } @else {
             <ul role="tree">
               @if (adding() === null) { <ng-container *ngTemplateOutlet="newRow; context: { depth: 0 }" /> }
               @for (n of visible(); track n.id) {
                 <li role="treeitem" [attr.aria-level]="n.depth + 1" [attr.aria-expanded]="n.hasChildren ? !collapsed().has(n.id!) : null"
                     [attr.aria-selected]="selectedId() === n.id" [style.--d]="n.depth" [class.sel]="selectedId() === n.id">
-                  <button class="chev" [class.leaf]="!n.hasChildren" (click)="toggle(n)" [attr.aria-label]="(collapsed().has(n.id!) ? 'Expand ' : 'Collapse ') + n.displayName" [disabled]="!n.hasChildren">
+                  <button class="chev" [class.leaf]="!n.hasChildren" (click)="toggle(n)" [attr.aria-label]="((collapsed().has(n.id!) ? 'AbpAdmin::OrganizationUnits:Expand' : 'AbpAdmin::OrganizationUnits:Collapse') | abpLocalization: n.displayName ?? '')" [disabled]="!n.hasChildren">
                     <svg viewBox="0 0 24 24" aria-hidden="true" [class.open]="!collapsed().has(n.id!)"><path d="M9 6l6 6-6 6" /></svg>
                   </button>
                   <button class="name" (click)="select(n.id!)">
                     <span class="folder" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg></span>
                     <span class="label">{{ n.displayName }}</span>
-                    <span class="counts" [title]="n.memberCount + ' members, ' + n.roleCount + ' roles'">{{ n.memberCount }}</span>
+                    <span class="counts" [title]="'AbpAdmin::OrganizationUnits:Counts' | abpLocalization: n.memberCount + '' : n.roleCount + ''">{{ n.memberCount }}</span>
                   </button>
                   @if (can('AbpAdmin.OrganizationUnits.ManageTree')) {
-                    <button class="icon-btn add" title="Add child unit" [attr.aria-label]="'Add a unit under ' + n.displayName" (click)="startAdd(n.id!)">
+                    <button class="icon-btn add" [title]="'AbpAdmin::OrganizationUnits:AddChild' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:AddChildAria' | abpLocalization: n.displayName ?? ''" (click)="startAdd(n.id!)">
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
                   }
                 </li>
@@ -61,7 +61,7 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
                 @if (adding() === undefined) {
                   <li class="state empty">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
-                    <b>No organization units</b><span class="muted">Create a root unit such as your company name.</span>
+                    <b>{{ 'AbpAdmin::OrganizationUnits:NoUnits' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::OrganizationUnits:NoUnitsHint' | abpLocalization }}</span>
                   </li>
                 }
               }
@@ -70,9 +70,9 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
           <ng-template #newRow let-depth="depth">
             <li class="new" [style.--d]="depth">
               <form (submit)="$event.preventDefault(); create(nameInput.value)">
-                <input #nameInput class="input" placeholder="Unit name" aria-label="New unit name" maxlength="128" required autofocus (keydown.escape)="adding.set(undefined)" />
-                <button class="btn sm primary">Add</button>
-                <button type="button" class="btn sm" (click)="adding.set(undefined)">Cancel</button>
+                <input #nameInput class="input" [placeholder]="'AbpAdmin::OrganizationUnits:UnitName' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:NewUnitName' | abpLocalization" maxlength="128" required autofocus (keydown.escape)="adding.set(undefined)" />
+                <button class="btn sm primary">{{ 'AbpAdmin::OrganizationUnits:Add' | abpLocalization }}</button>
+                <button type="button" class="btn sm" (click)="adding.set(undefined)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
               </form>
             </li>
           </ng-template>
@@ -82,43 +82,43 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
         <section class="card detail" aria-live="polite">
           @if (selected(); as u) {
             <header class="dhead">
-              <nav class="crumbs" aria-label="Unit path">
+              <nav class="crumbs" [attr.aria-label]="'AbpAdmin::OrganizationUnits:UnitPath' | abpLocalization">
                 @for (p of u.path; track $index) { <span>{{ p }}</span><span class="sep" aria-hidden="true">›</span> }
               </nav>
               @if (renaming()) {
                 <form class="rename" (submit)="$event.preventDefault(); rename(u, rn.value)">
-                  <input #rn class="input" [value]="u.displayName" aria-label="Unit name" maxlength="128" required autofocus (keydown.escape)="renaming.set(false)" />
-                  <button class="btn sm primary">Save</button>
-                  <button type="button" class="btn sm" (click)="renaming.set(false)">Cancel</button>
+                  <input #rn class="input" [value]="u.displayName" [attr.aria-label]="'AbpAdmin::OrganizationUnits:UnitName' | abpLocalization" maxlength="128" required autofocus (keydown.escape)="renaming.set(false)" />
+                  <button class="btn sm primary">{{ 'AbpAdmin::Common:Save' | abpLocalization }}</button>
+                  <button type="button" class="btn sm" (click)="renaming.set(false)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
                 </form>
               } @else {
                 <div class="title">
                   <h2>{{ u.displayName }}</h2>
-                  <span class="mono muted small" title="Hierarchy code">{{ u.code }}</span>
+                  <span class="mono muted small" [title]="'AbpAdmin::OrganizationUnits:HierarchyCode' | abpLocalization">{{ u.code }}</span>
                   @if (can('AbpAdmin.OrganizationUnits.ManageTree')) {
                     <span class="tools">
-                      <button class="icon-btn" title="Rename" aria-label="Rename unit" (click)="renaming.set(true)">
+                      <button class="icon-btn" [title]="'AbpAdmin::OrganizationUnits:Rename' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:RenameAria' | abpLocalization" (click)="renaming.set(true)">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg></button>
-                      <select class="input move" aria-label="Move unit" (change)="move(u, $any($event.target).value); $any($event.target).value = ''">
-                        <option value="" selected disabled>Move to…</option>
-                        @if (u.parentId) { <option value="root">Top level</option> }
+                      <select class="input move" [attr.aria-label]="'AbpAdmin::OrganizationUnits:MoveAria' | abpLocalization" (change)="move(u, $any($event.target).value); $any($event.target).value = ''">
+                        <option value="" selected disabled>{{ 'AbpAdmin::OrganizationUnits:MoveTo' | abpLocalization }}</option>
+                        @if (u.parentId) { <option value="root">{{ 'AbpAdmin::OrganizationUnits:TopLevel' | abpLocalization }}</option> }
                         @for (t of moveTargets(); track t.id) { <option [value]="t.id">{{ '— '.repeat(t.depth) }}{{ t.displayName }}</option> }
                       </select>
                       @if (confirmDelete()) {
-                        <span class="confirm">Delete with all sub-units?
-                          <button class="btn sm danger" (click)="remove(u)">Delete</button>
-                          <button class="btn sm" (click)="confirmDelete.set(false)">Cancel</button></span>
+                        <span class="confirm">{{ 'AbpAdmin::OrganizationUnits:DeleteWithSub' | abpLocalization }}
+                          <button class="btn sm danger" (click)="remove(u)">{{ 'AbpAdmin::Common:Delete' | abpLocalization }}</button>
+                          <button class="btn sm" (click)="confirmDelete.set(false)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button></span>
                       } @else {
-                        <button class="icon-btn" title="Delete" aria-label="Delete unit" (click)="confirmDelete.set(true)">
+                        <button class="icon-btn" [title]="'AbpAdmin::Common:Delete' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:DeleteAria' | abpLocalization" (click)="confirmDelete.set(true)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                       }
                     </span>
                   }
                 </div>
               }
-              <div class="seg" role="tablist" aria-label="Unit details">
-                <button role="tab" [attr.aria-selected]="tab() === 'members'" [attr.aria-checked]="tab() === 'members'" (click)="tab.set('members')">Members · {{ u.memberCount }}</button>
-                <button role="tab" [attr.aria-selected]="tab() === 'roles'" [attr.aria-checked]="tab() === 'roles'" (click)="tab.set('roles')">Roles · {{ u.roleCount }}</button>
+              <div class="seg" role="tablist" [attr.aria-label]="'AbpAdmin::OrganizationUnits:UnitDetails' | abpLocalization">
+                <button role="tab" [attr.aria-selected]="tab() === 'members'" [attr.aria-checked]="tab() === 'members'" (click)="tab.set('members')">{{ 'AbpAdmin::OrganizationUnits:MembersTab' | abpLocalization: u.memberCount + '' }}</button>
+                <button role="tab" [attr.aria-selected]="tab() === 'roles'" [attr.aria-checked]="tab() === 'roles'" (click)="tab.set('roles')">{{ 'AbpAdmin::OrganizationUnits:RolesTab' | abpLocalization: u.roleCount + '' }}</button>
               </div>
             </header>
 
@@ -127,27 +127,27 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
                 <div class="bar">
                   <label class="search">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-                    <input class="input" type="search" placeholder="Filter members…" aria-label="Filter members"
+                    <input class="input" type="search" placeholder="{{ 'AbpAdmin::OrganizationUnits:FilterMembers' | abpLocalization }}" [attr.aria-label]="'AbpAdmin::OrganizationUnits:FilterMembersLabel' | abpLocalization"
                            (change)="memberFilter.set($any($event.target).value.trim())" (search)="memberFilter.set($any($event.target).value.trim())" />
                   </label>
                   @if (can('AbpAdmin.OrganizationUnits.ManageMembers')) {
-                    <button class="btn" (click)="picking.set(picking() === 'users' ? null : 'users')" [attr.aria-expanded]="picking() === 'users'">Add members</button>
+                    <button class="btn" (click)="picking.set(picking() === 'users' ? null : 'users')" [attr.aria-expanded]="picking() === 'users'">{{ 'AbpAdmin::OrganizationUnits:AddMembers' | abpLocalization }}</button>
                   }
                 </div>
                 @if (picking() === 'users') {
                   <div class="picker">
-                    <input class="input" type="search" placeholder="Search users by name, user name or email…" aria-label="Search users to add" autofocus
+                    <input class="input" type="search" placeholder="{{ 'AbpAdmin::OrganizationUnits:SearchUsers' | abpLocalization }}" [attr.aria-label]="'AbpAdmin::OrganizationUnits:SearchUsersLabel' | abpLocalization" autofocus
                            (input)="userQuery.set($any($event.target).value.trim())" />
                     <ul>
                       @for (c of userCandidates(); track c.id) {
                         <li><label class="check"><input type="checkbox" [checked]="picked().has(c.id!)" (change)="pick(c.id!, $any($event.target).checked)" />
                           <span>{{ c.name }} {{ c.surname }} <small>&#64;{{ c.userName }} · {{ c.email }}</small></span></label></li>
-                      } @empty { <li class="muted">{{ userQuery() ? 'No matching users.' : 'Type to search users.' }}</li> }
+                      } @empty { <li class="muted">{{ (userQuery() ? 'AbpAdmin::OrganizationUnits:NoMatchingUsers' : 'AbpAdmin::OrganizationUnits:TypeToSearch') | abpLocalization }}</li> }
                     </ul>
                     <div class="pick-foot">
-                      <span class="muted small">{{ picked().size }} selected</span>
-                      <button class="btn sm" (click)="picking.set(null)">Cancel</button>
-                      <button class="btn sm primary" [disabled]="!picked().size" (click)="addMembers(u)">Add {{ picked().size || '' }}</button>
+                      <span class="muted small">{{ 'AbpAdmin::OrganizationUnits:Selected' | abpLocalization: picked().size.toString() }}</span>
+                      <button class="btn sm" (click)="picking.set(null)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
+                      <button class="btn sm primary" [disabled]="!picked().size" (click)="addMembers(u)">{{ (picked().size ? 'AbpAdmin::OrganizationUnits:AddN' : 'AbpAdmin::OrganizationUnits:Add') | abpLocalization: picked().size.toString() }}</button>
                     </div>
                   </div>
                 }
@@ -157,32 +157,32 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
                       <span class="avatar" aria-hidden="true">{{ (m.name || m.userName || '?')[0].toUpperCase() }}</span>
                       <span class="who"><b>{{ [m.name, m.surname].join(' ').trim() || m.userName }}</b><small>&#64;{{ m.userName }} · {{ m.email }}</small></span>
                       @if (can('AbpAdmin.OrganizationUnits.ManageMembers')) {
-                        <button class="icon-btn" title="Remove from unit" [attr.aria-label]="'Remove ' + m.userName" (click)="removeMember(u, m.id!, m.userName!)">
+                        <button class="icon-btn" [title]="'AbpAdmin::OrganizationUnits:RemoveFromUnit' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:RemoveAria' | abpLocalization: m.userName ?? ''" (click)="removeMember(u, m.id!, m.userName!)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
                       }
                     </li>
                   } @empty {
-                    <li class="state empty"><b>No members</b><span class="muted">People added here inherit this unit's roles.</span></li>
+                    <li class="state empty"><b>{{ 'AbpAdmin::OrganizationUnits:NoMembers' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::OrganizationUnits:NoMembersHint' | abpLocalization }}</span></li>
                   }
                 </ul>
               </div>
             } @else {
               <div class="pane">
-                <p class="muted small hint">Members of <b>{{ u.displayName }}</b> and of every unit below it get these roles' permissions.</p>
+                <p class="muted small hint">{{ 'AbpAdmin::OrganizationUnits:RolesHint' | abpLocalization: u.displayName ?? '' }}</p>
                 @if (can('AbpAdmin.OrganizationUnits.ManageRoles')) {
-                  <div class="bar"><span></span><button class="btn" (click)="picking.set(picking() === 'roles' ? null : 'roles')" [attr.aria-expanded]="picking() === 'roles'">Add roles</button></div>
+                  <div class="bar"><span></span><button class="btn" (click)="picking.set(picking() === 'roles' ? null : 'roles')" [attr.aria-expanded]="picking() === 'roles'">{{ 'AbpAdmin::OrganizationUnits:AddRoles' | abpLocalization }}</button></div>
                 }
                 @if (picking() === 'roles') {
                   <div class="picker">
                     <ul>
                       @for (r of roleCandidates(); track r.id) {
                         <li><label class="check"><input type="checkbox" [checked]="picked().has(r.id!)" (change)="pick(r.id!, $any($event.target).checked)" /><span>{{ r.name }}</span></label></li>
-                      } @empty { <li class="muted">Every role is already assigned.</li> }
+                      } @empty { <li class="muted">{{ 'AbpAdmin::OrganizationUnits:AllAssigned' | abpLocalization }}</li> }
                     </ul>
                     <div class="pick-foot">
-                      <span class="muted small">{{ picked().size }} selected</span>
-                      <button class="btn sm" (click)="picking.set(null)">Cancel</button>
-                      <button class="btn sm primary" [disabled]="!picked().size" (click)="addRoles(u)">Add {{ picked().size || '' }}</button>
+                      <span class="muted small">{{ 'AbpAdmin::OrganizationUnits:Selected' | abpLocalization: picked().size.toString() }}</span>
+                      <button class="btn sm" (click)="picking.set(null)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button>
+                      <button class="btn sm primary" [disabled]="!picked().size" (click)="addRoles(u)">{{ (picked().size ? 'AbpAdmin::OrganizationUnits:AddN' : 'AbpAdmin::OrganizationUnits:Add') | abpLocalization: picked().size.toString() }}</button>
                     </div>
                   </div>
                 }
@@ -192,12 +192,12 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
                       <span class="avatar sq" aria-hidden="true">{{ (r.name || '?')[0].toUpperCase() }}</span>
                       <span class="who"><b>{{ r.name }}</b></span>
                       @if (can('AbpAdmin.OrganizationUnits.ManageRoles')) {
-                        <button class="icon-btn" title="Remove role" [attr.aria-label]="'Remove role ' + r.name" (click)="removeRole(u, r.id!, r.name!)">
+                        <button class="icon-btn" [title]="'AbpAdmin::OrganizationUnits:RemoveRole' | abpLocalization" [attr.aria-label]="'AbpAdmin::OrganizationUnits:RemoveRoleAria' | abpLocalization: r.name ?? ''" (click)="removeRole(u, r.id!, r.name!)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
                       }
                     </li>
                   } @empty {
-                    <li class="state empty"><b>No roles</b><span class="muted">Assign a role to give every member its permissions.</span></li>
+                    <li class="state empty"><b>{{ 'AbpAdmin::OrganizationUnits:NoRoles' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::OrganizationUnits:NoRolesHint' | abpLocalization }}</span></li>
                   }
                 </ul>
               </div>
@@ -205,7 +205,7 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
           } @else {
             <div class="state empty pick-one">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v4H9zM4 16h6v4H4zM14 16h6v4h-6zM12 8v4M7 16v-2h10v2" /></svg>
-              <b>Select a unit</b><span class="muted">Its members and roles show here.</span>
+              <b>{{ 'AbpAdmin::OrganizationUnits:SelectUnit' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::OrganizationUnits:SelectUnitHint' | abpLocalization }}</span>
             </div>
           }
         </section>
@@ -277,6 +277,7 @@ export class OrganizationUnitsPage {
   private readonly roleService = inject(IdentityRoleService);
   private readonly permissions = inject(PermissionService);
   private readonly toaster = inject(Toaster);
+  private readonly l = inject(LocalizationService);
 
   protected readonly tree = rxResource({ stream: () => this.service.getTree(), defaultValue: [] });
   protected readonly collapsed = signal(new Set<string>());
@@ -370,14 +371,14 @@ export class OrganizationUnitsPage {
     const parentId = this.adding();
     if (!name.trim()) return;
     this.service.create({ displayName: name.trim(), parentId: parentId ?? undefined }).subscribe({
-      next: ou => { this.adding.set(undefined); this.toaster.ok(`Created ${ou.displayName}.`); this.tree.reload(); this.selectedId.set(ou.id!); },
+      next: ou => { this.adding.set(undefined); this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:Created', ou.displayName ?? '')); this.tree.reload(); this.selectedId.set(ou.id!); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
 
   protected rename(u: Node, name: string) {
     this.service.update(u.id!, { displayName: name.trim() }).subscribe({
-      next: () => { this.renaming.set(false); this.toaster.ok('Renamed.'); this.tree.reload(); },
+      next: () => { this.renaming.set(false); this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:Renamed')); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
@@ -386,14 +387,14 @@ export class OrganizationUnitsPage {
     if (!target) return;
     const newParentId = target === 'root' ? undefined : target;
     this.service.move(u.id!, { newParentId }).subscribe({
-      next: () => { this.toaster.ok(`Moved ${u.displayName}.`); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:Moved', u.displayName ?? '')); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
 
   protected remove(u: Node) {
     this.service.delete(u.id!).subscribe({
-      next: () => { this.toaster.ok(`Deleted ${u.displayName}.`); this.selectedId.set(null); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:Deleted', u.displayName ?? '')); this.selectedId.set(null); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
@@ -404,28 +405,28 @@ export class OrganizationUnitsPage {
 
   protected addMembers(u: Node) {
     this.service.addMembers(u.id!, { ids: [...this.picked()] }).subscribe({
-      next: () => { this.toaster.ok(`Added ${this.picked().size} member(s) to ${u.displayName}.`); this.picking.set(null); this.members.reload(); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:MembersAdded', this.picked().size.toString(), u.displayName ?? '')); this.picking.set(null); this.members.reload(); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
 
   protected removeMember(u: Node, userId: string, userName: string) {
     this.service.removeMember(u.id!, userId).subscribe({
-      next: () => { this.toaster.ok(`Removed ${userName}.`); this.members.reload(); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:MemberRemoved', userName)); this.members.reload(); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
 
   protected addRoles(u: Node) {
     this.service.addRoles(u.id!, { ids: [...this.picked()] }).subscribe({
-      next: () => { this.toaster.ok(`Assigned ${this.picked().size} role(s) to ${u.displayName}.`); this.picking.set(null); this.roles.reload(); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:RolesAssigned', this.picked().size.toString(), u.displayName ?? '')); this.picking.set(null); this.roles.reload(); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }
 
   protected removeRole(u: Node, roleId: string, name: string) {
     this.service.removeRole(u.id!, roleId).subscribe({
-      next: () => { this.toaster.ok(`Removed role ${name}.`); this.roles.reload(); this.tree.reload(); },
+      next: () => { this.toaster.ok(this.l.instant('AbpAdmin::OrganizationUnits:RoleRemoved', name)); this.roles.reload(); this.tree.reload(); },
       error: e => this.toaster.error(apiError(e)),
     });
   }

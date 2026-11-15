@@ -1,4 +1,4 @@
-import { EnvironmentService, PermissionService } from '@abp/ng.core';
+import { EnvironmentService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ApplicationDto, ApplicationService } from '../proxy/abp-admin/services/open-iddict';
@@ -11,17 +11,17 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
 /** OpenIddict client applications: who may ask this server for tokens, and how. */
 @Component({
   selector: 'abp-applications-page',
-  imports: [ApplicationFormComponent, PermissionsEditorComponent],
+  imports: [ApplicationFormComponent, PermissionsEditorComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
         <div>
-          <h1>Applications</h1>
-          <p class="muted">OpenIddict clients allowed to request tokens: SPAs, mobile apps, backends and tools.</p>
+          <h1>{{ 'AbpAdmin::Applications:Title' | abpLocalization }}</h1>
+          <p class="muted">{{ 'AbpAdmin::Applications:Subtitle' | abpLocalization }}</p>
         </div>
         @if (can('AbpAdmin.Applications.Create')) {
           <button class="btn primary" (click)="editing.set('new')">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg> New application
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg> {{ 'AbpAdmin::Applications:New' | abpLocalization }}
           </button>
         }
       </header>
@@ -30,19 +30,19 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
         <div class="filters">
           <label class="search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input class="input" type="search" placeholder="Search client ID or name…" aria-label="Search applications"
+            <input class="input" type="search" placeholder="{{ 'AbpAdmin::Applications:SearchPlaceholder' | abpLocalization }}" [attr.aria-label]="'AbpAdmin::Applications:Search' | abpLocalization"
                    (change)="filter.set($any($event.target).value.trim())" (search)="filter.set($any($event.target).value.trim())" />
           </label>
         </div>
 
         @if (list.error()) {
-          <div class="state err">Couldn't load applications. <button class="btn" (click)="list.reload()">Retry</button></div>
+          <div class="state err">{{ 'AbpAdmin::Applications:LoadError' | abpLocalization }} <button class="btn" (click)="list.reload()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></div>
         } @else if (list.isLoading() && !rows().length) {
           <div class="skeleton rows">@for (i of [1, 2, 3]; track i) { <i></i> }</div>
         } @else if (!rows().length) {
           <div class="state empty">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 9h16" /></svg>
-            <b>No applications</b><span class="muted">{{ filter() ? 'Nothing matches “' + filter() + '”.' : 'Register the first client.' }}</span>
+            <b>{{ 'AbpAdmin::Applications:Empty' | abpLocalization }}</b><span class="muted">{{ filter() ? ('AbpAdmin::Applications:NoMatch' | abpLocalization: filter()) : ('AbpAdmin::Applications:RegisterFirst' | abpLocalization) }}</span>
           </div>
         } @else {
           <ul class="apps">
@@ -53,33 +53,33 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
                 </span>
                 <span class="main">
                   <span class="name"><b>{{ a.displayName || a.clientId }}</b>
-                    <span [class]="'pill tone-' + (a.clientType === 'confidential' ? 'accent' : 'info')">{{ a.clientType === 'confidential' ? 'Confidential' : 'Public' }}</span>
-                    @if (a.clientId === ownClient) { <span class="pill tone-warn" title="This admin UI signs in with this client">This app</span> }
+                    <span [class]="'pill tone-' + (a.clientType === 'confidential' ? 'accent' : 'info')">{{ (a.clientType === 'confidential' ? 'AbpAdmin::Applications:Confidential' : 'AbpAdmin::Applications:Public') | abpLocalization }}</span>
+                    @if (a.clientId === ownClient) { <span class="pill tone-warn" [title]="'AbpAdmin::Applications:ThisAppHint' | abpLocalization">{{ 'AbpAdmin::Applications:ThisApp' | abpLocalization }}</span> }
                   </span>
                   <span class="mono muted">{{ a.clientId }}</span>
                   <span class="grants">
                     @for (g of a.grantTypes; track g) { <span class="tag">{{ grantLabel(g) }}</span> }
                     @if (a.requirePkce) { <span class="tag ok">PKCE</span> }
-                    <span class="muted small">{{ a.scopes?.length }} scope{{ a.scopes?.length === 1 ? '' : 's' }} · {{ a.redirectUris?.length }} redirect{{ a.redirectUris?.length === 1 ? '' : 's' }} · created {{ relative(a.creationTime) }}</span>
+                    <span class="muted small">{{ summary(a) }}</span>
                   </span>
                 </span>
                 <span class="actions">
                   @if (confirming() === a.id) {
-                    <span class="confirm">Delete {{ a.clientId }}? Its tokens stop working.
-                      <button class="btn sm danger" (click)="remove(a)">Delete</button>
-                      <button class="btn sm" (click)="confirming.set(null)">Cancel</button></span>
+                    <span class="confirm">{{ 'AbpAdmin::Applications:DeleteConfirm' | abpLocalization: a.clientId! }}
+                      <button class="btn sm danger" (click)="remove(a)">{{ 'AbpAdmin::Common:Delete' | abpLocalization }}</button>
+                      <button class="btn sm" (click)="confirming.set(null)">{{ 'AbpAdmin::Common:Cancel' | abpLocalization }}</button></span>
                   } @else {
                     @if (can('AbpAdmin.Applications.Update')) {
-                      <button class="icon-btn" title="Edit" [attr.aria-label]="'Edit ' + a.clientId" (click)="editing.set(a)">
+                      <button class="icon-btn" [title]="'AbpAdmin::Common:Edit' | abpLocalization" [attr.aria-label]="'AbpAdmin::Applications:EditAria' | abpLocalization: a.clientId!" (click)="editing.set(a)">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg></button>
                     }
                     @if (can('AbpAdmin.Applications.ManagePermissions')) {
-                      <button class="icon-btn" title="Client permissions" [attr.aria-label]="'Permissions of ' + a.clientId"
-                              (click)="perms.set({ providerName: 'C', providerKey: a.clientId!, title: (a.displayName || a.clientId) + ' (client)' })">
+                      <button class="icon-btn" [title]="'AbpAdmin::Applications:PermissionsTitle' | abpLocalization" [attr.aria-label]="'AbpAdmin::Applications:PermissionsAria' | abpLocalization: a.clientId!"
+                              (click)="perms.set({ providerName: 'C', providerKey: a.clientId!, title: clientTitle(a) })">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z" /><path d="m9 12 2 2 4-4" /></svg></button>
                     }
                     @if (can('AbpAdmin.Applications.Delete') && a.clientId !== ownClient) {
-                      <button class="icon-btn" title="Delete" [attr.aria-label]="'Delete ' + a.clientId" (click)="confirming.set(a.id!)">
+                      <button class="icon-btn" [title]="'AbpAdmin::Common:Delete' | abpLocalization" [attr.aria-label]="'AbpAdmin::Applications:DeleteAria' | abpLocalization: a.clientId!" (click)="confirming.set(a.id!)">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
                     }
                   }
@@ -87,7 +87,7 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
               </li>
             }
           </ul>
-          <footer class="pager"><span class="muted">{{ total() }} application{{ total() === 1 ? '' : 's' }}</span></footer>
+          <footer class="pager"><span class="muted">{{ (total() === 1 ? 'AbpAdmin::Applications:CountOne' : 'AbpAdmin::Applications:CountMany') | abpLocalization: total().toString() }}</span></footer>
         }
       </section>
     </div>
@@ -120,6 +120,7 @@ export class ApplicationsPage {
   private readonly service = inject(ApplicationService);
   private readonly permissions = inject(PermissionService);
   private readonly toaster = inject(Toaster);
+  private readonly l = inject(LocalizationService);
 
   /** `?new=1` opens the create sheet (used by the command palette). */
   readonly new = input<string>();
@@ -148,12 +149,27 @@ export class ApplicationsPage {
   }
 
   protected grantLabel(g: string) {
-    return GRANTS.find(x => x.value === g)?.label ?? g;
+    const k = GRANTS.find(x => x.value === g);
+    return k ? this.l.instant(k.labelKey) : g;
+  }
+
+  protected summary(a: ApplicationDto) {
+    const n = a.scopes?.length ?? 0;
+    const r = a.redirectUris?.length ?? 0;
+    return [
+      this.l.instant(n === 1 ? 'AbpAdmin::Applications:ScopeOne' : 'AbpAdmin::Applications:ScopeMany', String(n)),
+      this.l.instant(r === 1 ? 'AbpAdmin::Applications:RedirectOne' : 'AbpAdmin::Applications:RedirectMany', String(r)),
+      this.l.instant('AbpAdmin::Applications:CreatedAgo', relative(a.creationTime)),
+    ].join(' · ');
+  }
+
+  protected clientTitle(a: ApplicationDto) {
+    return this.l.instant('AbpAdmin::Applications:ClientTitle', (a.displayName || a.clientId)!);
   }
 
   protected remove(a: ApplicationDto) {
     this.service.delete(a.id!).subscribe({
-      next: () => { this.confirming.set(null); this.toaster.ok(`Deleted ${a.clientId}.`); this.list.reload(); },
+      next: () => { this.confirming.set(null); this.toaster.ok(this.l.instant('AbpAdmin::Applications:Deleted', a.clientId!)); this.list.reload(); },
       error: e => { this.confirming.set(null); this.toaster.error(apiError(e)); },
     });
   }

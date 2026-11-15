@@ -60,6 +60,7 @@ using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.EntityFrameworkCore.Sqlite;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using Volo.Abp.Studio.Client.AspNetCore;
 
 using Microsoft.Extensions.Hosting;
@@ -116,12 +117,14 @@ namespace AbpAdmin.Host;
     typeof(BlobStoringDatabaseEntityFrameworkCoreModule),
     typeof(AbpBlobStoringFileSystemModule),
     typeof(AbpEntityFrameworkCoreSqlServerModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule)
+    typeof(AbpEntityFrameworkCoreSqliteModule),
+    typeof(AbpTenantManagementEntityFrameworkCoreModule)
 )]
 /// <summary>Sample host: an ordinary ABP app that adds ABP Admin through its packages only.</summary>
 public class AbpAdminHostModule : AbpModule
 {
     /* Single point to enable/disable multi-tenancy */
+    /// <summary>Initial value; the Tenants page switch overrides it at runtime (stored as a setting).</summary>
     public const bool IsMultiTenant = false;
 
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -438,10 +441,8 @@ public class AbpAdminHostModule : AbpModule
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
-        if (IsMultiTenant)
-        {
-            app.UseMultiTenancy();
-        }
+        // Always on: multi-tenancy can be switched on at runtime from the Tenants page.
+        app.UseMultiTenancy();
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();

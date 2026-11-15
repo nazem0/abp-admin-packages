@@ -1,4 +1,4 @@
-import { ConfigStateService, PermissionService } from '@abp/ng.core';
+import { ConfigStateService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -13,97 +13,97 @@ interface Alert { tone: 'err' | 'warn'; text: string; link: string; query?: Reco
 
 @Component({
   selector: 'abp-overview-page',
-  imports: [RouterLink],
+  imports: [RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
         <div>
           <h1>{{ greeting() }}</h1>
-          <p class="muted">What's happening in your ABP application over the last 24 hours.</p>
+          <p class="muted">{{ 'AbpAdmin::Overview:Subtitle' | abpLocalization }}</p>
         </div>
         <div class="top-actions">
-          <button class="icon-btn" (click)="data.reload(); recent.reload()" aria-label="Refresh" title="Refresh" [class.spin]="data.isLoading()">
+          <button class="icon-btn" (click)="data.reload(); recent.reload()" [attr.aria-label]="'AbpAdmin::Common:Refresh' | abpLocalization" [title]="'AbpAdmin::Common:Refresh' | abpLocalization" [class.spin]="data.isLoading()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>
           </button>
         </div>
       </header>
 
       @if (data.error()) {
-        <div class="card state err">Couldn't load the overview. <button class="btn" (click)="data.reload()">Retry</button></div>
+        <div class="card state err">{{ 'AbpAdmin::Overview:LoadFailed' | abpLocalization }} <button class="btn" (click)="data.reload()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></div>
       } @else if (data.value(); as d) {
         @if (alerts().length) {
-          <section class="alerts" aria-label="Needs attention">
+          <section class="alerts" [attr.aria-label]="'AbpAdmin::Overview:NeedsAttention' | abpLocalization">
             @for (a of alerts(); track a.text) {
               <a [class]="'alert-row tone-' + a.tone" [routerLink]="a.link" [queryParams]="a.query">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5v.5M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
-                <span>{{ a.text }}</span><b>Review →</b>
+                <span>{{ a.text }}</span><b>{{ 'AbpAdmin::Overview:Review' | abpLocalization }}</b>
               </a>
             }
           </section>
         } @else {
-          <div class="calm card"><span class="dot" aria-hidden="true"></span> All clear: no lockouts, failed sign-ins, failing requests or stuck jobs.</div>
+          <div class="calm card"><span class="dot" aria-hidden="true"></span> {{ 'AbpAdmin::Overview:AllClear' | abpLocalization }}</div>
         }
 
         <section class="kpis">
           @if (d.users; as u) {
             <a class="kpi card" routerLink="../users">
-              <span class="label">Users</span>
+              <span class="label">{{ 'AbpAdmin::Overview:Kpi:Users' | abpLocalization }}</span>
               <strong>{{ u.total }}</strong>
-              <span class="sub"><b class="ok">+{{ u.newLast7Days }}</b> this week · {{ u.inactive }} inactive · {{ u.locked }} locked</span>
+              <span class="sub"><b class="ok">{{ 'AbpAdmin::Overview:Kpi:NewThisWeek' | abpLocalization: u.newLast7Days + '' }}</b> · {{ 'AbpAdmin::Overview:Kpi:Inactive' | abpLocalization: u.inactive + '' }} · {{ 'AbpAdmin::Overview:Kpi:Locked' | abpLocalization: u.locked + '' }}</span>
             </a>
           }
           @if (d.signIns; as s) {
             <a class="kpi card" routerLink="../security-logs">
-              <span class="label">Sign-ins · 24h</span>
+              <span class="label">{{ 'AbpAdmin::Overview:Kpi:SignIns' | abpLocalization }}</span>
               <strong>{{ s.succeeded }}</strong>
-              <span class="sub"><b [class.err]="s.failed">{{ s.failed }} failed</b> · {{ s.lockouts }} lockouts</span>
+              <span class="sub"><b [class.err]="s.failed">{{ 'AbpAdmin::Overview:Kpi:Failed' | abpLocalization: s.failed + '' }}</b> · {{ 'AbpAdmin::Overview:Kpi:Lockouts' | abpLocalization: s.lockouts + '' }}</span>
             </a>
           }
           @if (d.requests; as r) {
             <a class="kpi card" routerLink="../audit-logs">
-              <span class="label">Requests · 24h</span>
+              <span class="label">{{ 'AbpAdmin::Overview:Kpi:Requests' | abpLocalization }}</span>
               <strong>{{ r.last24Hours }}</strong>
-              <span class="sub"><b [class.err]="r.failed">{{ r.failed }} failed</b> · {{ duration(r.averageMs ?? 0) }} avg</span>
+              <span class="sub"><b [class.err]="r.failed">{{ 'AbpAdmin::Overview:Kpi:Failed' | abpLocalization: r.failed + '' }}</b> · {{ 'AbpAdmin::Overview:Kpi:Avg' | abpLocalization: duration(r.averageMs ?? 0) }}</span>
             </a>
           }
           @if (d.jobs; as j) {
             <a class="kpi card" routerLink="../background-jobs">
-              <span class="label">Background jobs</span>
+              <span class="label">{{ 'AbpAdmin::Overview:Kpi:BackgroundJobs' | abpLocalization }}</span>
               <strong>{{ j.waiting }}</strong>
-              <span class="sub">queued · <b [class.err]="j.abandoned">{{ j.abandoned }} abandoned</b></span>
+              <span class="sub">{{ 'AbpAdmin::Overview:Kpi:Queued' | abpLocalization }} · <b [class.err]="j.abandoned">{{ 'AbpAdmin::Overview:Kpi:Abandoned' | abpLocalization: j.abandoned + '' }}</b></span>
             </a>
           }
           @if (d.roles != null) {
-            <a class="kpi card" routerLink="../roles"><span class="label">Roles</span><strong>{{ d.roles }}</strong><span class="sub">permission bundles</span></a>
+            <a class="kpi card" routerLink="../roles"><span class="label">{{ 'AbpAdmin::Overview:Kpi:Roles' | abpLocalization }}</span><strong>{{ d.roles }}</strong><span class="sub">{{ 'AbpAdmin::Overview:Kpi:RolesSub' | abpLocalization }}</span></a>
           }
           @if (d.applications != null) {
-            <a class="kpi card" routerLink="../applications"><span class="label">OpenIddict clients</span><strong>{{ d.applications }}</strong><span class="sub">applications that can get tokens</span></a>
+            <a class="kpi card" routerLink="../applications"><span class="label">{{ 'AbpAdmin::Overview:Kpi:Clients' | abpLocalization }}</span><strong>{{ d.applications }}</strong><span class="sub">{{ 'AbpAdmin::Overview:Kpi:ClientsSub' | abpLocalization }}</span></a>
           }
         </section>
 
         <div class="cols">
           @if (canSecurity) {
             <section class="card feed" aria-labelledby="rs-h">
-              <header><h2 id="rs-h">Recent security events</h2><a routerLink="../security-logs">View all</a></header>
+              <header><h2 id="rs-h">{{ 'AbpAdmin::Overview:RecentEvents' | abpLocalization }}</h2><a routerLink="../security-logs">{{ 'AbpAdmin::Common:ViewAll' | abpLocalization }}</a></header>
               <ul>
                 @for (e of recentItems(); track e.id) {
                   @let a = describe(e.action);
                   <li>
                     <span [class]="'ico tone-' + a.tone" aria-hidden="true"><svg viewBox="0 0 24 24"><path [attr.d]="a.icon" /></svg></span>
-                    <span class="what"><b>{{ a.label }}</b><small>{{ e.userName || 'unknown user' }} · {{ e.clientId || e.identity }} · {{ e.clientIpAddress }}</small></span>
+                    <span class="what"><b>{{ actionLabel(e.action) }}</b><small>{{ e.userName || ('AbpAdmin::Overview:UnknownUser' | abpLocalization) }} · {{ e.clientId || e.identity }} · {{ e.clientIpAddress }}</small></span>
                     <time class="muted">{{ relative(e.creationTime) }}</time>
                   </li>
-                } @empty { <li class="muted none">No security events yet.</li> }
+                } @empty { <li class="muted none">{{ 'AbpAdmin::Overview:NoEvents' | abpLocalization }}</li> }
               </ul>
             </section>
           }
           <section class="card feed" aria-labelledby="go-h">
-            <header><h2 id="go-h">Jump to</h2><span class="muted small">or press <kbd>Ctrl K</kbd></span></header>
+            <header><h2 id="go-h">{{ 'AbpAdmin::Overview:JumpTo' | abpLocalization }}</h2><span class="muted small">{{ 'AbpAdmin::Overview:OrPress' | abpLocalization }} <kbd>Ctrl K</kbd></span></header>
             <div class="links">
               @for (n of links(); track n.path) {
                 <a [routerLink]="'../' + n.path">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="n.icon" /></svg>
-                  <span>{{ n.label }}</span>
+                  <span>{{ n.labelKey | abpLocalization }}</span>
                 </a>
               }
             </div>
@@ -163,6 +163,7 @@ export class OverviewPage {
 
   protected readonly duration = duration;
   protected readonly relative = relative;
+  private readonly l = inject(LocalizationService);
   protected readonly describe = describeAction;
   protected readonly canSecurity = this.permissions.getGrantedPolicy('AbpAdmin.SecurityLogs');
 
@@ -177,8 +178,14 @@ export class OverviewPage {
   protected readonly greeting = computed(() => {
     const h = new Date().getHours();
     const name = this.config()?.currentUser?.name || this.config()?.currentUser?.userName || '';
-    return `${h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'}${name ? ', ' + name : ''}`;
+    const part = h < 12 ? 'Morning' : h < 18 ? 'Afternoon' : 'Evening';
+    return this.l.instant(`AbpAdmin::Overview:Greeting${part}${name ? '' : 'Anon'}`, name);
   });
+
+  protected actionLabel(action?: string | null) {
+    const a = describeAction(action);
+    return a.labelKey ? this.l.instant(a.labelKey) : a.label;
+  }
 
   protected readonly links = computed(() =>
     NAV.filter(n => n.path !== 'overview' && (!n.policy || this.permissions.getGrantedPolicy(n.policy))));
@@ -187,11 +194,11 @@ export class OverviewPage {
     const d = this.data.value();
     if (!d) return [];
     const list: Alert[] = [];
-    const n = (count: number | undefined, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-    if (d.users?.locked) list.push({ tone: 'warn', text: `${n(d.users.locked, 'user is', 'users are')} locked out`, link: '../users' });
-    if (d.signIns?.failed) list.push({ tone: 'err', text: `${n(d.signIns.failed, 'failed sign-in', 'failed sign-ins')} in the last 24 hours`, link: '../security-logs', query: { failed: '1' } });
-    if (d.requests?.failed) list.push({ tone: 'err', text: `${n(d.requests.failed, 'request', 'requests')} failed in the last 24 hours`, link: '../audit-logs' });
-    if (d.jobs?.abandoned) list.push({ tone: 'warn', text: `${n(d.jobs.abandoned, 'background job was', 'background jobs were')} abandoned`, link: '../background-jobs', query: { state: 'abandoned' } });
+    const n = (count: number | undefined, one: string, many: string) => this.l.instant(count === 1 ? one : many, String(count));
+    if (d.users?.locked) list.push({ tone: 'warn', text: n(d.users.locked, 'AbpAdmin::Overview:Alert:UsersLockedOne', 'AbpAdmin::Overview:Alert:UsersLockedMany'), link: '../users' });
+    if (d.signIns?.failed) list.push({ tone: 'err', text: n(d.signIns.failed, 'AbpAdmin::Overview:Alert:FailedSignInsOne', 'AbpAdmin::Overview:Alert:FailedSignInsMany'), link: '../security-logs', query: { failed: '1' } });
+    if (d.requests?.failed) list.push({ tone: 'err', text: n(d.requests.failed, 'AbpAdmin::Overview:Alert:RequestsFailedOne', 'AbpAdmin::Overview:Alert:RequestsFailedMany'), link: '../audit-logs' });
+    if (d.jobs?.abandoned) list.push({ tone: 'warn', text: n(d.jobs.abandoned, 'AbpAdmin::Overview:Alert:JobsAbandonedOne', 'AbpAdmin::Overview:Alert:JobsAbandonedMany'), link: '../background-jobs', query: { state: 'abandoned' } });
     return list;
   });
 }

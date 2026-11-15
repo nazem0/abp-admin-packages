@@ -1,4 +1,4 @@
-import { PermissionService } from '@abp/ng.core';
+import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -11,21 +11,21 @@ const PAGE_SIZE = 25;
 /** Identity security log: every sign-in, failure, lockout, sign-out and credential change. */
 @Component({
   selector: 'abp-security-logs-page',
-  imports: [RouterLink],
+  imports: [RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
         <div>
-          <h1>Security logs</h1>
-          <p class="muted">Sign-ins, failed attempts, lockouts and credential changes recorded by ABP Identity.</p>
+          <h1>{{ 'AbpAdmin::SecurityLogs:Title' | abpLocalization }}</h1>
+          <p class="muted">{{ 'AbpAdmin::SecurityLogs:Subtitle' | abpLocalization }}</p>
         </div>
         <div class="top-actions">
-          <div class="seg" role="radiogroup" aria-label="Time range">
+          <div class="seg" role="radiogroup" [attr.aria-label]="'AbpAdmin::SecurityLogs:TimeRange' | abpLocalization">
             @for (r of ranges; track r.key) {
-              <button role="radio" [attr.aria-checked]="range() === r.key" (click)="range.set(r.key); page.set(0)">{{ r.label }}</button>
+              <button role="radio" [attr.aria-checked]="range() === r.key" (click)="range.set(r.key); page.set(0)">{{ r.labelKey | abpLocalization }}</button>
             }
           </div>
-          <button class="icon-btn" (click)="refresh()" aria-label="Refresh" title="Refresh" [class.spin]="list.isLoading()">
+          <button class="icon-btn" (click)="refresh()" [attr.aria-label]="'AbpAdmin::Common:Refresh' | abpLocalization" [title]="'AbpAdmin::Common:Refresh' | abpLocalization" [class.spin]="list.isLoading()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>
           </button>
         </div>
@@ -33,16 +33,16 @@ const PAGE_SIZE = 25;
 
       <div class="tiles">
         <button class="tile card" [attr.aria-pressed]="!action() && !failedOnly()" (click)="pick(null, false)">
-          <span class="muted">All events</span><strong>{{ totals().all }}</strong>
+          <span class="muted">{{ 'AbpAdmin::SecurityLogs:AllEvents' | abpLocalization }}</span><strong>{{ totals().all }}</strong>
         </button>
         <button class="tile card tone-ok" [attr.aria-pressed]="action() === 'LoginSucceeded'" (click)="pick('LoginSucceeded', false)">
-          <span class="muted">Successful sign-ins</span><strong>{{ totals().ok }}</strong>
+          <span class="muted">{{ 'AbpAdmin::SecurityLogs:SuccessfulSignIns' | abpLocalization }}</span><strong>{{ totals().ok }}</strong>
         </button>
         <button class="tile card tone-err" [attr.aria-pressed]="failedOnly()" (click)="pick(null, true)">
-          <span class="muted">Failed sign-ins</span><strong>{{ totals().failed }}</strong>
+          <span class="muted">{{ 'AbpAdmin::SecurityLogs:FailedSignIns' | abpLocalization }}</span><strong>{{ totals().failed }}</strong>
         </button>
         <button class="tile card tone-warn" [attr.aria-pressed]="action() === 'LoginLockedout'" (click)="pick('LoginLockedout', false)">
-          <span class="muted">Lockouts</span><strong>{{ totals().lockouts }}</strong>
+          <span class="muted">{{ 'AbpAdmin::SecurityLogs:Lockouts' | abpLocalization }}</span><strong>{{ totals().lockouts }}</strong>
         </button>
       </div>
 
@@ -50,28 +50,28 @@ const PAGE_SIZE = 25;
         <div class="filters">
           <label class="search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input class="input" type="search" placeholder="User name…" aria-label="Filter by user name" [value]="userName()"
+            <input class="input" type="search" [placeholder]="'AbpAdmin::SecurityLogs:UserNamePlaceholder' | abpLocalization" [attr.aria-label]="'AbpAdmin::SecurityLogs:FilterByUserName' | abpLocalization" [value]="userName()"
                    (change)="userName.set($any($event.target).value.trim()); page.set(0)" (search)="userName.set($any($event.target).value.trim()); page.set(0)" />
           </label>
-          <input class="input ip" placeholder="IP address" aria-label="Filter by IP address" [value]="ip()"
+          <input class="input ip" [placeholder]="'AbpAdmin::SecurityLogs:IpAddress' | abpLocalization" [attr.aria-label]="'AbpAdmin::SecurityLogs:FilterByIp' | abpLocalization" [value]="ip()"
                  (change)="ip.set($any($event.target).value.trim()); page.set(0)" />
-          <select class="input" aria-label="Filter by action" (change)="pick($any($event.target).value || null, false)">
-            <option value="" [selected]="!action()">Any action</option>
+          <select class="input" [attr.aria-label]="'AbpAdmin::SecurityLogs:FilterByAction' | abpLocalization" (change)="pick($any($event.target).value || null, false)">
+            <option value="" [selected]="!action()">{{ 'AbpAdmin::SecurityLogs:AnyAction' | abpLocalization }}</option>
             @for (c of counts.value(); track c.action) {
-              <option [value]="c.action" [selected]="action() === c.action">{{ describe(c.action).label }} ({{ c.count }})</option>
+              <option [value]="c.action" [selected]="action() === c.action">{{ actionLabel(c.action) }} ({{ c.count }})</option>
             }
           </select>
-          @if (filtered()) { <button class="link" (click)="clear()">Clear filters</button> }
+          @if (filtered()) { <button class="link" (click)="clear()">{{ 'AbpAdmin::SecurityLogs:ClearFilters' | abpLocalization }}</button> }
         </div>
 
         @if (list.error()) {
-          <div class="state err">Couldn't load security logs. <button class="btn" (click)="refresh()">Retry</button></div>
+          <div class="state err">{{ 'AbpAdmin::SecurityLogs:LoadFailed' | abpLocalization }} <button class="btn" (click)="refresh()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></div>
         } @else if (list.isLoading() && !rows().length) {
           <div class="skeleton rows">@for (i of [1, 2, 3, 4, 5, 6]; track i) { <i></i> }</div>
         } @else if (!rows().length) {
           <div class="state empty">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z" /></svg>
-            <b>No security events</b><span class="muted">Nothing matches these filters in this time range.</span>
+            <b>{{ 'AbpAdmin::SecurityLogs:NoEvents' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::SecurityLogs:NoEventsHint' | abpLocalization }}</span>
           </div>
         } @else {
           <ul class="events" [class.loading]="list.isLoading()">
@@ -80,21 +80,21 @@ const PAGE_SIZE = 25;
               <li [class.open]="openId() === e.id">
                 <button class="ev" (click)="openId.set(openId() === e.id ? null : e.id!)" [attr.aria-expanded]="openId() === e.id">
                   <span [class]="'ico tone-' + a.tone" aria-hidden="true"><svg viewBox="0 0 24 24"><path [attr.d]="a.icon" /></svg></span>
-                  <span class="what"><b>{{ a.label }}</b><small>{{ e.userName || 'unknown user' }}</small></span>
+                  <span class="what"><b>{{ actionLabel(e.action) }}</b><small>{{ e.userName || ('AbpAdmin::SecurityLogs:UnknownUser' | abpLocalization) }}</small></span>
                   <span class="client hide-sm"><span class="mono">{{ e.clientId || '—' }}</span><small>{{ e.identity }}</small></span>
                   <span class="net hide-sm"><span class="mono">{{ e.clientIpAddress || '—' }}</span><small>{{ browser(e.browserInfo) }}</small></span>
                   <time [title]="stamp(e.creationTime, full)">{{ relative(e.creationTime) }}</time>
                 </button>
                 @if (openId() === e.id) {
                   <dl class="details">
-                    <dt>When</dt><dd>{{ stamp(e.creationTime, full) }}</dd>
-                    <dt>User</dt><dd>{{ e.userName || '—' }} @if (e.userName) { <button class="link" (click)="userName.set(e.userName!); page.set(0)">only this user</button> }</dd>
-                    <dt>Client</dt><dd class="mono">{{ e.clientId || '—' }}</dd>
-                    <dt>IP address</dt><dd class="mono">{{ e.clientIpAddress || '—' }} @if (e.clientIpAddress) { <button class="link" (click)="ip.set(e.clientIpAddress!); page.set(0)">only this IP</button> }</dd>
-                    <dt>Application</dt><dd>{{ e.applicationName || '—' }} · {{ e.identity }}</dd>
-                    <dt>Correlation</dt><dd class="mono">{{ e.correlationId || '—' }}
-                      @if (e.correlationId && canAudit) { <a class="link" routerLink="../audit-logs" [queryParams]="{ correlation: e.correlationId }">open request trace →</a> }</dd>
-                    <dt>Browser</dt><dd class="mono small">{{ e.browserInfo || '—' }}</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:When' | abpLocalization }}</dt><dd>{{ stamp(e.creationTime, full) }}</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:User' | abpLocalization }}</dt><dd>{{ e.userName || '—' }} @if (e.userName) { <button class="link" (click)="userName.set(e.userName!); page.set(0)">{{ 'AbpAdmin::SecurityLogs:OnlyThisUser' | abpLocalization }}</button> }</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:Client' | abpLocalization }}</dt><dd class="mono">{{ e.clientId || '—' }}</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:IpAddress' | abpLocalization }}</dt><dd class="mono">{{ e.clientIpAddress || '—' }} @if (e.clientIpAddress) { <button class="link" (click)="ip.set(e.clientIpAddress!); page.set(0)">{{ 'AbpAdmin::SecurityLogs:OnlyThisIp' | abpLocalization }}</button> }</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:Application' | abpLocalization }}</dt><dd>{{ e.applicationName || '—' }} · {{ e.identity }}</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:Correlation' | abpLocalization }}</dt><dd class="mono">{{ e.correlationId || '—' }}
+                      @if (e.correlationId && canAudit) { <a class="link" routerLink="../audit-logs" [queryParams]="{ correlation: e.correlationId }">{{ 'AbpAdmin::SecurityLogs:OpenTrace' | abpLocalization }}</a> }</dd>
+                    <dt>{{ 'AbpAdmin::SecurityLogs:Detail:Browser' | abpLocalization }}</dt><dd class="mono small">{{ e.browserInfo || '—' }}</dd>
                   </dl>
                 }
               </li>
@@ -104,12 +104,12 @@ const PAGE_SIZE = 25;
 
         @if (total() > 0) {
           <footer class="pager">
-            <span class="muted">{{ total() }} event{{ total() === 1 ? '' : 's' }}</span>
+            <span class="muted">{{ (total() === 1 ? 'AbpAdmin::SecurityLogs:CountOne' : 'AbpAdmin::SecurityLogs:CountMany') | abpLocalization: total().toString() }}</span>
             @if (pages() > 1) {
               <div>
-                <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">Previous</button>
-                <span class="muted">Page {{ page() + 1 }} of {{ pages() }}</span>
-                <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">Next</button>
+                <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ 'AbpAdmin::Common:Previous' | abpLocalization }}</button>
+                <span class="muted">{{ 'AbpAdmin::SecurityLogs:PageOf' | abpLocalization: (page() + 1).toString(): pages().toString() }}</span>
+                <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ 'AbpAdmin::Common:Next' | abpLocalization }}</button>
               </div>
             }
           </footer>
@@ -159,6 +159,7 @@ export class SecurityLogsPage {
   readonly failed = input<string>();
 
   protected readonly ranges = RANGES;
+  private readonly l = inject(LocalizationService);
   protected readonly describe = describeAction;
   protected readonly browser = browserName;
   protected readonly relative = relative;
@@ -210,6 +211,11 @@ export class SecurityLogsPage {
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
   protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
   protected readonly filtered = computed(() => !!(this.action() || this.failedOnly() || this.userName() || this.ip()));
+
+  protected actionLabel(action?: string | null) {
+    const a = describeAction(action);
+    return a.labelKey ? this.l.instant(a.labelKey) : a.label;
+  }
 
   protected pick(action: string | null, failedOnly: boolean) {
     this.action.set(action);

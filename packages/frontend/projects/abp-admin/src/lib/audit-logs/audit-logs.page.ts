@@ -1,5 +1,6 @@
 import { Component, ElementRef, computed, effect, inject, input, linkedSignal, signal, untracked, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { AuditLogDto, AuditLogService, GetAuditLogListInput } from '../proxy/abp-admin/services/audit-logs';
 import { AuditLogDetailComponent } from './audit-log-detail.component';
 import { AuditStatsComponent, StatsPick } from './audit-stats.component';
@@ -11,12 +12,13 @@ const PAGE_SIZE = 30;
 
 @Component({
   selector: 'abp-audit-logs-page',
-  imports: [AuditStatsComponent, AuditLogDetailComponent],
+  imports: [AuditStatsComponent, AuditLogDetailComponent, LocalizationPipe],
   templateUrl: './audit-logs.page.html',
   styleUrl: './audit-logs.page.scss',
 })
 export class AuditLogsPage {
   private readonly service = inject(AuditLogService);
+  private readonly loc = inject(LocalizationService);
   private readonly listTop = viewChild<ElementRef<HTMLElement>>('listTop');
 
   protected readonly ranges = RANGES;
@@ -94,13 +96,13 @@ export class AuditLogsPage {
 
   protected readonly activeFilters = computed(() => {
     const chips: { label: string; clear: () => void }[] = [];
-    if (this.correlationId()) chips.push({ label: `Correlation ${this.correlationId().slice(0, 8)}…`, clear: () => this.set(this.correlationId, '') });
-    if (this.url()) chips.push({ label: `URL ~ ${this.url()}`, clear: () => this.set(this.url, '') });
-    if (this.user()) chips.push({ label: `User: ${this.user()}`, clear: () => this.set(this.user, '') });
-    if (this.method()) chips.push({ label: `Method: ${this.method()}`, clear: () => this.set(this.method, '') });
-    if (this.status() !== null) chips.push({ label: `Status: ${this.status()}`, clear: () => this.set(this.status, null) });
-    if (this.outcome() !== 'all') chips.push({ label: this.outcome() === 'failed' ? 'Failed only' : 'Succeeded only', clear: () => this.set(this.outcome, 'all') });
-    if (this.minDuration()) chips.push({ label: `≥ ${this.minDuration()} ms`, clear: () => this.set(this.minDuration, null) });
+    if (this.correlationId()) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:Correlation', this.correlationId().slice(0, 8)), clear: () => this.set(this.correlationId, '') });
+    if (this.url()) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:Url', this.url()), clear: () => this.set(this.url, '') });
+    if (this.user()) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:User', this.user()), clear: () => this.set(this.user, '') });
+    if (this.method()) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:Method', this.method()), clear: () => this.set(this.method, '') });
+    if (this.status() !== null) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:Status', String(this.status())), clear: () => this.set(this.status, null) });
+    if (this.outcome() !== 'all') chips.push({ label: this.loc.instant(this.outcome() === 'failed' ? 'AbpAdmin::AuditLogs:Chip:FailedOnly' : 'AbpAdmin::AuditLogs:Chip:SucceededOnly'), clear: () => this.set(this.outcome, 'all') });
+    if (this.minDuration()) chips.push({ label: this.loc.instant('AbpAdmin::AuditLogs:Chip:MinDuration', String(this.minDuration())), clear: () => this.set(this.minDuration, null) });
     return chips;
   });
 

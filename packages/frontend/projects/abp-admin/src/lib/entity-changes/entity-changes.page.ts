@@ -1,10 +1,11 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { forkJoin, map } from 'rxjs';
 import { AuditLogDto, AuditLogService, EntityChangeListItemDto, GetEntityChangeListInput } from '../proxy/abp-admin/services/audit-logs';
 import { EntityChangeType } from '../proxy/volo/abp/auditing';
 import { AuditLogDetailComponent } from '../audit-logs/audit-log-detail.component';
-import { RANGES, RangeKey, changeLabel, changeTone, clock, dayLabel, rangeWindow, shortType } from '../audit-logs/format';
+import { RANGES, RangeKey, changeLabelKey, changeTone, clock, dayLabel, rangeWindow, shortType } from '../audit-logs/format';
 import { EntityHistoryComponent, EntityRef } from './entity-history.component';
 import { EntityTypePickerComponent, SYSTEM_ENTITY_TYPES } from './entity-type-picker.component';
 
@@ -14,23 +15,24 @@ const PAGE_SIZE = 30;
 /** Bookkeeping columns ABP touches on every update; listed last so the meaningful property names show first. */
 const NOISE = new Set(['EntityVersion', 'ConcurrencyStamp', 'LastModificationTime', 'LastModifierId', 'ExtraProperties']);
 const KINDS = [
-  { type: EntityChangeType.Created, label: 'Created', hint: 'new records' },
-  { type: EntityChangeType.Updated, label: 'Updated', hint: 'edited records' },
-  { type: EntityChangeType.Deleted, label: 'Deleted', hint: 'removed records' },
+  { type: EntityChangeType.Created, label: 'AbpAdmin::EntityChanges:Kind:Created', hint: 'AbpAdmin::EntityChanges:Kind:CreatedHint' },
+  { type: EntityChangeType.Updated, label: 'AbpAdmin::EntityChanges:Kind:Updated', hint: 'AbpAdmin::EntityChanges:Kind:UpdatedHint' },
+  { type: EntityChangeType.Deleted, label: 'AbpAdmin::EntityChanges:Kind:Deleted', hint: 'AbpAdmin::EntityChanges:Kind:DeletedHint' },
 ] as const;
 
 @Component({
   selector: 'abp-entity-changes-page',
-  imports: [EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent],
+  imports: [EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
   templateUrl: './entity-changes.page.html',
   styleUrl: './entity-changes.page.scss',
 })
 export class EntityChangesPage {
   private readonly service = inject(AuditLogService);
+  private readonly l = inject(LocalizationService);
 
   protected readonly ranges = RANGES;
   protected readonly kinds = KINDS;
-  protected readonly f = { changeLabel, changeTone, clock, shortType };
+  protected readonly f = { changeLabelKey, changeTone, clock, shortType };
 
   // Filters
   protected readonly range = signal<RangeKey>('7d');
@@ -138,10 +140,12 @@ export class EntityChangesPage {
     const names = c.propertyChanges.map(p => p.propertyName ?? '?')
       .sort((a, b) => Number(NOISE.has(a)) - Number(NOISE.has(b)));
     if (c.changeType === EntityChangeType.Updated) {
-      return names.length ? names.slice(0, 3).join(', ') + (names.length > 3 ? ` +${names.length - 3}` : '') : 'no property changes';
+      return names.length ? names.slice(0, 3).join(', ') + (names.length > 3 ? ` +${names.length - 3}` : '') : this.l.instant('AbpAdmin::EntityChanges:Summary:NoPropertyChanges');
     }
     const n = names.length;
-    return c.changeType === EntityChangeType.Created ? `with ${n} propert${n === 1 ? 'y' : 'ies'}` : 'removed';
+    return c.changeType === EntityChangeType.Created
+      ? this.l.instant(n === 1 ? 'AbpAdmin::EntityChanges:Summary:WithPropertyOne' : 'AbpAdmin::EntityChanges:Summary:WithPropertyMany', String(n))
+      : this.l.instant('AbpAdmin::EntityChanges:Summary:Removed');
   }
 
   protected open(c: EntityChangeListItemDto) {

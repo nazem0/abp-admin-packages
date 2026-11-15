@@ -1,12 +1,13 @@
 import { Component, ElementRef, afterRenderEffect, inject, input, output } from '@angular/core';
+import { LocalizationPipe } from '@abp/ng.core';
 import { EntityChangeListItemDto } from '../proxy/abp-admin/services/audit-logs';
-import { changeLabel, changeTone, methodTone, stamp } from '../audit-logs/format';
+import { changeLabelKey, changeTone, methodTone, stamp } from '../audit-logs/format';
 import { ChangeDiffComponent } from './change-diff.component';
 
 /** Vertical timeline of an entity's changes, oldest first, each expandable to its property diff. */
 @Component({
   selector: 'abp-entity-timeline',
-  imports: [ChangeDiffComponent],
+  imports: [ChangeDiffComponent, LocalizationPipe],
   template: `
     <ol class="timeline">
       @for (e of changes(); track e.id) {
@@ -14,13 +15,13 @@ import { ChangeDiffComponent } from './change-diff.component';
         <li [class]="'tone-' + changeTone[e.changeType]" [class.current]="highlighted" [attr.data-change]="e.id">
           <details [open]="highlighted || changes().length === 1">
             <summary class="tl-head">
-              <b>{{ changeLabel[e.changeType] }}</b>
-              <span class="muted">by {{ e.userName ?? 'system' }} · {{ stamp(e.changeTime, when) }}</span>
-              <span class="muted props">{{ e.propertyChanges.length }} propert{{ e.propertyChanges.length === 1 ? 'y' : 'ies' }}</span>
-              @if (e.auditLogId === currentRequest()) { <span class="pill xs tone-info">this request</span> }
+              <b>{{ changeLabelKey[e.changeType] | abpLocalization }}</b>
+              <span class="muted">{{ 'AbpAdmin::EntityChanges:ByUser' | abpLocalization: (e.userName ?? ('AbpAdmin::EntityChanges:System' | abpLocalization)) }} · {{ stamp(e.changeTime, when) }}</span>
+              <span class="muted props">{{ (e.propertyChanges.length === 1 ? 'AbpAdmin::EntityChanges:PropertyOne' : 'AbpAdmin::EntityChanges:PropertyMany') | abpLocalization: e.propertyChanges.length.toString() }}</span>
+              @if (e.auditLogId === currentRequest()) { <span class="pill xs tone-info">{{ 'AbpAdmin::EntityChanges:ThisRequest' | abpLocalization }}</span> }
             </summary>
             @if (e.url && canOpenRequest()) {
-              <button class="req" (click)="openRequest.emit(e.auditLogId!)" title="Open the request that made this change">
+              <button class="req" (click)="openRequest.emit(e.auditLogId!)" [title]="'AbpAdmin::EntityChanges:OpenRequest' | abpLocalization">
                 <span [class]="'method tone-' + methodTone(e.httpMethod)">{{ e.httpMethod }}</span>
                 <span class="mono">{{ e.url }}</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
@@ -70,7 +71,7 @@ export class EntityTimelineComponent {
   readonly canOpenRequest = input(false);
   readonly openRequest = output<string>();
 
-  protected readonly changeLabel = changeLabel;
+  protected readonly changeLabelKey = changeLabelKey;
   protected readonly changeTone = changeTone;
   protected readonly methodTone = methodTone;
   protected readonly stamp = stamp;

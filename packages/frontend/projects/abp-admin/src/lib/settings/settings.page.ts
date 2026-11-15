@@ -1,6 +1,9 @@
-import { ConfigStateService, PermissionService } from '@abp/ng.core';
-import { Component, DestroyRef, ElementRef, afterRenderEffect, computed, inject, linkedSignal, signal, viewChild } from '@angular/core';
+import { ConfigStateService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
+import { Component, DestroyRef, ElementRef, afterRenderEffect, computed, effect, inject, input, linkedSignal, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { SETTINGS_SECTIONS } from '../shared/nav';
+import { locale } from '../shared/i18n';
 import { switchMap } from 'rxjs';
 import { TimeZoneSettingsService } from '../proxy/volo/abp/setting-management';
 import { EmailSettingsComponent } from './email-settings.component';
@@ -27,50 +30,50 @@ function toZone(name: string, value: string): Zone {
 
 @Component({
   selector: 'abp-settings-page',
-  imports: [EmailSettingsComponent, IdentitySettingsComponent],
+  imports: [EmailSettingsComponent, IdentitySettingsComponent, RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
         <div>
-          <h1>Settings</h1>
-          <p class="muted">Application-wide preferences, stored by ABP Setting Management.</p>
+          <h1>{{ 'AbpAdmin::Settings:Title' | abpLocalization }}</h1>
+          <p class="muted">{{ 'AbpAdmin::Settings:Subtitle' | abpLocalization }}</p>
         </div>
       </header>
 
-      <nav class="jump" aria-label="Settings sections">
-        @if (can('AbpAdmin.IdentitySettings')) { <a href="#ids-h" (click)="jump($event, 'ids-h')">Identity & sign-in</a> }
-        @if (can('SettingManagement.TimeZone')) { <a href="#tz-h" (click)="jump($event, 'tz-h')">Time zone</a> }
-        @if (can('SettingManagement.Emailing')) { <a href="#em-h" (click)="jump($event, 'em-h')">Email</a> }
+      <nav class="tabs" [attr.aria-label]="'AbpAdmin::Settings:Sections' | abpLocalization">
+        @for (s of sections(); track s.path) {
+          <a [routerLink]="tab(s)" [relativeTo]="settingsRoute" [class.active]="s === active()" [attr.aria-current]="s === active() ? 'page' : null">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="s.icon" /></svg>{{ s.labelKey | abpLocalization }}</a>
+        }
       </nav>
 
-      @if (can('AbpAdmin.IdentitySettings')) { <abp-identity-settings /> }
+      @if (active()?.path === 'settings/identity') { <abp-identity-settings /> }
 
-      @if (can('SettingManagement.TimeZone')) {
+      @if (active()?.path === 'settings/time-zone') {
       <section class="card tz" aria-labelledby="tz-h">
         <div class="intro">
-          <h2 id="tz-h">Time zone</h2>
+          <h2 id="tz-h">{{ 'AbpAdmin::Settings:TimeZone:Title' | abpLocalization }}</h2>
           <p class="muted">
-            Audit times, day boundaries and charts use this zone for everyone. Leave it on
-            <b>Browser default</b> to let each person see their own local time.
+            {{ 'AbpAdmin::Settings:TimeZone:Intro' | abpLocalization: ('AbpAdmin::Settings:TimeZone:BrowserDefault' | abpLocalization) }}
           </p>
 
           <div class="clock" aria-live="polite">
-            <span class="muted small">Now in {{ preview().label }}</span>
+            <span class="muted small">{{ 'AbpAdmin::Settings:TimeZone:NowIn' | abpLocalization: preview().label }}</span>
             <strong>{{ preview().time }}</strong>
             <span class="muted small">{{ preview().date }} · {{ preview().offset }}</span>
             @if (preview().local; as local) {
-              <span class="local small">Your local time is {{ local }}</span>
+              <span class="local small">{{ 'AbpAdmin::Settings:TimeZone:YourLocalTime' | abpLocalization: local }}</span>
             }
           </div>
           <p class="muted small saved">
-            Saved: <b>{{ saved() === DEFAULT ? 'Browser default' : saved() }}</b>
+            {{ 'AbpAdmin::Settings:TimeZone:Saved' | abpLocalization: (saved() === DEFAULT ? ('AbpAdmin::Settings:TimeZone:BrowserDefault' | abpLocalization) : saved()) }}
           </p>
 
           <div class="actions">
             <button class="btn primary" (click)="save()" [disabled]="!dirty() || saving()">
-              {{ saving() ? 'Saving…' : 'Save' }}
+              {{ (saving() ? 'AbpAdmin::Common:Saving' : 'AbpAdmin::Common:Save') | abpLocalization }}
             </button>
-            <button class="btn" (click)="choice.set(saved())" [disabled]="!dirty() || saving()">Reset</button>
+            <button class="btn" (click)="choice.set(saved())" [disabled]="!dirty() || saving()">{{ 'AbpAdmin::Common:Reset' | abpLocalization }}</button>
             @if (status(); as s) {
               <span class="status" [class.err]="s.error" role="status">{{ s.text }}</span>
             }
@@ -80,25 +83,25 @@ function toZone(name: string, value: string): Zone {
         <div class="picker">
           <label class="search">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input class="input" type="search" placeholder="Search city, region or offset (e.g. +03)"
-                   [value]="q()" (input)="q.set($any($event.target).value)" aria-label="Search time zones" />
+            <input class="input" type="search" [placeholder]="'AbpAdmin::Settings:TimeZone:SearchPlaceholder' | abpLocalization"
+                   [value]="q()" (input)="q.set($any($event.target).value)" [attr.aria-label]="'AbpAdmin::Settings:TimeZone:SearchLabel' | abpLocalization" />
           </label>
 
           @if (zones.isLoading()) {
             <div class="skeleton" aria-hidden="true">@for (i of [1, 2, 3, 4, 5, 6]; track i) { <i></i> }</div>
           } @else if (zones.error()) {
-            <p class="err">Couldn't load time zones. <button class="link" (click)="zones.reload()">Retry</button></p>
+            <p class="err">{{ 'AbpAdmin::Settings:TimeZone:LoadFailed' | abpLocalization }} <button class="link" (click)="zones.reload()">{{ 'AbpAdmin::Common:Retry' | abpLocalization }}</button></p>
           } @else {
-            <div class="list" role="radiogroup" aria-label="Time zone" #list>
+            <div class="list" role="radiogroup" [attr.aria-label]="'AbpAdmin::Settings:TimeZone:Title' | abpLocalization" #list>
               @if (!q()) {
                 <label class="opt" [class.on]="choice() === DEFAULT">
                   <input type="radio" name="tz" [value]="DEFAULT" [checked]="choice() === DEFAULT" (change)="choice.set(DEFAULT)" />
-                  <span class="name"><b>Browser default</b><small>{{ browserZone }}</small></span>
-                  <span class="off">auto</span>
+                  <span class="name"><b>{{ 'AbpAdmin::Settings:TimeZone:BrowserDefault' | abpLocalization }}</b><small>{{ browserZone }}</small></span>
+                  <span class="off">{{ 'AbpAdmin::Settings:TimeZone:Auto' | abpLocalization }}</span>
                 </label>
               }
               @for (g of groups(); track g.region) {
-                <div class="region">{{ g.region }}</div>
+                <div class="region">{{ g.region === OTHER ? ('AbpAdmin::Settings:TimeZone:RegionOther' | abpLocalization) : g.region }}</div>
                 @for (z of g.zones; track z.value) {
                   <label class="opt" [class.on]="choice() === z.value">
                     <input type="radio" name="tz" [value]="z.value" [checked]="choice() === z.value" (change)="choice.set(z.value)" />
@@ -107,7 +110,7 @@ function toZone(name: string, value: string): Zone {
                   </label>
                 }
               } @empty {
-                <p class="muted empty">No zone matches “{{ q() }}”.</p>
+                <p class="muted empty">{{ 'AbpAdmin::Settings:TimeZone:NoMatch' | abpLocalization: q() }}</p>
               }
             </div>
           }
@@ -115,17 +118,18 @@ function toZone(name: string, value: string): Zone {
       </section>
       }
 
-      @if (can('SettingManagement.Emailing')) { <abp-email-settings /> }
+      @if (active()?.path === 'settings/email') { <abp-email-settings /> }
     </div>
   `,
   styles: `
     .page { max-width: 1100px; margin: 0 auto; padding: 28px 28px 48px; display: grid; gap: 18px; }
     @media (max-width: 720px) { .page { padding: 18px 16px 32px; } }
-    .jump { position: sticky; top: 8px; z-index: 3; display: flex; gap: 4px; width: fit-content; max-width: 100%; overflow-x: auto; padding: 4px;
-      border: 1px solid var(--border); border-radius: 11px; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(8px); box-shadow: var(--shadow); }
-    .jump a { padding: 5px 12px; border-radius: 8px; color: var(--muted); text-decoration: none; font-weight: 500; font-size: 13px; white-space: nowrap; }
-    .jump a:hover { background: var(--surface-2); color: var(--text); }
-    @media (max-width: 860px) { .jump { top: 64px; } }
+    .tabs { display: flex; gap: 2px; max-width: 100%; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+    .tabs a { display: flex; align-items: center; gap: 8px; padding: 9px 14px; margin-bottom: -1px; border-bottom: 2px solid transparent;
+      color: var(--muted); text-decoration: none; font-weight: 500; font-size: 13.5px; white-space: nowrap; }
+    .tabs a:hover { color: var(--text); }
+    .tabs a.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tabs svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .top h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
     .top p { margin: 4px 0 0; }
 
@@ -147,7 +151,7 @@ function toZone(name: string, value: string): Zone {
     .status.err, .err { color: var(--err); }
 
     .picker { display: flex; flex-direction: column; min-height: 0; }
-    .search { position: relative; display: flex; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .search { position: relative; display: flex; flex: none; padding: 14px 16px; border-bottom: 1px solid var(--border); } /* global .search grows */
     .search svg { position: absolute; left: 26px; top: 22px; width: 18px; height: 18px; fill: none; stroke: var(--muted);
       stroke-width: 2; stroke-linecap: round; pointer-events: none; }
     .search .input { width: 100%; padding-inline-start: 34px; }
@@ -178,7 +182,20 @@ export class SettingsPage {
   protected readonly can = (p: string) => this.permissions.getGrantedPolicy(p);
   private readonly permissions = inject(PermissionService);
 
+  private readonly router = inject(Router);
+  /** The 'settings' route (parent of '' and ':section'); tabs resolve against it wherever the admin is mounted. */
+  protected readonly settingsRoute = inject(ActivatedRoute).parent;
+  protected readonly tab = (s: { path: string }) => s.path.split('/').pop()!;
+
+  /** Route segment: identity | time-zone | email. */
+  readonly section = input<string>();
+  /** Sections the user may see, in tab order. */
+  protected readonly sections = computed(() => SETTINGS_SECTIONS.filter(s => this.can(s.policy)));
+  protected readonly active = computed(() => this.sections().find(s => s.path === `settings/${this.section()}`));
+
   protected readonly DEFAULT = DEFAULT;
+  protected readonly OTHER = 'Other';
+  private readonly l = inject(LocalizationService);
   protected readonly browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   protected readonly zones = rxResource({
@@ -217,18 +234,22 @@ export class SettingsPage {
     const offset = new Intl.DateTimeFormat('en', { timeZone: zone, timeZoneName: 'shortOffset' })
       .formatToParts(at).find(p => p.type === 'timeZoneName')?.value ?? '';
     return {
-      label: this.choice() === DEFAULT ? `your browser (${zone})` : zone.replaceAll('_', ' '),
-      time: at.toLocaleTimeString(undefined, { timeZone: zone, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      date: at.toLocaleDateString(undefined, { timeZone: zone, weekday: 'long', month: 'long', day: 'numeric' }),
+      label: this.choice() === DEFAULT ? this.l.instant('AbpAdmin::Settings:TimeZone:YourBrowser', zone) : zone.replaceAll('_', ' '),
+      time: at.toLocaleTimeString(locale(), { timeZone: zone, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      date: at.toLocaleDateString(locale(), { timeZone: zone, weekday: 'long', month: 'long', day: 'numeric' }),
       offset: offset.replace('GMT', 'UTC') || 'UTC',
       local: zone === this.browserZone ? null
-        : at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ` (${this.browserZone.replaceAll('_', ' ')})`,
+        : at.toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }) + ` (${this.browserZone.replaceAll('_', ' ')})`,
     };
   });
 
   private readonly list = viewChild<ElementRef<HTMLElement>>('list');
 
   constructor() {
+    // /settings, or a section this user can't see → the first one they can.
+    effect(() => {
+      if (!this.active() && this.sections().length) this.router.navigate([this.tab(this.sections()[0])], { relativeTo: this.settingsRoute, replaceUrl: true });
+    });
     // Bring the saved zone into view once the list renders (it can be hundreds of rows down).
     let scrolled = false;
     afterRenderEffect(() => {
@@ -243,11 +264,6 @@ export class SettingsPage {
     inject(DestroyRef).onDestroy(() => clearInterval(timer));
   }
 
-  protected jump(e: Event, id: string) {
-    e.preventDefault(); // the router would treat #fragment links as navigation
-    document.getElementById(id)?.closest('section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   protected save() {
     this.saving.set(true);
     this.status.set(null);
@@ -258,11 +274,11 @@ export class SettingsPage {
         next: () => {
           this.current.set(value);
           this.saving.set(false);
-          this.status.set({ text: 'Saved. Times now display in the new zone.' });
+          this.status.set({ text: this.l.instant('AbpAdmin::Settings:TimeZone:SavedOk') });
         },
         error: () => {
           this.saving.set(false);
-          this.status.set({ text: 'Saving failed. Try again.', error: true });
+          this.status.set({ text: this.l.instant('AbpAdmin::Settings:SaveFailed'), error: true });
         },
       });
   }
