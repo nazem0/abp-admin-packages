@@ -15,8 +15,8 @@ public class TenantServiceTests : AbpAdminTestBase
     {
         var service = GetRequiredService<TenantAppService>();
         var store = GetRequiredService<ITenantStore>();
-        var tenant = await service.CreateAsync(new CreateTenantDto { Name = "acme", AdminEmailAddress = "admin@acme.test", AdminPassword = "1q2w3E*" });
-        (await store.FindAsync("ACME"))!.IsActive.ShouldBeTrue();
+        var tenant = await service.CreateAsync(new CreateTenantDto { Name = "contoso", AdminEmailAddress = "admin@contoso.test", AdminPassword = "1q2w3E*" });
+        (await store.FindAsync("CONTOSO"))!.IsActive.ShouldBeTrue();
 
         await service.DeactivateAsync(tenant.Id);
         (await service.GetAsync(tenant.Id)).IsActive.ShouldBeFalse();

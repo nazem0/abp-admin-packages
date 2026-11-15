@@ -1,4 +1,5 @@
-import type { EntityDto, PagedAndSortedResultRequestDto } from '@abp/ng.core';
+import type { EntityDto, PagedAndSortedResultRequestDto, PagedResultDto } from '@abp/ng.core';
+import type { IdentityUserDto } from '../../../volo/abp/identity/models';
 
 export interface ConnectionStringCheckDto {
   connected?: boolean;
@@ -38,4 +39,14 @@ export interface UpdateTenantConnectionStringDto extends TenantConnectionStringD
 
 export interface UpdateTenantDto {
   name: string;
+}
+
+export interface GetTenantUserListInput extends PagedAndSortedResultRequestDto {
+  filter?: string | null;
+  tenantId?: string | null;
+  hostOnly?: boolean;
+}
+
+export interface TenantUserListResultDto extends PagedResultDto<IdentityUserDto> {
+  tenantNames: Record<string, string>;
 }

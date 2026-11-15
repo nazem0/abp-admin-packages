@@ -1,3 +1,4 @@
+using Volo.Abp.MultiTenancy;
 using AbpAdmin.Localization;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Localization;
@@ -34,5 +35,8 @@ public class AbpAdminHttpApiModule : AbpModule
                 setting.RemoteServiceName = RemoteServiceName;
             });
         });
+
+        // Lets a host admin with Tenants.ManageUsers manage a tenant's users (the __tenant header) on user-management endpoints.
+        Configure<AbpTenantResolveOptions>(options => options.TenantResolvers.Insert(0, new HostUserInTenantResolveContributor()));
     }
 }

@@ -31,8 +31,9 @@ public class UpdateSettingDto
 }
 
 /// <summary>
-/// Identity and account settings (password policy, lockout, sign-in, self-registration) stored globally
-/// by ABP Setting Management. Only names listed in <see cref="Groups"/> can be read or written.
+/// Identity and account settings (password policy, lockout, sign-in, self-registration) stored by ABP Setting
+/// Management: globally for the host, per tenant for a tenant (its values override the host's, and only settings
+/// a tenant may override are shown). Only names listed in <see cref="Groups"/> can be read or written.
 /// </summary>
 [Authorize(AbpAdminPermissions.IdentitySettings.Default)]
 public class IdentitySettingsAppService(ISettingManager settingManager, ISettingDefinitionManager definitions) : AbpAdminAppService
@@ -68,15 +69,18 @@ public class IdentitySettingsAppService(ISettingManager settingManager, ISetting
             foreach (var name in names)
             {
                 // Settings of modules that aren't installed simply don't show up.
-                if (await definitions.GetOrNullAsync(name) is not { } def) continue;
+                if (await definitions.GetOrNullAsync(name) is not { } def || !Editable(def)) continue;
                 dto.Settings.Add(new SettingItemDto
                 {
                     Name = name,
                     DisplayName = def.DisplayName.Localize(StringLocalizerFactory),
                     Description = def.Description?.Localize(StringLocalizerFactory),
                     Type = bool.TryParse(def.DefaultValue, out _) ? "bool" : int.TryParse(def.DefaultValue, out _) ? "number" : "text",
-                    DefaultValue = def.DefaultValue,
-                    Value = await settingManager.GetOrNullGlobalAsync(name),
+                    // What applies when this level sets nothing: for a tenant, the host's value.
+                    DefaultValue = CurrentTenant.IsAvailable ? await settingManager.GetOrNullGlobalAsync(name) ?? def.DefaultValue : def.DefaultValue,
+                    Value = CurrentTenant.IsAvailable
+                        ? await settingManager.GetOrNullForCurrentTenantAsync(name, fallback: false)
+                        : await settingManager.GetOrNullGlobalAsync(name),
                 });
             }
             if (dto.Settings.Count > 0) result.Add(dto);
@@ -90,11 +94,17 @@ public class IdentitySettingsAppService(ISettingManager settingManager, ISetting
         {
             if (!Allowed.Contains(s.Name)) throw new UserFriendlyException($"Setting '{s.Name}' can't be changed here.");
             var def = await definitions.GetAsync(s.Name);
+            if (!Editable(def)) throw new UserFriendlyException($"Setting '{s.Name}' can't be changed here.");
             if (bool.TryParse(def.DefaultValue, out _) && !bool.TryParse(s.Value, out _))
                 throw new UserFriendlyException($"{s.Name} must be true or false.");
             if (int.TryParse(def.DefaultValue, out _) && (!int.TryParse(s.Value, out var n) || n < 0))
                 throw new UserFriendlyException($"{s.Name} must be a whole number of 0 or more.");
-            await settingManager.SetGlobalAsync(s.Name, s.Value);
+            if (CurrentTenant.IsAvailable) await settingManager.SetForCurrentTenantAsync(s.Name, s.Value);
+            else await settingManager.SetGlobalAsync(s.Name, s.Value);
         }
     }
+
+    /// <summary>A tenant sees only settings whose definition allows a tenant value (no providers listed = any).</summary>
+    private bool Editable(SettingDefinition def) =>
+        !CurrentTenant.IsAvailable || def.Providers.Count == 0 || def.Providers.Contains(TenantSettingValueProvider.ProviderName);
 }

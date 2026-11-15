@@ -47,6 +47,7 @@ public class AbpAdminPermissionDefinitionProvider : PermissionDefinitionProvider
         tenants.AddChild(AbpAdminPermissions.Tenants.Delete, L("Permission:Delete"), MultiTenancySides.Host);
         tenants.AddChild(AbpAdminPermissions.Tenants.ManageMultiTenancy, L("Permission:Tenants.ManageMultiTenancy"), MultiTenancySides.Host);
         var connectionStrings = tenants.AddChild(AbpAdminPermissions.Tenants.ManageConnectionStrings, L("Permission:Tenants.ManageConnectionStrings"), MultiTenancySides.Host);
+        tenants.AddChild(AbpAdminPermissions.Tenants.ManageUsers, L("Permission:Tenants.ManageUsers"), MultiTenancySides.Host);
         tenants.RequireHost(Has<ITenantRepository>());
         // Own databases need the host to migrate and seed them: ABP's TenantConnectionStringUpdatedEto handler.
         connectionStrings.RequireHost(Handles<TenantConnectionStringUpdatedEto>());

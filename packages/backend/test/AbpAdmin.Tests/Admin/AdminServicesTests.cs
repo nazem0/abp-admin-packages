@@ -94,6 +94,25 @@ public class AdminServicesTests : AbpAdminTestBase
     }
 
     [Fact]
+    public async Task Identity_Settings_Of_A_Tenant_Stay_In_That_Tenant()
+    {
+        const string name = "Abp.Identity.Lockout.MaxFailedAccessAttempts";
+        var service = GetRequiredService<IdentitySettingsAppService>();
+        var currentTenant = GetRequiredService<Volo.Abp.MultiTenancy.ICurrentTenant>();
+        var setting = async () => (await service.GetAsync()).SelectMany(g => g.Settings).Single(s => s.Name == name);
+
+        await service.UpdateAsync([new UpdateSettingDto { Name = name, Value = "7" }]); // host: global
+        using (currentTenant.Change(Guid.NewGuid()))
+        {
+            (await setting()).Value.ShouldBeNull();          // nothing of its own yet
+            (await setting()).DefaultValue.ShouldBe("7");    // inherits the host's value
+            await service.UpdateAsync([new UpdateSettingDto { Name = name, Value = "3" }]);
+            (await setting()).Value.ShouldBe("3");
+        }
+        (await setting()).Value.ShouldBe("7");               // host unchanged
+    }
+
+    [Fact]
     public async Task Applications_Create_Update_Rotate_Secret_And_Delete()
     {
         var service = GetRequiredService<ApplicationAppService>();

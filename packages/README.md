@@ -17,8 +17,8 @@ packages/
 
 | Package | What it contains |
 |---|---|
-| `AbpAdmin.Application` | Audit / security / entity-change logs, background jobs, organization units, user lock/unlock, OpenIddict applications & scopes, identity settings, dashboard. Permissions (`AbpAdmin.*`) and localization (en, ar). Depends only on the **domain** packages of the free ABP modules. |
-| `AbpAdmin.HttpApi` | Conventional API controllers for the above: `/api/abp-admin/...`, remote service name `AbpAdmin`. |
+| `AbpAdmin.Application` | Audit / security / entity-change logs, background jobs, organization units, user lock/unlock, OpenIddict applications & scopes, tenants (multi-tenancy switch, tenant databases, users across tenants), identity settings, dashboard. Permissions (`AbpAdmin.*`) and localization (en, ar). Depends only on the **domain** packages of the free ABP modules. |
+| `AbpAdmin.HttpApi` | Conventional API controllers for the above: `/api/abp-admin/...`, remote service name `AbpAdmin`; the tenant resolver that lets a host admin manage a tenant's users. |
 | `@nazem0/abp-admin-ng` | Every admin page, the shell (sidebar, Ctrl+K palette, toasts, theme switch) and typed proxies. Depends only on `@abp/ng.core` (+ `@angular/aria`); no theme package. Styles are scoped under `.abp-admin`, so they never touch the host app. |
 
 ## Add it to an ABP application
@@ -55,8 +55,9 @@ dotnet nuget add source https://nuget.pkg.github.com/nazem0/index.json -n github
 
 3. Your host must already include what ABP Admin reads from (any standard ABP app template does):
    the **EF Core** integrations of Audit Logging, Identity, OpenIddict, Background Jobs,
-   Setting Management and Permission Management. (Tested with EF Core + SQL Server / SQLite;
-   MongoDB is untested.)
+   Setting Management and Permission Management, plus Tenant Management for the Tenants screens.
+   (Tested with EF Core + SQL Server / SQLite; MongoDB is untested.) Areas whose module is missing
+   simply don't show up (see below).
 
 4. Recommended host settings (the packages don't impose them):
 
@@ -96,6 +97,28 @@ Everything is also exported for custom composition: `AbpAdminLayoutComponent`, `
 `PermissionsEditorComponent`, `AuditLogDetailComponent`, the entity diff/timeline/history
 components, `Toaster`, `ThemeService`, and the typed proxies as `AbpAdminProxy`.
 
+### Multi-tenancy
+
+- **Runtime switch.** Keep `app.UseMultiTenancy()` in your pipeline; the Tenants page turns
+  multi-tenancy on or off (stored as the `AbpAdmin.MultiTenancy.IsEnabled` setting, re-applied on start).
+- **Tenant admins** use the same console, scoped to their tenant. Host-only areas are hidden, and
+  identity settings they save apply to their tenant only, falling back to the host's values.
+- **Users across tenants.** A host user with `AbpAdmin.Tenants.ManageUsers` sees every tenant's users
+  on the Users page and manages each one inside its tenant. The Angular page sends ABP's `__tenant`
+  header; since ABP ignores it for signed-in users, `AbpAdminHttpApiModule` adds a tenant resolver that
+  honours it for that permission only, and only on the user, lockout and user-permission endpoints.
+- **Own databases.** Tenants can get their own connection string when your host handles
+  `TenantConnectionStringUpdatedEto` / `TenantCreatedEto` by migrating and seeding the database, the
+  pattern ABP's templates use (the sample host's `TenantDatabaseMigrationHandler` is a copy-ready
+  example).
+
+### Audit logs keep the real error
+
+ABP stores an audit log's exception with the same settings it uses for API responses, so with error
+details hidden from clients the log only says "An internal error occurred". `AbpAdmin.Application`
+replaces the audit-log converter to store the exception type, message and stack trace; API responses
+are unchanged.
+
 ### What shows up follows your ABP setup
 
 Nothing to configure: each area turns its permissions off when your host isn't set up for it, and the UI
@@ -107,7 +130,7 @@ hides whatever the user isn't granted.
 | Security logs, organization units | the Identity EF Core/MongoDB module |
 | Applications, scopes | the OpenIddict EF Core/MongoDB module |
 | Background jobs | the Background Jobs EF Core/MongoDB module |
-| Tenants | the Tenant Management EF Core/MongoDB module |
+| Tenants, users across tenants | the Tenant Management EF Core/MongoDB module |
 | A tenant's own database | a `TenantConnectionStringUpdatedEto` handler that migrates and seeds it (ABP's template pattern) |
 | Language menu | more than one language in `AbpLocalizationOptions.Languages` |
 | Settings tabs, features | the matching Setting/Feature Management permissions |
@@ -161,6 +184,22 @@ https://abp-admin.runasp.net (admin / 1q2w3E*) — the sample host serving the d
 with the publish profile, `appsettings.Production.json` and `openiddict.pfx` (see the script header).
 The sample host's switches it relies on: a `Data Source=` connection string selects SQLite, `App:MigrateOnStartup`
 creates and seeds the database, `AuthServer:RequireHttps: false` allows plain-HTTP hosting.
+
+Sample data (`DemoDataSeedContributor`, added once, every password `1q2w3E*`): multi-tenancy on, and
+
+| Tenant (sign-in page's tenant box) | Users | Roles |
+| --- | --- | --- |
+| *(host)* | `admin`, `sara` (support), `omar` (auditor) | admin, support, auditor |
+| `acme` | `admin`, `lina` (support), `khaled` (auditor), `noor` (inactive) | admin, support, auditor |
+| `globex` | `admin`, `hana` (support), `ziad` | admin, support, auditor |
+
+*support* manages users and reads security logs; *auditor* reads audit and security logs.
+
+Things to try: host `admin` › Users (every tenant's users, edit one in `acme`); `acme` › `admin` (the
+console scoped to a tenant); `sara` / `omar` (a limited role); the sidebar's language menu (Arabic, RTL).
+The demo is public and shared, and it is recreated whenever its schema changes: don't put anything real in it.
+On a local sample host the same data is seeded; turn multi-tenancy off from the Tenants page if you
+don't want it (the seeder won't turn it back on).
 
 ## Origin
 

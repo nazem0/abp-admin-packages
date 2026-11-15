@@ -63,6 +63,9 @@ public class AbpAdminApplicationModule : AbpModule
         // The free OpenIddict module maps client ("C") permissions to a Pro-only policy; use ours instead.
         Configure<PermissionManagementOptions>(options =>
             options.ProviderPolicies[ClientPermissionValueProvider.ProviderName] = AbpAdminPermissions.Applications.ManagePermissions);
+
+        // Host admins with Tenants.ManageUsers keep their user-management permissions inside a tenant (Users page).
+        Configure<AbpPermissionOptions>(options => options.ValueProviders.Add<HostUserInTenantPermissionValueProvider>());
     }
 
     // Re-applies the multi-tenancy switch saved from the Tenants page.
