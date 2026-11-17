@@ -1,9 +1,11 @@
 /*
- * @nazem0/abp-admin-ng-audit-logging: audit logs (dashboard, request traces), entity changes and entity history.
+ * @nazem0/abp-admin-ng-audit-logging: audit logs (dashboard, request traces), entity changes and entity history,
+ * and the audit log retention settings tab. Entity changes opens one entity's history with ?type=<full type name>&id=<id>.
  * Backend: AbpAdmin.AuditLogging. Usage: abpAdminRoutes(abpAdminAuditLogging, ...).
  */
 import { permissionGuard } from '@abp/ng.core';
 import { AbpAdminFeature } from '@nazem0/abp-admin-ng-core';
+import { AuditLogSettingsComponent } from './lib/settings/audit-log-settings.component';
 
 export const abpAdminAuditLogging: AbpAdminFeature = {
   nav: [
@@ -25,6 +27,10 @@ export const abpAdminAuditLogging: AbpAdminFeature = {
       canActivate: [permissionGuard],
       data: { requiredPolicy: 'AbpAdmin.AuditLogs' },
     },
+  ],
+  settings: [
+    { path: 'settings/audit-logs', label: 'Audit logs', labelKey: 'AbpAdmin::Nav:SettingsAuditLogs', section: 'Settings', policy: 'AbpAdmin.AuditLogs.ManageRetention',
+      keywords: 'retention cleanup delete old logs', icon: 'M4 5h16M4 12h10M4 19h7M17 15l2 2 3-4', component: AuditLogSettingsComponent },
   ],
 };
 

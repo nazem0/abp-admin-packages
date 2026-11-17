@@ -39,6 +39,9 @@
       ],
       "@nazem0/abp-admin-ng-tenant-management": [
         "./dist/tenant-management"
+      ],
+      "@nazem0/abp-admin-ng-entity-explorer": [
+        "./dist/entity-explorer"
       ]
     }
   },

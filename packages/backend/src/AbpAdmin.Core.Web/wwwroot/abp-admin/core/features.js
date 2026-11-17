@@ -1,9 +1,11 @@
-// Host features page (port of features.page.ts): ABP feature management for provider "T" with no tenant key.
+// Features (port of features.page.ts): ABP feature management for provider "T". The Features page edits the host's
+// (no key); AbpAdmin.features.mount(el, tenantId) edits one tenant's, e.g. in the Tenants page's sheet.
 (function () {
   const { html, render, icon, on, api, L, errorText } = AbpAdmin;
-  const root = document.getElementById('abp-features');
   const URL = '/api/feature-management/features';
-  const PARAMS = { providerName: 'T', providerKey: '' };
+
+  function mount(root, providerKey) {
+  const PARAMS = { providerName: 'T', providerKey: providerKey ?? '' };
 
   const state = { loading: true, error: false, groups: [], original: new Map(), values: new Map(), saving: false, status: null };
 
@@ -41,7 +43,7 @@
       <button class="btn" type="button" data-act="reset" ${state.saving ? 'disabled' : ''} title="${L('AbpAdmin::Features:ResetTitle')}">${L('AbpAdmin::Features:ResetToDefaults')}</button>
       <button class="btn primary" type="button" data-act="save" ${!n || state.saving ? 'disabled' : ''}>${L(state.saving ? 'AbpAdmin::Common:Saving' : 'AbpAdmin::Common:Save')}</button>`;
   }
-  const paintBar = () => { const el = document.getElementById('abp-features-bar'); if (el) render(el, bar()); };
+  const paintBar = () => { const el = root.querySelector('#abp-features-bar'); if (el) render(el, bar()); };
 
   function body() {
     if (state.loading) return html`<div class="skeleton rows card">${[1, 2, 3].map(() => html`<i></i>`)}</div>`;
@@ -63,10 +65,10 @@
   }
 
   function draw() {
-    render(root, html`
+    render(root, html`${PARAMS.providerKey ? '' : html`
       <header class="top">
         <div><h1>${L('AbpAdmin::Features:Title')}</h1><p class="muted">${L('AbpAdmin::Features:Subtitle')}</p></div>
-      </header>${body()}`);
+      </header>`}${body()}`);
   }
 
   async function load() {
@@ -105,4 +107,9 @@
   on(root, 'click', '[data-act=reset]', () => run(() => api.delete(URL, PARAMS), L('AbpAdmin::Features:ResetDone')));
 
   load();
+  }
+
+  AbpAdmin.features = { mount };
+  const page = document.getElementById('abp-features');
+  if (page) mount(page, '');
 })();

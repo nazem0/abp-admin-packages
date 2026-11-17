@@ -7,6 +7,10 @@ import { relative } from '../audit-logs/format';
 import { PermissionsEditorComponent, PermissionTarget } from '../permissions/permissions-editor.component';
 import { SheetDirective } from '../shared/sheet.directive';
 import { apiError } from '../shared/api-error';
+import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
+import { RoleUsersService } from '../proxy/services/identity';
+import { ENTITY_TYPES, HistorySheetComponent } from '../entity-changes/history-sheet.component';
+import { EntityRef } from '../entity-changes/entity-history.component';
 
 type RoleEdit = IdentityRoleDto | 'new';
 
@@ -73,7 +77,7 @@ export class RoleFormComponent {
 
 @Component({
   selector: 'app-roles-page',
-  imports: [RoleFormComponent, PermissionsEditorComponent, LocalizationPipe],
+  imports: [RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -134,6 +138,18 @@ export class RoleFormComponent {
                                 (click)="perms.set({ providerName: 'R', providerKey: r.name!, title: l.instant('::Roles:RoleTitle', r.name ?? '') })">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z" /><path d="m9 12 2 2 4-4" /></svg></button>
                       }
+                      <button class="icon-btn" [title]="'::Claims:Title' | abpLocalization" [attr.aria-label]="'::Claims:Of' | abpLocalization: r.name ?? ''"
+                              (click)="claims.set({ kind: 'role', id: r.id!, title: r.name! })">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpIdentity.Roles.Update') && can('AbpIdentity.Users.Update')) {
+                        <button class="icon-btn" [title]="'::Roles:MoveUsers' | abpLocalization" [attr.aria-label]="'::Roles:MoveUsersOf' | abpLocalization: r.name ?? ''" (click)="moving.set(r)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3" /></svg></button>
+                      }
+                      @if (can('AbpAdmin.AuditLogs')) {
+                        <button class="icon-btn" [title]="'::Common:ChangeHistory' | abpLocalization" [attr.aria-label]="'::Common:ChangeHistoryOf' | abpLocalization: r.name ?? ''"
+                                (click)="history.set({ type: types.role, id: r.id! })">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></svg></button>
+                      }
                       @if (can('AbpIdentity.Roles.Delete') && !r.isStatic) {
                         <button class="icon-btn" [title]="'::Common:Delete' | abpLocalization" [attr.aria-label]="'::Roles:DeleteAria' | abpLocalization: r.name ?? ''" (click)="confirming.set(r.id!)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg></button>
@@ -153,6 +169,33 @@ export class RoleFormComponent {
 
     <app-role-form [role]="editing()" (closed)="editing.set(null)" (saved)="toaster.ok(l.instant('::Roles:Saved')); editing.set(null); list.reload()" />
     <app-permissions-editor [target]="perms()" (closed)="perms.set(null)" />
+    <app-claims-editor [target]="claims()" [editable]="can('AbpIdentity.Roles.Update')" (closed)="claims.set(null)" />
+    <app-history-sheet [entity]="history()" (closed)="history.set(null)" />
+
+    <dialog [appSheet]="!!moving()" (dismiss)="moving.set(null)" class="narrow" aria-labelledby="mu-title">
+      @if (moving(); as m) {
+        <form #mf (submit)="$event.preventDefault(); moveUsers(m, mf)">
+          <header class="sh-head">
+            <h2 id="mu-title">{{ '::Roles:MoveUsers' | abpLocalization }} <small>{{ m.name }}</small></h2>
+            <button type="button" class="icon-btn" (click)="moving.set(null)" [attr.aria-label]="'::Common:Close' | abpLocalization">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+          </header>
+          <div class="sh-body form">
+            <p class="muted">{{ '::Roles:MoveUsersIntro' | abpLocalization: m.name ?? '' }}</p>
+            <label class="field"><span>{{ '::Roles:MoveTo' | abpLocalization }}</span>
+              <select class="input" name="target">
+                <option value="">{{ '::Roles:MoveToNone' | abpLocalization }}</option>
+                @for (r of rows(); track r.id) { @if (r.id !== m.id) { <option [value]="r.id">{{ r.name }}</option> } }
+              </select></label>
+          </div>
+          <footer class="sh-foot">
+            <span class="spacer"></span>
+            <button type="button" class="btn" (click)="moving.set(null)">{{ '::Common:Cancel' | abpLocalization }}</button>
+            <button class="btn primary" [disabled]="busy()">{{ '::Roles:MoveUsersGo' | abpLocalization }}</button>
+          </footer>
+        </form>
+      }
+    </dialog>
   `,
   styles: `
     .avatar.sq { border-radius: 9px; }
@@ -172,6 +215,12 @@ export class RolesPage {
   protected readonly perms = signal<PermissionTarget | null>(null);
   protected readonly confirming = signal<string | null>(null);
   protected readonly failure = signal<string | null>(null);
+  protected readonly claims = signal<ClaimsTarget | null>(null);
+  protected readonly history = signal<EntityRef | null>(null);
+  protected readonly moving = signal<IdentityRoleDto | null>(null);
+  protected readonly busy = signal(false);
+  protected readonly types = ENTITY_TYPES;
+  private readonly roleUsers = inject(RoleUsersService);
 
   // ponytail: first 100 roles only; add paging if a deployment ever has more.
   protected readonly list = rxResource({
@@ -191,6 +240,22 @@ export class RolesPage {
 
   protected search(value: string) {
     this.filter.set(value.trim());
+  }
+
+  protected moveUsers(role: IdentityRoleDto, form: HTMLFormElement) {
+    const target = String(new FormData(form).get('target') ?? '') || null;
+    const targetName = this.rows().find(r => r.id === target)?.name;
+    this.busy.set(true);
+    this.roleUsers.moveAllUsers(role.id!, { targetRoleId: target }).subscribe({
+      next: r => {
+        this.busy.set(false);
+        this.moving.set(null);
+        this.toaster.ok(targetName
+          ? this.l.instant('::Roles:MovedTo', String(r.moved ?? 0), role.name ?? '', targetName)
+          : this.l.instant('::Roles:MovedOut', String(r.moved ?? 0), role.name ?? ''));
+      },
+      error: e => { this.busy.set(false); this.toaster.error(apiError(e)); },
+    });
   }
 
   protected remove(r: IdentityRoleDto) {

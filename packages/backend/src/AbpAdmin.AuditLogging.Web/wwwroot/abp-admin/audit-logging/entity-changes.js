@@ -352,4 +352,7 @@
 
   drawSkeleton();
   reloadAll();
+  // ?type=&id=: open that entity's history (links from the Users, Roles and Tenants pages).
+  const deep = AbpAdmin.params();
+  if (deep.get('type') && deep.get('id')) AbpAdmin.auditLogging.openEntityHistory({ type: deep.get('type'), id: deep.get('id') });
 })();

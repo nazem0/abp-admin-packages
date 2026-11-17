@@ -229,6 +229,29 @@
           "defaultConfiguration": "production"
         }
       }
+    },
+    "entity-explorer": {
+      "projectType": "library",
+      "root": "projects/entity-explorer",
+      "sourceRoot": "projects/entity-explorer/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/entity-explorer/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/entity-explorer/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/entity-explorer/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
     }
   }
 }

@@ -1,0 +1,3 @@
+/* Claims editor sheet (users and roles pages). */
+.claims-editor .ce-row { display: grid; grid-template-columns: minmax(120px, 1fr) 1.4fr auto; gap: 8px; align-items: center; }
+.claims-editor .sh-foot .alert { flex: 1; }

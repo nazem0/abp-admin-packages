@@ -4,7 +4,7 @@ using Volo.Abp.VirtualFileSystem;
 
 namespace AbpAdmin.Web;
 
-/// <summary>Razor Pages for identity: users, roles, organization units, security logs and the identity settings tab.</summary>
+/// <summary>Razor Pages for identity: users, roles, organization units, claim types, security logs and the identity settings tab.</summary>
 [DependsOn(typeof(AbpAdminCoreWebModule), typeof(AbpAdminIdentityModule))]
 public class AbpAdminIdentityWebModule : AbpModule
 {
@@ -28,6 +28,8 @@ public class AbpAdminIdentityWebModule : AbpModule
                 "M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6zM9 12l2 2 4-4", "permissions groups"));
             o.Nav.Add(new AbpAdminWebNavItem("OrganizationUnits", "AbpAdmin::Nav:OrganizationUnits", "Identity", "AbpAdmin.OrganizationUnits",
                 "M9 3h6v4H9zM3 17h6v4H3zM15 17h6v4h-6zM12 7v5M6 17v-3h12v3", "departments teams tree ou"));
+            o.Nav.Add(new AbpAdminWebNavItem("ClaimTypes", "AbpAdmin::Nav:ClaimTypes", "Identity", "AbpAdmin.ClaimTypes",
+                "M20 12 12 20 4 12V4h8zM8.5 8.5v.01", "claims attributes user role"));
 
             o.Actions.Add(new AbpAdminWebQuickAction("new-user", "AbpAdmin::Palette:NewUser", "AbpAdmin::Palette:Action", "AbpIdentity.Users.Create", "Users?new=1", "create add account"));
             o.Actions.Add(new AbpAdminWebQuickAction("new-role", "AbpAdmin::Palette:NewRole", "AbpAdmin::Palette:Action", "AbpIdentity.Roles.Create", "Roles?new=1", "create add"));

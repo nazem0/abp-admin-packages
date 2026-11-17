@@ -18,8 +18,14 @@
   render(root, html`
     <header class="top">
       <div><h1>${L('AbpAdmin::Users:Title')}</h1><p class="muted">${L('AbpAdmin::Users:Subtitle')}</p></div>
-      ${can('AbpIdentity.Users.Create') ? html`<button class="btn primary" type="button" data-act="new">${icon(IC.plus)} ${L('AbpAdmin::Users:NewUser')}</button>` : ''}
+      <span class="tools">
+        <button class="btn" type="button" data-act="export" title="${L('AbpAdmin::Users:ExportHint')}">${icon('M12 4v11M7 10l5 5 5-5M5 20h14')} ${L('AbpAdmin::Users:Export')}</button>
+        ${can('AbpIdentity.Users.Create') ? html`<label class="btn" title="${L('AbpAdmin::Users:ImportHint')}">${icon('M12 15V4M7 9l5-5 5 5M5 20h14')} ${L('AbpAdmin::Users:Import')}
+          <input type="file" accept=".csv,text/csv" hidden data-act="import" /></label>` : ''}
+        ${can('AbpIdentity.Users.Create') ? html`<button class="btn primary" type="button" data-act="new">${icon(IC.plus)} ${L('AbpAdmin::Users:NewUser')}</button>` : ''}
+      </span>
     </header>
+    <section class="card import" id="u-import" role="status" hidden></section>
     <section class="card stream">
       <div class="filters">
         <label class="search">
@@ -62,6 +68,7 @@
   function row(u) {
     const name = u.userName ?? '';
     const history = can('AbpAdmin.SecurityLogs') && !u.tenantId && pageUrl('SecurityLogs');
+    const changes = can('AbpAdmin.AuditLogs') && (!multi || !u.tenantId) && pageUrl('EntityChanges');
     const canUpdate = can('AbpIdentity.Users.Update');
     return html`<tr>
       <td><span class="who-cell"><span class="avatar" aria-hidden="true">${initials(u)}</span><span><b>${fullName(u) || u.userName}</b><small>@${u.userName}</small></span></span></td>
@@ -82,6 +89,8 @@
             ? html`<button class="icon-btn" type="button" data-act="unlock" data-id="${u.id}" title="${L('AbpAdmin::Users:Unlock')}" aria-label="${L('AbpAdmin::Users:UnlockAria', name)}">${icon(IC.unlock)}</button>`
             : u.id !== currentUser.id ? html`<button class="icon-btn" type="button" data-act="lock" data-id="${u.id}" title="${L('AbpAdmin::Users:LockFor24h')}" aria-label="${L('AbpAdmin::Users:LockAria', name)}">${icon(IC.lock)}</button>` : '') : ''}
           ${history ? html`<a class="icon-btn" href="${history + AbpAdmin.query({ user: u.userName })}" title="${L('AbpAdmin::Users:SignInHistory')}" aria-label="${L('AbpAdmin::Users:SignInHistoryOf', name)}">${icon(IC.history)}</a>` : ''}
+          <button class="icon-btn" type="button" data-act="claims" data-id="${u.id}" title="${L('AbpAdmin::Claims:Title')}" aria-label="${L('AbpAdmin::Claims:Of', name)}">${icon('M20 12 12 20 4 12V4h8zM8.5 8.5v.01')}</button>
+          ${changes ? html`<a class="icon-btn" href="${changes + AbpAdmin.query({ type: 'Volo.Abp.Identity.IdentityUser', id: u.id })}" title="${L('AbpAdmin::Common:ChangeHistory')}" aria-label="${L('AbpAdmin::Common:ChangeHistoryOf', name)}">${icon('M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5')}</a>` : ''}
           ${can('AbpIdentity.Users.ManagePermissions') ? html`<button class="icon-btn" type="button" data-act="perms" data-id="${u.id}" title="${L('AbpAdmin::Users:Permissions')}" aria-label="${L('AbpAdmin::Users:PermissionsOf', name)}">${icon(IC.shield)}</button>` : ''}
           ${can('AbpIdentity.Users.Delete') ? html`<button class="icon-btn" type="button" data-act="confirm-delete" data-id="${u.id}" title="${L('AbpAdmin::Common:Delete')}" aria-label="${L('AbpAdmin::Users:DeleteAria', name)}">${icon(IC.del)}</button>` : ''}`}
       </td></tr>`;
@@ -126,6 +135,34 @@
       if (act === 'lock') await api.post(`/api/abp-admin/user-lockout/${u.id}/lock`, { until: new Date(Date.now() + 24 * 3600_000).toISOString() }, { tenant: tenantOf(u) });
       else await api.post(`/api/abp-admin/user-lockout/${u.id}/unlock`, undefined, { tenant: tenantOf(u) });
       toast.ok(L(act === 'lock' ? 'AbpAdmin::Users:LockedFor24h' : 'AbpAdmin::Users:Unlocked', u.userName ?? ''));
+      load();
+    } catch (e) { toast.error(errorText(e)); }
+  }
+
+  // ---------- CSV import / export (users of the tenant picked in the filter, else the host) ----------
+  const filterTenant = () => (multi && state.tenant && state.tenant !== 'host' ? state.tenant : undefined);
+  async function exportCsv() {
+    try {
+      const blob = await api.request('GET', '/api/abp-admin/user-transfer/export', { tenant: filterTenant(), blob: true });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'users.csv' });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) { toast.error(errorText(e)); }
+  }
+  async function importCsv(input) {
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file, file.name);
+    const box = root.querySelector('#u-import');
+    try {
+      const r = await api.post('/api/abp-admin/user-transfer/import', form, { tenant: filterTenant() });
+      render(box, html`<b>${L('AbpAdmin::Users:ImportResult', String(r.created ?? 0), String(r.skipped?.length ?? 0), String(r.errors?.length ?? 0))}</b>
+        ${r.skipped?.length ? html`<small class="muted">${L('AbpAdmin::Users:ImportSkipped', r.skipped.join(', '))}</small>` : ''}
+        ${(r.errors ?? []).map(x => html`<small class="err">${L('AbpAdmin::Users:ImportLine', String(x.line ?? 0))} ${x.message}</small>`)}
+        <button class="icon-btn close" type="button" data-act="import-close" aria-label="${L('AbpAdmin::Common:Close')}">${icon(IC.close)}</button>`);
+      box.hidden = false;
       load();
     } catch (e) { toast.error(errorText(e)); }
   }
@@ -254,6 +291,13 @@
   on(root, 'click', '[data-act=confirm-delete]', (e, b) => { state.confirming = b.dataset.id; drawList(); });
   on(root, 'click', '[data-act=cancel-delete]', () => { state.confirming = null; drawList(); });
   on(root, 'click', '[data-act=remove]', (e, b) => { const u = byId(b.dataset.id); if (u) remove(u); });
+  on(root, 'click', '[data-act=export]', exportCsv);
+  on(root, 'change', '[data-act=import]', (e, el) => importCsv(el));
+  on(root, 'click', '[data-act=import-close]', () => { root.querySelector('#u-import').hidden = true; });
+  on(root, 'click', '[data-act=claims]', (e, b) => {
+    const u = byId(b.dataset.id);
+    if (u) AbpAdmin.claimsEditor.open({ kind: 'user', id: u.id, title: u.userName, editable: can('AbpIdentity.Users.Update'), tenant: tenantOf(u) });
+  });
   on(root, 'click', '[data-act=perms]', (e, b) => {
     const u = byId(b.dataset.id);
     if (u) AbpAdmin.permissionsEditor.open({ providerName: 'U', providerKey: u.id, title: u.userName, tenant: tenantOf(u) });

@@ -1,6 +1,6 @@
 // Roles page (port of roles.page.ts including its role form).
 (function () {
-  const { html, render, icon, on, api, L, can, fmt, toast, errorText, params } = AbpAdmin;
+  const { html, render, icon, on, api, L, can, fmt, toast, errorText, params, pageUrl, sheet: makeSheet } = AbpAdmin;
   const root = document.getElementById('abp-roles');
   const IC = {
     plus: 'M12 5v14M5 12h14', search: 'M20 20l-3.5-3.5', edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', shield: 'M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6zM9 12l2 2 4-4',
@@ -25,13 +25,15 @@
       </div>
       <div id="r-list"></div>
     </section>
-    <dialog id="r-form" class="narrow" aria-labelledby="rf-title"></dialog>`);
+    <dialog id="r-form" class="narrow" aria-labelledby="rf-title"></dialog>
+    <dialog id="r-move" class="narrow" aria-labelledby="rm-title"></dialog>`);
   const listEl = root.querySelector('#r-list');
   const failEl = root.querySelector('#r-fail');
   const formEl = root.querySelector('#r-form');
 
   function drawFail() { failEl.hidden = !state.failure; failEl.textContent = state.failure ?? ''; }
 
+  const changes = can('AbpAdmin.AuditLogs') && pageUrl('EntityChanges');
   function row(r) {
     const name = r.name ?? '';
     return html`<tr>
@@ -48,6 +50,9 @@
         : html`
           ${can('AbpIdentity.Roles.Update') ? html`<button class="icon-btn" type="button" data-act="edit" data-id="${r.id}" title="${L('AbpAdmin::Common:Edit')}" aria-label="${L('AbpAdmin::Roles:EditAria', name)}">${icon(IC.edit)}</button>` : ''}
           ${can('AbpIdentity.Roles.ManagePermissions') ? html`<button class="icon-btn" type="button" data-act="perms" data-id="${r.id}" title="${L('AbpAdmin::Roles:Permissions')}" aria-label="${L('AbpAdmin::Roles:PermissionsOf', name)}">${icon(IC.shield)}</button>` : ''}
+          <button class="icon-btn" type="button" data-act="claims" data-id="${r.id}" title="${L('AbpAdmin::Claims:Title')}" aria-label="${L('AbpAdmin::Claims:Of', name)}">${icon('M20 12 12 20 4 12V4h8zM8.5 8.5v.01')}</button>
+          ${can('AbpIdentity.Roles.Update') && can('AbpIdentity.Users.Update') ? html`<button class="icon-btn" type="button" data-act="move" data-id="${r.id}" title="${L('AbpAdmin::Roles:MoveUsers')}" aria-label="${L('AbpAdmin::Roles:MoveUsersOf', name)}">${icon('M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3')}</button>` : ''}
+          ${changes ? html`<a class="icon-btn" href="${changes + AbpAdmin.query({ type: 'Volo.Abp.Identity.IdentityRole', id: r.id })}" title="${L('AbpAdmin::Common:ChangeHistory')}" aria-label="${L('AbpAdmin::Common:ChangeHistoryOf', name)}">${icon('M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5')}</a>` : ''}
           ${can('AbpIdentity.Roles.Delete') && !r.isStatic ? html`<button class="icon-btn" type="button" data-act="confirm-delete" data-id="${r.id}" title="${L('AbpAdmin::Common:Delete')}" aria-label="${L('AbpAdmin::Roles:DeleteAria', name)}">${icon(IC.del)}</button>` : ''}`}
       </td></tr>`;
   }
@@ -148,6 +153,47 @@
   on(root, 'click', '[data-act=perms]', (e, b) => {
     const r = byId(b.dataset.id);
     if (r) AbpAdmin.permissionsEditor.open({ providerName: 'R', providerKey: r.name, title: L('AbpAdmin::Roles:RoleTitle', r.name ?? '') });
+  });
+
+  // ---------- move all users ----------
+  const moveEl = root.querySelector('#r-move');
+  const moveSheet = makeSheet(moveEl);
+  let moving = null;
+  function openMove(r) {
+    moving = r;
+    render(moveEl, html`<form>
+      <header class="sh-head">
+        <h2 id="rm-title">${L('AbpAdmin::Roles:MoveUsers')} <small>${r.name}</small></h2>
+        <button type="button" class="icon-btn" data-act="move-close" aria-label="${L('AbpAdmin::Common:Close')}">${icon(IC.close)}</button>
+      </header>
+      <div class="sh-body form">
+        <p class="muted">${L('AbpAdmin::Roles:MoveUsersIntro', r.name ?? '')}</p>
+        <label class="field"><span>${L('AbpAdmin::Roles:MoveTo')}</span>
+          <select class="input" name="target"><option value="">${L('AbpAdmin::Roles:MoveToNone')}</option>
+            ${state.rows.filter(x => x.id !== r.id).map(x => html`<option value="${x.id}">${x.name}</option>`)}</select></label>
+      </div>
+      <footer class="sh-foot"><span class="spacer"></span>
+        <button type="button" class="btn" data-act="move-close">${L('AbpAdmin::Common:Cancel')}</button>
+        <button class="btn primary" type="submit">${L('AbpAdmin::Roles:MoveUsersGo')}</button></footer>
+    </form>`);
+    moveSheet.open();
+  }
+  moveEl.addEventListener('submit', async e => {
+    e.preventDefault();
+    const target = String(new FormData(e.target).get('target') ?? '') || null;
+    const targetName = state.rows.find(x => x.id === target)?.name;
+    e.target.querySelector('[type=submit]').disabled = true;
+    try {
+      const res = await api.post(`/api/abp-admin/role-users/${moving.id}/move-all-users`, { targetRoleId: target });
+      toast.ok(targetName ? L('AbpAdmin::Roles:MovedTo', String(res.moved ?? 0), moving.name ?? '', targetName) : L('AbpAdmin::Roles:MovedOut', String(res.moved ?? 0), moving.name ?? ''));
+      moveSheet.close();
+    } catch (ex) { e.target.querySelector('[type=submit]').disabled = false; toast.error(errorText(ex)); }
+  });
+  on(moveEl, 'click', '[data-act=move-close]', () => moveSheet.close());
+  on(root, 'click', '[data-act=move]', (e, b) => { const r = byId(b.dataset.id); if (r) openMove(r); });
+  on(root, 'click', '[data-act=claims]', (e, b) => {
+    const r = byId(b.dataset.id);
+    if (r) AbpAdmin.claimsEditor.open({ kind: 'role', id: r.id, title: r.name, editable: can('AbpIdentity.Roles.Update') });
   });
 
   drawFail(); drawList(); load();

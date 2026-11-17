@@ -58,7 +58,7 @@ jobs:
       - run: pnpm build:lib
       - name: Publish (core, features, then the all-in-one; versions already on npm are skipped)
         run: |
-          for p in core audit-logging identity openiddict background-jobs tenant-management abp-admin; do
+          for p in core audit-logging identity openiddict background-jobs tenant-management entity-explorer abp-admin; do
             cd dist/$p
             id="$(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
             if npm view "$id" version >/dev/null 2>&1; then echo "skip $id"; else npm publish --access public; fi

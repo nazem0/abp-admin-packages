@@ -1,13 +1,12 @@
 import { ConfigStateService, LocalizationPipe, LocalizationService } from '@abp/ng.core';
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { FeatureDto, FeaturesService } from '../proxy/volo/abp/feature-management';
 import { apiError } from '../shared/api-error';
 
-/** Host-side features: provider "T" with no tenant key. */
+/** Provider "T": no key for the host's own features, a tenant id for that tenant's. */
 const PROVIDER = 'T';
-const HOST = '';
 
 /** The proxy types valueType loosely; this is what ABP actually sends. */
 interface ValueType {
@@ -24,13 +23,15 @@ const kind = (f: FeatureDto) => {
   selector: 'abp-features-page',
   imports: [LocalizationPipe],
   template: `
-    <div class="page narrow">
+    <div class="page narrow" [class.embedded]="!!providerKey()">
+      @if (!providerKey()) {
       <header class="top">
         <div>
           <h1>{{ 'AbpAdmin::Features:Title' | abpLocalization }}</h1>
           <p class="muted">{{ 'AbpAdmin::Features:Subtitle' | abpLocalization }}</p>
         </div>
       </header>
+      }
 
       @if (data.isLoading()) {
         <div class="skeleton rows card">@for (i of [1, 2, 3]; track i) { <i></i> }</div>
@@ -90,6 +91,7 @@ const kind = (f: FeatureDto) => {
   `,
   styles: `
     .narrow { max-width: 900px; }
+    .embedded { padding: 0; max-width: none; }
     .center { text-align: center; max-width: 420px; }
     .group { padding: 6px 0; }
     h2 { font-size: 15px; font-weight: 650; padding: 14px 20px 8px; }
@@ -109,8 +111,10 @@ export class FeaturesPage {
   private readonly config = inject(ConfigStateService);
   private readonly l = inject(LocalizationService);
   protected readonly kind = kind;
+  /** A tenant's id: edit that tenant's features (Tenants page); empty: the host's. */
+  readonly providerKey = input('');
 
-  protected readonly data = rxResource({ stream: () => this.service.get(PROVIDER, HOST) });
+  protected readonly data = rxResource({ params: () => this.providerKey(), stream: ({ params: key }) => this.service.get(PROVIDER, key) });
   protected readonly groups = computed(() => (this.data.value()?.groups ?? []).filter(g => g.features?.length));
   private readonly all = computed(() => this.groups().flatMap(g => g.features ?? []));
   private readonly original = computed(() => new Map(this.all().map(f => [f.name!, f.value ?? ''])));
@@ -146,17 +150,18 @@ export class FeaturesPage {
   }
 
   protected save() {
-    this.run(this.service.update(PROVIDER, HOST, { features: this.changes() }), this.l.instant('AbpAdmin::Features:Saved'));
+    this.run(this.service.update(PROVIDER, this.providerKey(), { features: this.changes() }), this.l.instant('AbpAdmin::Features:Saved'));
   }
 
   protected reset() {
-    this.run(this.service.delete(PROVIDER, HOST), this.l.instant('AbpAdmin::Features:ResetDone'));
+    this.run(this.service.delete(PROVIDER, this.providerKey()), this.l.instant('AbpAdmin::Features:ResetDone'));
   }
 
   private run(req: ReturnType<FeaturesService['delete']>, done: string) {
     this.saving.set(true);
     this.status.set(null);
-    req.pipe(switchMap(() => this.config.refreshAppState())).subscribe({
+    // The host's own features change what this app shows; a tenant's don't.
+    req.pipe(switchMap(() => this.providerKey() ? [null] : this.config.refreshAppState())).subscribe({
       next: () => { this.saving.set(false); this.data.reload(); this.status.set({ text: done }); },
       error: e => { this.saving.set(false); this.status.set({ text: apiError(e), error: true }); },
     });

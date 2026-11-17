@@ -13,6 +13,7 @@ using AbpAdmin.HealthChecks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Studio;
 using Volo.Abp.Uow;
 using Volo.Abp.Account;
@@ -62,6 +63,7 @@ using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using AbpAdmin.Services.Tenants;
+using AbpAdmin.Services.Entities;
 using Volo.Abp.Studio.Client.AspNetCore;
 
 using Microsoft.Extensions.Hosting;
@@ -187,6 +189,22 @@ public class AbpAdminModule : AbpModule
             // Record property-level changes for every entity, so the audit log UI can show diffs.
             options.EntityHistorySelectors.AddAllEntities();
         });
+
+        // Entity Explorer: only these are exposed (each gets AbpAdmin.Entities.<Name>[.Create/.Update/.Delete]).
+        Configure<EntityExplorerOptions>(options => options
+            .Add<IdentityUser>()
+            .Add<IdentityRole>()
+            .Add<IdentityClaimType>()
+            .Add<OrganizationUnit>()
+            .Add<Volo.Abp.TenantManagement.Tenant>()
+            .Add<Volo.Abp.OpenIddict.Applications.OpenIddictApplication>()
+            .Add<Volo.Abp.OpenIddict.Scopes.OpenIddictScope>()
+            .Add<Volo.Abp.BackgroundJobs.BackgroundJobRecord>()
+            .Add<Volo.Abp.SettingManagement.Setting>());
+
+        // A tenant's features (provider "T" with its id) need a policy; the free modules don't define one.
+        PostConfigure<FeatureManagementOptions>(options => // Post: ABP's TenantManagement module sets its own policy.
+            options.ProviderPolicies[Volo.Abp.Features.TenantFeatureValueProvider.ProviderName] = AbpAdminPermissions.Tenants.ManageFeatures);
 
         // The free OpenIddict module maps client ("C") permissions to a Pro-only policy; use ours instead.
         Configure<PermissionManagementOptions>(options =>
@@ -416,6 +434,7 @@ public class AbpAdminModule : AbpModule
     {
         using var scope = context.ServiceProvider.CreateScope();
         await scope.ServiceProvider.GetRequiredService<MultiTenancySwitch>().LoadAsync(scope.ServiceProvider);
+        await context.AddBackgroundWorkerAsync<AbpAdmin.Services.AuditLogs.AuditLogCleanupWorker>();
     }
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)

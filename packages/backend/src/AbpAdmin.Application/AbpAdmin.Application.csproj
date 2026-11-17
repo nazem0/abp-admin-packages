@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>AbpAdmin.Application</PackageId>
-    <Description>All of ABP Admin in one reference: core, audit logging, identity, OpenIddict, background jobs and tenants. Reference the AbpAdmin.* feature packages instead to pick only some.</Description>
+    <Description>All of ABP Admin in one reference: core, audit logging, identity, OpenIddict, background jobs, tenants and the entity explorer. Reference the AbpAdmin.* feature packages instead to pick only some.</Description>
     <RootNamespace>AbpAdmin</RootNamespace>
   </PropertyGroup>
 
@@ -13,6 +13,7 @@
     <ProjectReference Include="..\AbpAdmin.OpenIddict\AbpAdmin.OpenIddict.csproj" />
     <ProjectReference Include="..\AbpAdmin.BackgroundJobs\AbpAdmin.BackgroundJobs.csproj" />
     <ProjectReference Include="..\AbpAdmin.TenantManagement\AbpAdmin.TenantManagement.csproj" />
+    <ProjectReference Include="..\AbpAdmin.EntityExplorer\AbpAdmin.EntityExplorer.csproj" />
   </ItemGroup>
 
 </Project>

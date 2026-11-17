@@ -11,7 +11,7 @@ using static AbpAdmin.Permissions.HostSupportStateChecker;
 
 namespace AbpAdmin;
 
-/// <summary>Security logs, organization units, user lock/unlock and identity settings.</summary>
+/// <summary>Security logs, organization units, claim types and claims, user lock/unlock, import/export, and identity settings.</summary>
 [DependsOn(
     typeof(AbpAdminCoreModule),
     typeof(AbpIdentityDomainModule),
@@ -39,6 +39,11 @@ public class IdentityPermissionDefinitionProvider : PermissionDefinitionProvider
         ous.AddChild(AbpAdminPermissions.OrganizationUnits.ManageMembers, L("Permission:OrganizationUnits.ManageMembers"));
         ous.AddChild(AbpAdminPermissions.OrganizationUnits.ManageRoles, L("Permission:OrganizationUnits.ManageRoles"));
         ous.RequireHost(Has<IOrganizationUnitRepository>());
+
+        var claimTypes = group.AddPermission(AbpAdminPermissions.ClaimTypes.Default, L("Permission:ClaimTypes"), Volo.Abp.MultiTenancy.MultiTenancySides.Host);
+        claimTypes.AddChild(AbpAdminPermissions.ClaimTypes.Create, L("Permission:Create"), Volo.Abp.MultiTenancy.MultiTenancySides.Host);
+        claimTypes.AddChild(AbpAdminPermissions.ClaimTypes.Update, L("Permission:Edit"), Volo.Abp.MultiTenancy.MultiTenancySides.Host);
+        claimTypes.AddChild(AbpAdminPermissions.ClaimTypes.Delete, L("Permission:Delete"), Volo.Abp.MultiTenancy.MultiTenancySides.Host);
     }
 }
 

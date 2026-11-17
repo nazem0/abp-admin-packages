@@ -11,19 +11,26 @@ using static AbpAdmin.Permissions.HostSupportStateChecker;
 namespace AbpAdmin;
 
 /// <summary>Audit logs, request traces, entity changes and entity history.</summary>
-[DependsOn(typeof(AbpAdminCoreModule), typeof(AbpAuditLoggingDomainModule))]
+[DependsOn(typeof(AbpAdminCoreModule), typeof(AbpAuditLoggingDomainModule), typeof(Volo.Abp.SettingManagement.AbpSettingManagementDomainModule))]
 public class AbpAdminAuditLoggingModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context) => context.AddAbpAdminFeature(typeof(AbpAdminAuditLoggingModule).Assembly);
 
     public override void ConfigureServices(ServiceConfigurationContext context) =>
         context.Services.AddTransient<IAbpAdminDashboardContributor, AuditLoggingDashboardContributor>();
+
+    /// <summary>Applies the audit log retention (Settings → Audit logs) every hour.</summary>
+    public override Task OnPostApplicationInitializationAsync(Volo.Abp.ApplicationInitializationContext context) =>
+        Volo.Abp.BackgroundWorkers.BackgroundWorkersApplicationInitializationContextExtensions.AddBackgroundWorkerAsync<Services.AuditLogs.AuditLogCleanupWorker>(context);
 }
 
 public class AuditLoggingPermissionDefinitionProvider : PermissionDefinitionProvider
 {
-    public override void Define(IPermissionDefinitionContext context) =>
-        context.GetAbpAdminGroup().AddPermission(AbpAdminPermissions.AuditLogs.Default, L("Permission:AuditLogs")).RequireHost(Auditing<IAuditLogRepository>());
+    public override void Define(IPermissionDefinitionContext context)
+    {
+        var auditLogs = context.GetAbpAdminGroup().AddPermission(AbpAdminPermissions.AuditLogs.Default, L("Permission:AuditLogs")).RequireHost(Auditing<IAuditLogRepository>());
+        auditLogs.AddChild(AbpAdminPermissions.AuditLogs.ManageRetention, L("Permission:AuditLogs.ManageRetention"), Volo.Abp.MultiTenancy.MultiTenancySides.Host);
+    }
 }
 
 public class AuditLoggingDashboardContributor : AbpAdminDashboardContributor

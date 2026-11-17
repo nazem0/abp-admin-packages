@@ -1,5 +1,6 @@
 /*
- * @nazem0/abp-admin-ng-identity: users (across tenants for the host), roles, organization units, security logs and the
+ * @nazem0/abp-admin-ng-identity: users (across tenants for the host; claims, CSV import/export), roles (claims, move all users), organization units,
+ * claim types, security logs and the
  * Identity & sign-in settings tab. Backend: AbpAdmin.Identity. Usage: abpAdminRoutes(abpAdminIdentity, ...).
  */
 import { permissionGuard } from '@abp/ng.core';
@@ -19,11 +20,14 @@ export const abpAdminIdentity: AbpAdminFeature = {
       icon: 'M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6zM9 12l2 2 4-4' },
     { path: 'organization-units', label: 'Organization units', labelKey: 'AbpAdmin::Nav:OrganizationUnits', section: 'Identity', policy: 'AbpAdmin.OrganizationUnits', keywords: 'departments teams tree ou',
       icon: 'M9 3h6v4H9zM3 17h6v4H3zM15 17h6v4h-6zM12 7v5M6 17v-3h12v3' },
+    { path: 'claim-types', label: 'Claim types', labelKey: 'AbpAdmin::Nav:ClaimTypes', section: 'Identity', policy: 'AbpAdmin.ClaimTypes', keywords: 'claims attributes user role',
+      icon: 'M20 12 12 20 4 12V4h8zM8.5 8.5v.01' },
   ],
   routes: [
     { path: 'security-logs', loadComponent: () => import('./lib/security-logs/security-logs.page').then(c => c.SecurityLogsPage), ...guarded('AbpAdmin.SecurityLogs') },
     { path: 'users', loadComponent: () => import('./lib/identity/users.page').then(c => c.UsersPage), ...guarded('AbpIdentity.Users') },
     { path: 'roles', loadComponent: () => import('./lib/identity/roles.page').then(c => c.RolesPage), ...guarded('AbpIdentity.Roles') },
+    { path: 'claim-types', loadComponent: () => import('./lib/identity/claim-types.page').then(c => c.ClaimTypesPage), ...guarded('AbpAdmin.ClaimTypes') },
     { path: 'organization-units', loadComponent: () => import('./lib/identity/organization-units.page').then(c => c.OrganizationUnitsPage), ...guarded('AbpAdmin.OrganizationUnits') },
   ],
   actions: [

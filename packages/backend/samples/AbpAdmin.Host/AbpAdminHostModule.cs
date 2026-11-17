@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using AbpAdmin.Host.Data;
+using AbpAdmin.Host.Entities;
+using AbpAdmin.Services.Entities;
 using AbpAdmin.Localization;
 using AbpAdmin.Host.HealthChecks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -186,6 +188,19 @@ public class AbpAdminHostModule : AbpModule
 
         // Store UTC so the Abp.Timing.TimeZone setting can drive display and day boundaries.
         Configure<AbpClockOptions>(options => options.Kind = DateTimeKind.Utc);
+
+        // Entity explorer: only these are exposed. Book/Author are per tenant; the ABP entities below show the
+        // built-in ones work too (entities without TenantId, e.g. Tenant or OpenIddictApplication, are host only).
+        Configure<EntityExplorerOptions>(options => options
+            .Add<Author>()
+            .Add<Book>()
+            .Add<Volo.Abp.Identity.IdentityUser>()
+            .Add<Volo.Abp.Identity.IdentityRole>()
+            .Add<Volo.Abp.Identity.OrganizationUnit>()
+            .Add<Volo.Abp.TenantManagement.Tenant>()
+            .Add<Volo.Abp.OpenIddict.Applications.OpenIddictApplication>()
+            .Add<Volo.Abp.OpenIddict.Scopes.OpenIddictScope>()
+            .Add<Volo.Abp.SettingManagement.Setting>());
 
         Configure<AbpAuditingOptions>(options =>
         {

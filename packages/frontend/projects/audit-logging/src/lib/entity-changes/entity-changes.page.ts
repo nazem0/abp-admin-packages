@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, input, untracked } from '@angular/core';
 import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { forkJoin, map } from 'rxjs';
@@ -41,6 +41,10 @@ export class EntityChangesPage {
   protected readonly entityId = signal('');
   protected readonly page = signal(0);
   private readonly tick = signal(0);
+
+  /** ?type=&id=: open that entity's history (links from the Users, Roles and Tenants pages). */
+  readonly type = input<string>();
+  readonly id = input<string>();
 
   // Sheets
   protected readonly entity = signal<EntityRef | null>(null);
@@ -105,6 +109,10 @@ export class EntityChangesPage {
   }
 
   constructor() {
+    effect(() => {
+      const type = this.type(), id = this.id();
+      if (type && id) untracked(() => this.entity.set({ type, id }));
+    });
     effect(() => {
       const hide = this.hideSystem();
       try { localStorage.setItem(HIDE_SYSTEM_KEY, String(hide)); } catch { /* storage blocked */ }

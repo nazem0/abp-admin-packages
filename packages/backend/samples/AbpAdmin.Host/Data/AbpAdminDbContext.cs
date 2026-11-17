@@ -10,6 +10,7 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using AbpAdmin.Host.Entities;
 
 namespace AbpAdmin.Host.Data;
 
@@ -17,6 +18,9 @@ public class AbpAdminDbContext : AbpDbContext<AbpAdminDbContext>
 {
     public const string DbTablePrefix = "App";
     public const string DbSchema = null;
+
+    public DbSet<Author> Authors { get; set; }
+    public DbSet<Book> Books { get; set; }
 
     public AbpAdminDbContext(DbContextOptions<AbpAdminDbContext> options)
         : base(options)
@@ -40,6 +44,23 @@ public class AbpAdminDbContext : AbpDbContext<AbpAdminDbContext>
         builder.ConfigureTenantManagement();
 
         /* Configure your own entities here */
+
+        builder.Entity<Author>(b =>
+        {
+            b.ToTable(DbTablePrefix + "Authors", DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(Author.MaxNameLength);
+            b.Property(x => x.Country).HasMaxLength(64);
+        });
+
+        builder.Entity<Book>(b =>
+        {
+            b.ToTable(DbTablePrefix + "Books", DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(Book.MaxTitleLength);
+            b.Property(x => x.Price).HasPrecision(18, 2);
+            b.HasOne<Author>().WithMany().HasForeignKey(x => x.AuthorId).IsRequired();
+        });
     }
 }
 

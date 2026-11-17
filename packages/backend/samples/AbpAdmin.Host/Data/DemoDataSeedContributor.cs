@@ -1,7 +1,9 @@
 using AbpAdmin.Permissions;
 using AbpAdmin.Services.Tenants;
 using Microsoft.AspNetCore.Identity;
+using AbpAdmin.Host.Entities;
 using Volo.Abp.Data;
+using Volo.Abp.Domain.Repositories;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
 using Volo.Abp.Identity;
@@ -29,7 +31,9 @@ public class DemoDataSeedContributor(
     IPermissionManager permissions,
     ISettingManager settings,
     MultiTenancySwitch multiTenancy,
-    IGuidGenerator guids)
+    IGuidGenerator guids,
+    IRepository<Author, Guid> authors,
+    IRepository<Book, Guid> books)
     : IDataSeedContributor, ITransientDependency
 {
     private const string Password = AbpAdminConsts.AdminPasswordDefaultValue;
@@ -47,6 +51,26 @@ public class DemoDataSeedContributor(
         ("acme", [("lina", "Lina", "Nasser", "support", true), ("khaled", "Khaled", "Fares", "auditor", true), ("noor", "Noor", "Aziz", "", false)]),
         ("globex", [("hana", "Hana", "Yousef", "support", true), ("ziad", "Ziad", "Kamal", "", true)]),
     ];
+
+    // Tenant → authors (name, country, birth year) with their books (title, genre, price, year).
+    private static readonly Dictionary<string, (string Name, string Country, int Born, (string Title, BookGenre Genre, decimal Price, int Year)[] Books)[]> Library = new()
+    {
+        [""] =
+        [
+            ("Naguib Mahfouz", "Egypt", 1911, [("Palace Walk", BookGenre.Fiction, 14.5m, 1956), ("Children of the Alley", BookGenre.Fiction, 12m, 1959)]),
+            ("Mahmoud Darwish", "Palestine", 1941, [("Unfortunately, It Was Paradise", BookGenre.Poetry, 11m, 2003)]),
+            ("Ibn Khaldun", "Tunisia", 1332, [("The Muqaddimah", BookGenre.History, 22m, 1377)]),
+        ],
+        ["acme"] =
+        [
+            ("Carl Sagan", "United States", 1934, [("Cosmos", BookGenre.Science, 18m, 1980), ("Pale Blue Dot", BookGenre.Science, 16.75m, 1994)]),
+            ("Mary Shelley", "United Kingdom", 1797, [("Frankenstein", BookGenre.Fiction, 9.99m, 1818)]),
+        ],
+        ["globex"] =
+        [
+            ("Edward Said", "Palestine", 1935, [("Orientalism", BookGenre.NonFiction, 18m, 1978)]),
+        ],
+    };
 
     [UnitOfWork]
     public virtual async Task SeedAsync(DataSeedContext context)
@@ -94,6 +118,18 @@ public class DemoDataSeedContributor(
                     user.SetIsActive(active);
                     Check(await users.CreateAsync(user, Password));
                     if (role != "") Check(await users.AddToRoleAsync(user, role));
+                }
+
+                if (!await authors.AnyAsync())
+                {
+                    foreach (var (name, country, born, written) in Library[tenantName])
+                    {
+                        var author = await authors.InsertAsync(new Author(guids.Create(), name, country, new DateTime(born, 1, 1, 0, 0, 0, DateTimeKind.Utc), tenantId));
+                        foreach (var (title, genre, price, year) in written)
+                        {
+                            await books.InsertAsync(new Book(guids.Create(), author.Id, title, genre, price, new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Utc), year > 1900, tenantId));
+                        }
+                    }
                 }
             }
         }

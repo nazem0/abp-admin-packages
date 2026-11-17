@@ -35,6 +35,8 @@ export const NAV: NavItem[] = [
 
   { path: '/organization-units', label: 'Organization units', labelKey: '::Nav:OrganizationUnits', section: 'Identity', policy: 'AbpAdmin.OrganizationUnits', keywords: 'departments teams tree ou',
     icon: 'M9 3h6v4H9zM3 17h6v4H3zM15 17h6v4h-6zM12 7v5M6 17v-3h12v3' },
+  { path: '/claim-types', label: 'Claim types', labelKey: '::Nav:ClaimTypes', section: 'Identity', policy: 'AbpAdmin.ClaimTypes', keywords: 'claims attributes user role',
+    icon: 'M20 12 12 20 4 12V4h8zM8.5 8.5v.01' },
   { path: '/applications', label: 'Applications', labelKey: '::Nav:Applications', section: 'OpenIddict', policy: 'AbpAdmin.Applications', keywords: 'clients oauth oidc secret redirect',
     icon: 'M4 5h16v14H4zM4 9h16M8 13h3' },
   { path: '/scopes', label: 'Scopes', labelKey: '::Nav:Scopes', section: 'OpenIddict', policy: 'AbpAdmin.Scopes', keywords: 'api resources audience',
@@ -42,10 +44,12 @@ export const NAV: NavItem[] = [
 
   { path: '/tenants', label: 'Tenants', labelKey: '::Nav:Tenants', section: 'System', policy: 'AbpAdmin.Tenants', keywords: 'multi-tenancy saas customers enable disable',
     icon: 'M4 21V6l7-3v18M11 21h9V10l-9-3M7.5 9v.01M7.5 13v.01M7.5 17v.01M15 13v.01M15 17v.01M3 21h18' },
+  { path: '/entities', label: 'Entity explorer', labelKey: '::Nav:Entities', section: 'System', policy: 'AbpAdmin.Entities', keywords: 'data rows database table records edit',
+    icon: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3' },
   { path: '/features', label: 'Features', labelKey: '::Nav:Features', section: 'System', policy: 'FeatureManagement.ManageHostFeatures', keywords: 'toggles limits',
     icon: 'M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4' },
   { path: '/settings', label: 'Settings', labelKey: '::Nav:Settings', section: 'System', keywords: 'email smtp time zone password lockout identity',
-    policy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings',
+    policy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention',
     icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z',
     children: [
       { path: '/settings/identity', label: 'Identity & sign-in', labelKey: '::Nav:SettingsIdentity', section: 'Settings', policy: 'AbpAdmin.IdentitySettings',
@@ -54,6 +58,8 @@ export const NAV: NavItem[] = [
         keywords: 'clock utc timezone', icon: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
       { path: '/settings/email', label: 'Email', labelKey: '::Nav:SettingsEmail', section: 'Settings', policy: 'SettingManagement.Emailing',
         keywords: 'smtp mail sender', icon: 'M3 6h18v12H3zM3 7l9 6 9-6' },
+      { path: '/settings/audit-logs', label: 'Audit logs', labelKey: '::Nav:SettingsAuditLogs', section: 'Settings', policy: 'AbpAdmin.AuditLogs.ManageRetention',
+        keywords: 'retention cleanup delete old logs', icon: 'M4 5h16M4 12h10M4 19h7M17 15l2 2 3-4' },
     ] },
 ];
 

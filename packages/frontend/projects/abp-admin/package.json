@@ -1,7 +1,7 @@
 {
   "name": "@nazem0/abp-admin-ng",
   "version": "0.2.1",
-  "description": "Every ABP Admin feature for Angular in one package (core, audit logging, identity, OpenIddict, background jobs, tenants). Mount ABP_ADMIN_ROUTES.",
+  "description": "Every ABP Admin feature for Angular in one package (core, audit logging, identity, OpenIddict, background jobs, tenants, entity explorer). Mount ABP_ADMIN_ROUTES.",
   "license": "MIT",
   "keywords": [
     "abp",
@@ -23,7 +23,8 @@
     "@nazem0/abp-admin-ng-identity": "0.2.1",
     "@nazem0/abp-admin-ng-openiddict": "0.2.1",
     "@nazem0/abp-admin-ng-background-jobs": "0.2.1",
-    "@nazem0/abp-admin-ng-tenant-management": "0.2.1"
+    "@nazem0/abp-admin-ng-tenant-management": "0.2.1",
+    "@nazem0/abp-admin-ng-entity-explorer": "0.2.1"
   },
   "dependencies": {
     "tslib": "^2.3.0"

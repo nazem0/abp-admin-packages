@@ -27,6 +27,12 @@ export const APP_ROUTES: Routes = [
     data: { requiredPolicy: 'AbpAdmin.OrganizationUnits' },
   },
   {
+    path: 'claim-types',
+    loadComponent: () => import('./identity/claim-types.page').then(c => c.ClaimTypesPage),
+    canActivate: [authGuard, permissionGuard],
+    data: { requiredPolicy: 'AbpAdmin.ClaimTypes' },
+  },
+  {
     path: 'applications',
     loadComponent: () => import('./openiddict/applications.page').then(c => c.ApplicationsPage),
     canActivate: [authGuard, permissionGuard],
@@ -54,7 +60,7 @@ export const APP_ROUTES: Routes = [
     // /settings opens the first section the user may see; /settings/:section (identity, time-zone, email) a specific one.
     path: 'settings',
     canActivate: [authGuard, permissionGuard],
-    data: { requiredPolicy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings' },
+    data: { requiredPolicy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention' },
     children: [
       { path: '', loadComponent: () => import('./settings/settings.page').then(c => c.SettingsPage) },
       { path: ':section', loadComponent: () => import('./settings/settings.page').then(c => c.SettingsPage) },
@@ -77,6 +83,12 @@ export const APP_ROUTES: Routes = [
     loadComponent: () => import('./tenants/tenants.page').then(c => c.TenantsPage),
     canActivate: [authGuard, permissionGuard],
     data: { requiredPolicy: 'AbpAdmin.Tenants' },
+  },
+  {
+    path: 'entities',
+    loadComponent: () => import('./entities/entities.page').then(c => c.EntitiesPage),
+    canActivate: [authGuard, permissionGuard],
+    data: { requiredPolicy: 'AbpAdmin.Entities' },
   },
   {
     path: 'features',

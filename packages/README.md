@@ -28,16 +28,41 @@ packages/
 | Feature | Backend (NuGet) | Angular (npm) | Razor Pages (NuGet) | Needs in your host |
 | --- | --- | --- | --- | --- |
 | **Core**: overview, settings (time zone, email), host features, permissions editor, shell | `AbpAdmin.Core` | `@nazem0/abp-admin-ng-core` | `AbpAdmin.Core.Web` | Setting, Feature and Permission Management |
-| **Audit logging**: request log and dashboard, traces, entity changes and history | `AbpAdmin.AuditLogging` | `@nazem0/abp-admin-ng-audit-logging` | `AbpAdmin.AuditLogging.Web` | Audit Logging |
-| **Identity**: users, roles, organization units, security logs, identity settings | `AbpAdmin.Identity` | `@nazem0/abp-admin-ng-identity` | `AbpAdmin.Identity.Web` | Identity, Setting Management |
+| **Audit logging**: request log and dashboard, traces, entity changes and history, retention (hourly cleanup) | `AbpAdmin.AuditLogging` | `@nazem0/abp-admin-ng-audit-logging` | `AbpAdmin.AuditLogging.Web` | Audit Logging |
+| **Identity**: users (claims, CSV import/export), roles (claims, move all users), organization units, claim types, security logs, identity settings | `AbpAdmin.Identity` | `@nazem0/abp-admin-ng-identity` | `AbpAdmin.Identity.Web` | Identity, Setting Management |
 | **OpenIddict**: client applications, client permissions, scopes | `AbpAdmin.OpenIddict` | `@nazem0/abp-admin-ng-openiddict` | `AbpAdmin.OpenIddict.Web` | OpenIddict, Permission Management |
 | **Background jobs**: the persisted job queue | `AbpAdmin.BackgroundJobs` | `@nazem0/abp-admin-ng-background-jobs` | `AbpAdmin.BackgroundJobs.Web` | Background Jobs |
-| **Tenants**: tenants, multi-tenancy switch, tenant databases, users across tenants | `AbpAdmin.TenantManagement` | `@nazem0/abp-admin-ng-tenant-management` | `AbpAdmin.TenantManagement.Web` | Tenant Management, Identity |
+| **Tenants**: tenants, multi-tenancy switch, tenant databases, users across tenants, features per tenant, admin password and invitations | `AbpAdmin.TenantManagement` | `@nazem0/abp-admin-ng-tenant-management` | `AbpAdmin.TenantManagement.Web` | Tenant Management, Identity |
+| **Entity explorer**: browse and edit the entities you expose, as database rows | `AbpAdmin.EntityExplorer` | `@nazem0/abp-admin-ng-entity-explorer` | *(not yet)* | EF Core |
 | **Everything** | `AbpAdmin.HttpApi` (or `AbpAdmin.Application`) | `@nazem0/abp-admin-ng` | `AbpAdmin.Web` | all of the above |
 
 Each feature package depends only on `AbpAdmin.Core` (or its UI counterpart) and the **domain** package of its ABP
 module. Links between features (a security log's "open request trace", the overview's cards) appear only when the
 target feature is installed.
+
+## Entity explorer
+
+Pick an entity, find rows by key or text, and edit them as if in the database, without writing a page per entity.
+Columns and forms come from the entity's EF model at runtime. Nothing is exposed until you list it:
+
+```csharp
+Configure<EntityExplorerOptions>(options => options
+    .Add<Book>()
+    .Add<Author>()
+    .Add<IdentityUser>("Email")); // extra fields to hide; PasswordHash, SecurityStamp and ClientSecret are always hidden
+```
+
+- **Any entity EF can load**: private/protected setters, and no parameterless constructor (it binds a constructor by
+  parameter names, like EF does). Writes go through ABP repositories, so audit fields, soft delete, concurrency
+  checks and entity history (the Entity changes page) all apply.
+- **Permissions** per entity: `AbpAdmin.Entities.<Name>` with `.Create`, `.Update`, `.Delete`.
+- **Tenants**: a tenant sees and writes only its own rows, and its `TenantId` is fixed. Entities without `TenantId`
+  (not `IMultiTenant`, e.g. `Tenant`, `OpenIddictApplication`) are shared by all tenants, so they are host only. The
+  host sees every tenant's rows in the shared database and may set `TenantId`.
+- **Domain rules**: register an `IEntityExplorerHandler<TEntity>` to take over create/update/delete for an entity
+  (e.g. go through `IdentityUserManager`); without one, values are written straight to the entity's properties.
+
+The sample host exposes `Book` and `Author` (each tenant has its own library) plus some ABP entities.
 
 ## Add it to an ABP application
 

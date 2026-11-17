@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { IdentityUserDto, IdentityUserService } from '../proxy/volo/abp/identity';
-import { UserLockoutService } from '../proxy/services/identity';
+import { IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService } from '../proxy/services/identity';
 import { TenantService, TenantUserService } from '../proxy/services/tenants';
 import { PermissionsService } from '../proxy/volo/abp/permission-management';
 import { TenantScope, provideTenantScope } from '../shared/tenant-scope';
@@ -13,14 +13,17 @@ import { relative } from '../audit-logs/format';
 import { PermissionsEditorComponent, PermissionTarget } from '../permissions/permissions-editor.component';
 import { apiError } from '../shared/api-error';
 import { UserEdit, UserFormComponent } from './user-form.component';
+import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
+import { ENTITY_TYPES, HistorySheetComponent } from '../entity-changes/history-sheet.component';
+import { EntityRef } from '../entity-changes/entity-history.component';
 
 const PAGE_SIZE = 20;
 
 @Component({
   selector: 'app-users-page',
-  imports: [UserFormComponent, PermissionsEditorComponent, RouterLink, LocalizationPipe],
+  imports: [UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, RouterLink, LocalizationPipe],
   // Identity, lockout and permission calls made from this page (dialogs included) go to the row's tenant.
-  providers: provideTenantScope(IdentityUserService, UserLockoutService, PermissionsService),
+  providers: provideTenantScope(IdentityUserService, UserLockoutService, PermissionsService, IdentityClaimsService, UserTransferService),
   template: `
     <div class="page">
       <header class="top">
@@ -28,12 +31,31 @@ const PAGE_SIZE = 20;
           <h1>{{ '::Users:Title' | abpLocalization }}</h1>
           <p class="muted">{{ '::Users:Subtitle' | abpLocalization }}</p>
         </div>
+        <span class="tools">
+        <button class="btn" (click)="exportCsv()" [disabled]="transferring()" [title]="'::Users:ExportHint' | abpLocalization">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg> {{ '::Users:Export' | abpLocalization }}</button>
+        @if (can('AbpIdentity.Users.Create')) {
+          <label class="btn" [class.disabled]="transferring()" [title]="'::Users:ImportHint' | abpLocalization">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14" /></svg> {{ '::Users:Import' | abpLocalization }}
+            <input type="file" accept=".csv,text/csv" hidden [disabled]="transferring()" (change)="importCsv($any($event.target))" /></label>
+        }
         @if (can('AbpIdentity.Users.Create')) {
           <button class="btn primary" (click)="act(createIn(), () => editing.set('new'))">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg> {{ '::Users:NewUser' | abpLocalization }}
           </button>
         }
+        </span>
       </header>
+
+      @if (imported(); as r) {
+        <section class="card import" role="status">
+          <b>{{ '::Users:ImportResult' | abpLocalization: (r.created ?? 0).toString() : (r.skipped?.length ?? 0).toString() : (r.errors?.length ?? 0).toString() }}</b>
+          @if (r.skipped?.length) { <small class="muted">{{ '::Users:ImportSkipped' | abpLocalization: r.skipped!.join(', ') }}</small> }
+          @for (e of r.errors; track $index) { <small class="err">{{ '::Users:ImportLine' | abpLocalization: (e.line ?? 0).toString() }} {{ e.message }}</small> }
+          <button class="icon-btn close" (click)="imported.set(null)" [attr.aria-label]="'::Common:Close' | abpLocalization">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+        </section>
+      }
 
       <section class="card stream">
         <div class="filters">
@@ -109,6 +131,14 @@ const PAGE_SIZE = 20;
                            routerLink="/security-logs" [queryParams]="{ user: u.userName }">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2" /></svg></a>
                       }
+                      <button class="icon-btn" [title]="'::Claims:Title' | abpLocalization" [attr.aria-label]="'::Claims:Of' | abpLocalization: u.userName ?? ''"
+                              (click)="act(u.tenantId, () => claims.set({ kind: 'user', id: u.id!, title: u.userName! }))">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpAdmin.AuditLogs') && (!multi() || !u.tenantId)) {
+                        <button class="icon-btn" [title]="'::Common:ChangeHistory' | abpLocalization" [attr.aria-label]="'::Common:ChangeHistoryOf' | abpLocalization: u.userName ?? ''"
+                                (click)="history.set({ type: types.user, id: u.id! })">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></svg></button>
+                      }
                       @if (can('AbpIdentity.Users.ManagePermissions')) {
                         <button class="icon-btn" [title]="'::Users:Permissions' | abpLocalization" [attr.aria-label]="'::Users:PermissionsOf' | abpLocalization: u.userName ?? ''"
                                 (click)="act(u.tenantId, () => perms.set({ providerName: 'U', providerKey: u.id!, title: u.userName! }))">
@@ -143,6 +173,8 @@ const PAGE_SIZE = 20;
 
     <app-user-form [user]="editing()" (closed)="editing.set(null)" (saved)="toaster.ok(l.instant('::Users:Saved')); editing.set(null); list.reload()" />
     <app-permissions-editor [target]="perms()" (closed)="perms.set(null)" />
+    <app-claims-editor [target]="claims()" [editable]="can('AbpIdentity.Users.Update')" (closed)="claims.set(null)" />
+    <app-history-sheet [entity]="history()" (closed)="history.set(null)" />
   `,
   styles: `
     .table.loading { opacity: 0.6; }
@@ -150,6 +182,11 @@ const PAGE_SIZE = 20;
     .filters .alert { flex-basis: 100%; }
     .field.inline { display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap; }
     .field.inline select { width: auto; min-width: 160px; }
+    .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn.disabled { opacity: 0.5; pointer-events: none; }
+    .import { position: relative; display: grid; gap: 4px; padding: 14px 44px 14px 18px; margin-bottom: 16px; }
+    .import .err { color: var(--err); }
+    .import .close { position: absolute; top: 8px; inset-inline-end: 8px; }
   `,
 })
 export class UsersPage {
@@ -186,6 +223,12 @@ export class UsersPage {
   protected readonly perms = signal<PermissionTarget | null>(null);
   protected readonly confirming = signal<string | null>(null);
   protected readonly failure = signal<string | null>(null);
+  protected readonly claims = signal<ClaimsTarget | null>(null);
+  protected readonly history = signal<EntityRef | null>(null);
+  protected readonly imported = signal<UserImportResultDto | null>(null);
+  protected readonly transferring = signal(false);
+  protected readonly types = ENTITY_TYPES;
+  private readonly transfer = inject(UserTransferService);
 
   protected readonly list = rxResource({
     params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * PAGE_SIZE, maxResultCount: PAGE_SIZE, tenant: this.tenant() }),
@@ -217,6 +260,38 @@ export class UsersPage {
   protected pickTenant(value: string) {
     this.tenant.set(value);
     this.page.set(0);
+  }
+
+  /** Users of the tenant picked in the filter (else the host) as CSV. */
+  protected exportCsv() {
+    this.act(this.createIn(), () => {
+      this.transferring.set(true);
+      this.transfer.export().subscribe({
+        next: blob => {
+          this.transferring.set(false);
+          const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'users.csv' });
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },
+        error: e => { this.transferring.set(false); this.toaster.error(apiError(e)); },
+      });
+    });
+  }
+
+  /** Adds the users of a CSV file to the tenant picked in the filter (else the host); existing user names are skipped. */
+  protected importCsv(input: HTMLInputElement) {
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file, file.name);
+    this.act(this.createIn(), () => {
+      this.transferring.set(true);
+      this.transfer.import(form).subscribe({
+        next: r => { this.transferring.set(false); this.imported.set(r); this.list.reload(); },
+        error: e => { this.transferring.set(false); this.toaster.error(apiError(e)); },
+      });
+    });
   }
 
   protected tenantName(u: IdentityUserDto) {

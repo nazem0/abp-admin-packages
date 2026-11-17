@@ -23,6 +23,12 @@ public class AbpAdminAuditLoggingWebModule : AbpModule
                 "M4 5h16M4 12h10M4 19h7M17 15l2 2 3-4", "requests http trace errors"));
             options.Nav.Add(new AbpAdminWebNavItem("EntityChanges", "AbpAdmin::Nav:EntityChanges", "Monitoring", "AbpAdmin.AuditLogs",
                 "M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5", "history data diff"));
+            options.Settings.Add(new AbpAdminWebSettingsSection("audit-logs", "AbpAdmin::Nav:SettingsAuditLogs", "AbpAdmin.AuditLogs.ManageRetention",
+                "M4 5h16M4 12h10M4 19h7M17 15l2 2 3-4", "retention cleanup delete old logs")
+            {
+                Partial = "/Pages/AbpAdmin/Settings/_AuditLogSettings.cshtml",
+                Order = 30,
+            });
         });
     }
 }

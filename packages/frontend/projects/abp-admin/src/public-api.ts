@@ -8,9 +8,10 @@ import { abpAdminIdentity } from '@nazem0/abp-admin-ng-identity';
 import { abpAdminOpenIddict } from '@nazem0/abp-admin-ng-openiddict';
 import { abpAdminBackgroundJobs } from '@nazem0/abp-admin-ng-background-jobs';
 import { abpAdminTenantManagement } from '@nazem0/abp-admin-ng-tenant-management';
+import { abpAdminEntityExplorer } from '@nazem0/abp-admin-ng-entity-explorer';
 
 export const ABP_ADMIN_FEATURES_ALL = [
-  abpAdminAuditLogging, abpAdminIdentity, abpAdminOpenIddict, abpAdminBackgroundJobs, abpAdminTenantManagement,
+  abpAdminAuditLogging, abpAdminIdentity, abpAdminOpenIddict, abpAdminBackgroundJobs, abpAdminTenantManagement, abpAdminEntityExplorer,
 ];
 
 export const ABP_ADMIN_ROUTES = abpAdminRoutes(...ABP_ADMIN_FEATURES_ALL);
@@ -21,3 +22,4 @@ export * from '@nazem0/abp-admin-ng-identity';
 export * from '@nazem0/abp-admin-ng-openiddict';
 export * from '@nazem0/abp-admin-ng-background-jobs';
 export * from '@nazem0/abp-admin-ng-tenant-management';
+export * from '@nazem0/abp-admin-ng-entity-explorer';

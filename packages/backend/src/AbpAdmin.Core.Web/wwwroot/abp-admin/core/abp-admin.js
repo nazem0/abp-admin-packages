@@ -72,12 +72,15 @@
     const s = q.toString();
     return s ? `?${s}` : '';
   }
-  async function request(method, url, { params, body, tenant } = {}) {
+  /** `body`: JSON, or FormData (sent as multipart). `blob`: return the response body as a Blob (downloads). */
+  async function request(method, url, { params, body, tenant, blob } = {}) {
+    const form = body instanceof FormData;
     const headers = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (body !== undefined && !form) headers['Content-Type'] = 'application/json';
     if (method !== 'GET') headers.RequestVerificationToken = antiforgery();
     if (tenant) headers.__tenant = tenant;
-    const res = await fetch(url + query(params), { method, headers, credentials: 'same-origin', body: body === undefined ? undefined : JSON.stringify(body) });
+    const res = await fetch(url + query(params), { method, headers, credentials: 'same-origin', body: body === undefined || form ? body : JSON.stringify(body) });
+    if (blob && res.ok) return res.blob();
     const text = await res.text();
     const data = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
     if (!res.ok) throw new ApiError(res.status, data);

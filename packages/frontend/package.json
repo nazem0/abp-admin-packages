@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "build:lib": "ng build core && ng build audit-logging && ng build identity && ng build openiddict && ng build background-jobs && ng build tenant-management && ng build abp-admin",
+    "build:lib": "ng build core && ng build audit-logging && ng build identity && ng build openiddict && ng build background-jobs && ng build tenant-management && ng build entity-explorer && ng build abp-admin",
     "watch:lib": "ng build core --watch --configuration development",
     "start": "ng serve demo",
     "build:demo": "ng build demo",

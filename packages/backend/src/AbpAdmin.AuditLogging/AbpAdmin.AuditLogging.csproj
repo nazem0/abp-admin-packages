@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Volo.Abp.AuditLogging.Domain" Version="$(AbpVersion)" />
+    <PackageReference Include="Volo.Abp.SettingManagement.Domain" Version="$(AbpVersion)" />
     <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
   </ItemGroup>
 

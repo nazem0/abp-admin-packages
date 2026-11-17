@@ -1,7 +1,9 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { TenantDto, TenantService, relative, SheetDirective, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { Observable } from 'rxjs';
+import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService, FeaturesPage, relative, SheetDirective, apiError, Toaster, AbpAdminRegistry } from '@nazem0/abp-admin-ng-core';
 
 type TenantEdit = TenantDto | 'new';
 
@@ -238,10 +240,102 @@ export class TenantDatabaseComponent {
   }
 }
 
+/** A tenant's administrators: set a user's password, or invite a new administrator by email. */
+@Component({
+  selector: 'abp-tenant-admin',
+  imports: [SheetDirective, LocalizationPipe],
+  template: `
+    <dialog [appSheet]="!!tenant()" (dismiss)="closed.emit()" class="narrow" aria-labelledby="ta-title">
+      @if (tenant(); as t) {
+        <header class="sh-head">
+          <h2 id="ta-title">{{ 'AbpAdmin::Tenants:Admins' | abpLocalization }} <small>{{ t.name }}</small></h2>
+          <button type="button" class="icon-btn" (click)="closed.emit()" [attr.aria-label]="'AbpAdmin::Common:Close' | abpLocalization">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+        </header>
+        <div class="sh-body form">
+          <form #pw class="block" (submit)="$event.preventDefault(); setPassword(t, pw)">
+            <h3>{{ 'AbpAdmin::Tenants:SetPassword' | abpLocalization }}</h3>
+            <label class="field"><span>{{ 'AbpAdmin::Tenants:UserName' | abpLocalization }}</span>
+              <input class="input" name="userName" required maxlength="256" value="admin" autocomplete="off" /></label>
+            <label class="field"><span>{{ 'AbpAdmin::Users:Form:Password' | abpLocalization }} <i>*</i></span>
+              <input class="input" name="password" type="password" required maxlength="128" autocomplete="new-password" /></label>
+            <button class="btn" [disabled]="busy()">{{ 'AbpAdmin::Tenants:SetPassword' | abpLocalization }}</button>
+          </form>
+
+          <form #inv class="block" (submit)="$event.preventDefault(); invite(t, inv)">
+            <h3>{{ 'AbpAdmin::Tenants:Invite' | abpLocalization }}</h3>
+            <p class="muted">{{ 'AbpAdmin::Tenants:InviteIntro' | abpLocalization }}</p>
+            <label class="field"><span>{{ 'AbpAdmin::Users:Email' | abpLocalization }} <i>*</i></span>
+              <input class="input" name="email" type="email" required maxlength="256" autocomplete="off" placeholder="owner@example.com" /></label>
+            <button class="btn" [disabled]="busy()">{{ 'AbpAdmin::Tenants:InviteSend' | abpLocalization }}</button>
+            @if (invitation(); as i) {
+              <div class="alert" [class.tone-ok]="i.emailSent" [class.tone-warn]="!i.emailSent" role="status">
+                {{ (i.emailSent ? 'AbpAdmin::Tenants:InviteSent' : 'AbpAdmin::Tenants:InviteNotSent') | abpLocalization: (i.userName ?? '') }}
+                <span class="link"><input class="input mono" readonly [value]="i.link" (focus)="$any($event.target).select()" />
+                  <button type="button" class="btn sm" (click)="copy(i.link!)">{{ 'AbpAdmin::Common:Copy' | abpLocalization }}</button></span>
+                <small class="muted">{{ 'AbpAdmin::Tenants:InviteExpires' | abpLocalization: expiry(i.expiresAt) }}</small>
+              </div>
+            }
+          </form>
+          @if (error(); as e) { <span class="alert tone-err">{{ e }}</span> }
+        </div>
+      }
+    </dialog>
+  `,
+  styles: `
+    .block { display: grid; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+    .block:last-of-type { border-bottom: 0; }
+    .block .btn { justify-self: start; }
+    h3 { font-size: 14px; font-weight: 650; }
+    .link { display: flex; gap: 6px; margin: 8px 0 4px; }
+    .alert { display: grid; }
+  `,
+})
+export class TenantAdminComponent {
+  private readonly service = inject(TenantAdminService);
+  private readonly toaster = inject(Toaster);
+  private readonly l = inject(LocalizationService);
+  readonly tenant = input<TenantDto | null>(null);
+  readonly closed = output<void>();
+  protected readonly busy = signal(false);
+  protected readonly error = linkedSignal<TenantDto | null, string | null>({ source: this.tenant, computation: () => null });
+  protected readonly invitation = linkedSignal<TenantDto | null, TenantInvitationDto | null>({ source: this.tenant, computation: () => null });
+
+  protected setPassword(t: TenantDto, form: HTMLFormElement) {
+    const fd = new FormData(form);
+    const userName = String(fd.get('userName') ?? '').trim();
+    this.run(this.service.setPassword(t.id!, { userName, password: String(fd.get('password') ?? '') }), () => {
+      form.reset();
+      this.toaster.ok(this.l.instant('AbpAdmin::Tenants:PasswordSet', userName, t.name!));
+    });
+  }
+
+  protected invite(t: TenantDto, form: HTMLFormElement) {
+    this.run(this.service.inviteAdmin(t.id!, { email: String(new FormData(form).get('email') ?? '').trim() }), i => this.invitation.set(i));
+  }
+
+  protected expiry(iso?: string) {
+    return iso ? new Date(iso).toLocaleString(document.documentElement.lang || undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
+  }
+
+  protected copy(text: string) {
+    navigator.clipboard?.writeText(text).then(() => this.toaster.ok(this.l.instant('AbpAdmin::Common:Copied')));
+  }
+
+  private run<T>(req: Observable<T>, done: (value: T) => void) {
+    this.busy.set(true);
+    this.error.set(null);
+    req.subscribe({
+      next: v => { this.busy.set(false); done(v); },
+      error: e => { this.busy.set(false); this.error.set(apiError(e)); },
+    });
+  }
+}
+
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'abp-tenants-page',
-  imports: [TenantFormComponent, TenantDatabaseComponent, LocalizationPipe],
+  imports: [RouterLink, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -309,6 +403,19 @@ export class TenantDatabaseComponent {
                         <button class="icon-btn" [title]="'AbpAdmin::Tenants:Database' | abpLocalization" [attr.aria-label]="'AbpAdmin::Tenants:DatabaseAria' | abpLocalization: t.name!" (click)="database.set(t)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7" ry="2.5" /><path d="M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5" /></svg></button>
                       }
+                      @if (can('AbpAdmin.Tenants.ManageFeatures')) {
+                        <button class="icon-btn" [title]="'AbpAdmin::Tenants:Features' | abpLocalization" [attr.aria-label]="'AbpAdmin::Tenants:FeaturesOf' | abpLocalization: t.name!" (click)="features.set(t)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4" /></svg></button>
+                      }
+                      @if (can('AbpAdmin.Tenants.ManageUsers')) {
+                        <button class="icon-btn" [title]="'AbpAdmin::Tenants:Admins' | abpLocalization" [attr.aria-label]="'AbpAdmin::Tenants:AdminsOf' | abpLocalization: t.name!" (click)="admins.set(t)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 8h5M19.5 5.5v5" /></svg></button>
+                      }
+                      @if (historyPage && can('AbpAdmin.AuditLogs')) {
+                        <a class="icon-btn" [title]="'AbpAdmin::Common:ChangeHistory' | abpLocalization" [attr.aria-label]="'AbpAdmin::Common:ChangeHistoryOf' | abpLocalization: t.name!"
+                           [routerLink]="historyPage" [queryParams]="{ type: 'Volo.Abp.TenantManagement.Tenant', id: t.id }">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></svg></a>
+                      }
                       @if (can('AbpAdmin.Tenants.Update')) {
                         <button class="icon-btn" [title]="'AbpAdmin::Tenants:Rename' | abpLocalization" [attr.aria-label]="'AbpAdmin::Tenants:RenameAria' | abpLocalization: t.name!" (click)="editing.set(t)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" /></svg></button>
@@ -330,6 +437,17 @@ export class TenantDatabaseComponent {
 
     <abp-tenant-form [tenant]="editing()" (closed)="editing.set(null)" (saved)="editing.set(null); list.reload()" />
     <abp-tenant-database [tenant]="database()" (closed)="database.set(null)" (saved)="database.set(null); list.reload()" />
+    <abp-tenant-admin [tenant]="admins()" (closed)="admins.set(null)" />
+    <dialog [appSheet]="!!features()" (dismiss)="features.set(null)" aria-labelledby="tf-title">
+      @if (features(); as f) {
+        <header class="sh-head">
+          <h2 id="tf-title">{{ 'AbpAdmin::Tenants:Features' | abpLocalization }} <small>{{ f.name }}</small></h2>
+          <button type="button" class="icon-btn" (click)="features.set(null)" [attr.aria-label]="'AbpAdmin::Common:Close' | abpLocalization">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+        </header>
+        <div class="sh-body"><abp-features-page [providerKey]="f.id!" /></div>
+      }
+    </dialog>
   `,
   styles: `
     .avatar.sq { border-radius: 9px; }
@@ -353,6 +471,10 @@ export class TenantsPage {
   protected readonly database = signal<TenantDto | null>(null);
   protected readonly busy = signal<string | null>(null);
   protected readonly switching = signal(false);
+  protected readonly features = signal<TenantDto | null>(null);
+  protected readonly admins = signal<TenantDto | null>(null);
+  /** Entity changes page (audit-logging package), when installed. */
+  protected readonly historyPage = inject(AbpAdminRegistry).link('entity-changes');
 
   protected readonly mode = rxResource({ stream: () => this.service.getMultiTenancy() });
   protected readonly enabled = linkedSignal(() => !!this.mode.value()?.isEnabled);

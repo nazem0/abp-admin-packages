@@ -127,3 +127,12 @@ export interface GetEntityTypeCountsInput {
   changeType?: EntityChangeType | null;
   entityId?: string | null;
 }
+
+export interface AuditLogRetentionDto {
+  days?: number;
+}
+
+export interface AuditLogCleanupResultDto {
+  deleted?: number;
+  before?: string | null;
+}

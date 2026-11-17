@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.EntityExplorer</PackageId>
+    <Description>ABP Admin entity explorer: browse and edit any entity you expose (EntityExplorerOptions) as database rows, with a runtime schema, validation, per-entity permissions, tenant isolation and optional handlers for domain rules. Needs EF Core.</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
+  </ItemGroup>
+
+</Project>

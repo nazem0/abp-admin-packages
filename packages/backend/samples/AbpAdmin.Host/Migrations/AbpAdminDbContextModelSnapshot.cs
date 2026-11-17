@@ -17,7 +17,7 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261114104421_AddTenantManagement";
+    public override string LastMigrationId => "20261117082444_AddLibrary";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -28,6 +28,153 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
             .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
         SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+        modelBuilder.Entity("AbpAdmin.Host.Entities.Author", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime?>("BirthDate")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("ConcurrencyStamp")
+                    .IsConcurrencyToken()
+                    .IsRequired()
+                    .HasMaxLength(40)
+                    .HasColumnType("nvarchar(40)")
+                    .HasColumnName("ConcurrencyStamp");
+
+                b.Property<string>("Country")
+                    .HasMaxLength(64)
+                    .HasColumnType("nvarchar(64)");
+
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("CreationTime");
+
+                b.Property<Guid?>("CreatorId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("CreatorId");
+
+                b.Property<Guid?>("DeleterId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("DeleterId");
+
+                b.Property<DateTime?>("DeletionTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("DeletionTime");
+
+                b.Property<string>("ExtraProperties")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("ExtraProperties");
+
+                b.Property<bool>("IsDeleted")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bit")
+                    .HasDefaultValue(false)
+                    .HasColumnName("IsDeleted");
+
+                b.Property<DateTime?>("LastModificationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("LastModificationTime");
+
+                b.Property<Guid?>("LastModifierId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("LastModifierId");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(128)
+                    .HasColumnType("nvarchar(128)");
+
+                b.Property<Guid?>("TenantId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("TenantId");
+
+                b.HasKey("Id");
+
+                b.ToTable("AppAuthors");
+            });
+
+        modelBuilder.Entity("AbpAdmin.Host.Entities.Book", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<Guid>("AuthorId")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("ConcurrencyStamp")
+                    .IsConcurrencyToken()
+                    .IsRequired()
+                    .HasMaxLength(40)
+                    .HasColumnType("nvarchar(40)")
+                    .HasColumnName("ConcurrencyStamp");
+
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("CreationTime");
+
+                b.Property<Guid?>("CreatorId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("CreatorId");
+
+                b.Property<Guid?>("DeleterId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("DeleterId");
+
+                b.Property<DateTime?>("DeletionTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("DeletionTime");
+
+                b.Property<string>("ExtraProperties")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("ExtraProperties");
+
+                b.Property<int>("Genre")
+                    .HasColumnType("int");
+
+                b.Property<bool>("InStock")
+                    .HasColumnType("bit");
+
+                b.Property<bool>("IsDeleted")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bit")
+                    .HasDefaultValue(false)
+                    .HasColumnName("IsDeleted");
+
+                b.Property<DateTime?>("LastModificationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("LastModificationTime");
+
+                b.Property<Guid?>("LastModifierId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("LastModifierId");
+
+                b.Property<decimal>("Price")
+                    .HasPrecision(18, 2)
+                    .HasColumnType("decimal(18,2)");
+
+                b.Property<DateTime>("PublishDate")
+                    .HasColumnType("datetime2");
+
+                b.Property<Guid?>("TenantId")
+                    .HasColumnType("uniqueidentifier")
+                    .HasColumnName("TenantId");
+
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("AuthorId");
+
+                b.ToTable("AppBooks");
+            });
 
         modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLog", b =>
             {
@@ -2001,6 +2148,15 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
                 b.HasKey("TenantId", "Name");
 
                 b.ToTable("AbpTenantConnectionStrings");
+            });
+
+        modelBuilder.Entity("AbpAdmin.Host.Entities.Book", b =>
+            {
+                b.HasOne("AbpAdmin.Host.Entities.Author", null)
+                    .WithMany()
+                    .HasForeignKey("AuthorId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
             });
 
         modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLogAction", b =>

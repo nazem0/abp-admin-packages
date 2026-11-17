@@ -11,3 +11,9 @@
 #abp-users .pw .link { position: absolute; inset-inline-end: 10px; top: 10px; }
 #abp-users .pw .input { padding-inline-end: 52px; }
 #abp-users .sh-foot .alert { flex: 1; }
+
+#abp-users .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+#abp-users .import { position: relative; display: grid; gap: 4px; padding: 14px 44px 14px 18px; margin-bottom: 16px; }
+#abp-users .import[hidden] { display: none; }
+#abp-users .import .err { color: var(--err); }
+#abp-users .import .close { position: absolute; top: 8px; inset-inline-end: 8px; }

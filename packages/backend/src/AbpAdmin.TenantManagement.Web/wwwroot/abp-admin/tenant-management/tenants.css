@@ -18,3 +18,11 @@
 #abp-tenants .admin[open] { display: grid; gap: 12px; padding-bottom: 14px; }
 #abp-tenants .admin summary { cursor: pointer; font-size: 13px; font-weight: 600; }
 #abp-tenants .admin p { font-size: 12.5px; margin: 0; }
+
+#tn-admin .ta-block { display: grid; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+#tn-admin .ta-block:last-of-type { border-bottom: 0; }
+#tn-admin .ta-block .btn { justify-self: start; }
+#tn-admin h3 { font-size: 14px; font-weight: 650; }
+#tn-admin .alert { display: grid; }
+#tn-admin .ta-link { display: flex; gap: 6px; margin: 8px 0 4px; }
+#tn-feat { width: min(900px, 100vw); }

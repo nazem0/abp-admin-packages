@@ -7,6 +7,17 @@ public static class AbpAdminPermissions
     public static class AuditLogs
     {
         public const string Default = GroupName + ".AuditLogs";
+        /// <summary>Host only: how long audit logs are kept, and deleting older ones.</summary>
+        public const string ManageRetention = Default + ".ManageRetention";
+    }
+
+    /// <summary>Claim types are shared by all tenants: host only.</summary>
+    public static class ClaimTypes
+    {
+        public const string Default = GroupName + ".ClaimTypes";
+        public const string Create = Default + ".Create";
+        public const string Update = Default + ".Update";
+        public const string Delete = Default + ".Delete";
     }
 
     public static class SecurityLogs
@@ -55,11 +66,23 @@ public static class AbpAdminPermissions
         public const string ManageConnectionStrings = Default + ".ManageConnectionStrings";
         /// <summary>Host only: list users of every tenant and manage them inside their tenant.</summary>
         public const string ManageUsers = Default + ".ManageUsers";
+        /// <summary>Host only: the features of a tenant (provider "T" with the tenant's id).</summary>
+        public const string ManageFeatures = Default + ".ManageFeatures";
     }
 
     public static class BackgroundJobs
     {
         public const string Default = GroupName + ".BackgroundJobs";
         public const string Manage = Default + ".Manage";
+    }
+
+    /// <summary>Entity Explorer; one child per exposed entity (EntityExplorerOptions), each with Create/Update/Delete.</summary>
+    public static class Entities
+    {
+        public const string Default = GroupName + ".Entities";
+        public static string Read(string entity) => Default + "." + entity;
+        public static string Create(string entity) => Read(entity) + ".Create";
+        public static string Update(string entity) => Read(entity) + ".Update";
+        public static string Delete(string entity) => Read(entity) + ".Delete";
     }
 }

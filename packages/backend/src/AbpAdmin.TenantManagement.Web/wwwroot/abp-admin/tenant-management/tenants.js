@@ -1,6 +1,7 @@
 // Tenants: create, rename, enable/disable, delete, the multi-tenancy switch and per-tenant databases. Port of tenants.page.ts.
 (function () {
-  const { html, render, icon, on, api, L, can, fmt, toast, errorText, sheet, params } = AbpAdmin;
+  const { html, render, icon, on, api, L, can, fmt, toast, errorText, sheet, params, pageUrl } = AbpAdmin;
+  const changesPage = can('AbpAdmin.AuditLogs') && pageUrl('EntityChanges');
   const root = document.getElementById('abp-tenants');
   const API = '/api/abp-admin/tenant';
   const CLOSE = 'M6 6l12 12M18 6 6 18';
@@ -29,7 +30,9 @@
       <div id="tn-list"></div>
     </section>
     <dialog id="tn-form" class="narrow" aria-labelledby="tf-title"></dialog>
-    <dialog id="tn-db" class="narrow" aria-labelledby="td-title"></dialog>`);
+    <dialog id="tn-db" class="narrow" aria-labelledby="td-title"></dialog>
+    <dialog id="tn-feat" aria-labelledby="tft-title"></dialog>
+    <dialog id="tn-admin" class="narrow" aria-labelledby="ta-title"></dialog>`);
   const $ = id => document.getElementById(id);
   const formSheet = sheet($('tn-form'));
   const dbSheet = sheet($('tn-db'));
@@ -82,6 +85,9 @@
             <button class="btn sm danger" data-act="delete" data-id="${t.id}">${L('AbpAdmin::Common:Delete')}</button>
             <button class="btn sm" data-act="cancel">${L('AbpAdmin::Common:Cancel')}</button></span>`
         : html`${canDb ? html`<button class="icon-btn" data-act="db" data-id="${t.id}" title="${L('AbpAdmin::Tenants:Database')}" aria-label="${L('AbpAdmin::Tenants:DatabaseAria', name)}">${icon('M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5M19 5.5c0 1.4-3.1 2.5-7 2.5S5 6.9 5 5.5 8.1 3 12 3s7 1.1 7 2.5z')}</button>` : ''}
+          ${can('AbpAdmin.Tenants.ManageFeatures') ? html`<button class="icon-btn" data-act="features" data-id="${t.id}" title="${L('AbpAdmin::Tenants:Features')}" aria-label="${L('AbpAdmin::Tenants:FeaturesOf', name)}">${icon('M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4')}</button>` : ''}
+          ${can('AbpAdmin.Tenants.ManageUsers') ? html`<button class="icon-btn" data-act="admins" data-id="${t.id}" title="${L('AbpAdmin::Tenants:Admins')}" aria-label="${L('AbpAdmin::Tenants:AdminsOf', name)}">${icon('M2.5 20a6.5 6.5 0 0 1 13 0M17 8h5M19.5 5.5v5M12.5 8a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z')}</button>` : ''}
+          ${changesPage ? html`<a class="icon-btn" href="${changesPage + AbpAdmin.query({ type: 'Volo.Abp.TenantManagement.Tenant', id: t.id })}" title="${L('AbpAdmin::Common:ChangeHistory')}" aria-label="${L('AbpAdmin::Common:ChangeHistoryOf', name)}">${icon('M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5')}</a>` : ''}
           ${can('AbpAdmin.Tenants.Update') ? html`<button class="icon-btn" data-act="edit" data-id="${t.id}" title="${L('AbpAdmin::Tenants:Rename')}" aria-label="${L('AbpAdmin::Tenants:RenameAria', name)}">${icon('M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4')}</button>` : ''}
           ${can('AbpAdmin.Tenants.Delete') ? html`<button class="icon-btn" data-act="confirm" data-id="${t.id}" title="${L('AbpAdmin::Common:Delete')}" aria-label="${L('AbpAdmin::Tenants:DeleteAria', name)}">${icon('M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3')}</button>` : ''}`}
       </td>
@@ -261,6 +267,68 @@
     }
   });
 
+  // ---------- features of one tenant (the Features page's editor, mounted for the tenant) ----------
+  const featSheet = sheet($('tn-feat'));
+  function openFeatures(t) {
+    render($('tn-feat'), html`<header class="sh-head">
+        <h2 id="tft-title">${L('AbpAdmin::Tenants:Features')} <small>${t.name}</small></h2>
+        <button type="button" class="icon-btn" data-close aria-label="${L('AbpAdmin::Common:Close')}">${icon(CLOSE)}</button></header>
+      <div class="sh-body"><div id="abp-features"></div></div>`);
+    $('tn-feat').querySelector('[data-close]').addEventListener('click', () => featSheet.close());
+    AbpAdmin.features.mount($('tn-feat').querySelector('#abp-features'), t.id);
+    featSheet.open();
+  }
+
+  // ---------- administrators: set a password, invite by email ----------
+  const adminSheet = sheet($('tn-admin'));
+  let adminTenant = null;
+  function openAdmins(t) {
+    adminTenant = t;
+    render($('tn-admin'), html`<header class="sh-head">
+        <h2 id="ta-title">${L('AbpAdmin::Tenants:Admins')} <small>${t.name}</small></h2>
+        <button type="button" class="icon-btn" data-close aria-label="${L('AbpAdmin::Common:Close')}">${icon(CLOSE)}</button></header>
+      <div class="sh-body form">
+        <form class="ta-block" data-form="password" autocomplete="off">
+          <h3>${L('AbpAdmin::Tenants:SetPassword')}</h3>
+          <label class="field"><span>${L('AbpAdmin::Tenants:UserName')}</span><input class="input" name="userName" required maxlength="256" value="admin" /></label>
+          <label class="field"><span>${L('AbpAdmin::Users:Form:Password')} <i>*</i></span><input class="input" name="password" type="password" required maxlength="128" autocomplete="new-password" /></label>
+          <button class="btn" type="submit">${L('AbpAdmin::Tenants:SetPassword')}</button>
+        </form>
+        <form class="ta-block" data-form="invite" autocomplete="off">
+          <h3>${L('AbpAdmin::Tenants:Invite')}</h3>
+          <p class="muted">${L('AbpAdmin::Tenants:InviteIntro')}</p>
+          <label class="field"><span>${L('AbpAdmin::Users:Email')} <i>*</i></span><input class="input" name="email" type="email" required maxlength="256" placeholder="owner@example.com" /></label>
+          <button class="btn" type="submit">${L('AbpAdmin::Tenants:InviteSend')}</button>
+          <div id="ta-result"></div>
+        </form>
+        <span id="ta-error" class="alert tone-err" hidden></span>
+      </div>`);
+    $('tn-admin').querySelector('[data-close]').addEventListener('click', () => adminSheet.close());
+    adminSheet.open();
+  }
+  $('tn-admin').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form = e.target, fd = new FormData(form), t = adminTenant, err = $('ta-error'), btn = form.querySelector('[type=submit]');
+    btn.disabled = true; err.hidden = true;
+    try {
+      if (form.dataset.form === 'password') {
+        const userName = String(fd.get('userName') ?? '').trim();
+        await api.post(`/api/abp-admin/tenant-admin/${t.id}/set-password`, { userName, password: String(fd.get('password') ?? '') });
+        form.reset();
+        toast.ok(L('AbpAdmin::Tenants:PasswordSet', userName, t.name));
+      } else {
+        const i = await api.post(`/api/abp-admin/tenant-admin/${t.id}/invite-admin`, { email: String(fd.get('email') ?? '').trim() });
+        render($('ta-result'), html`<div class="alert ${i.emailSent ? 'tone-ok' : 'tone-warn'}" role="status">
+          ${L(i.emailSent ? 'AbpAdmin::Tenants:InviteSent' : 'AbpAdmin::Tenants:InviteNotSent', i.userName ?? '')}
+          <span class="ta-link"><input class="input mono" readonly value="${i.link}" /><button type="button" class="btn sm" data-copy>${L('AbpAdmin::Common:Copy')}</button></span>
+          <small class="muted">${L('AbpAdmin::Tenants:InviteExpires', fmt.stamp ? fmt.stamp(i.expiresAt) : new Date(i.expiresAt).toLocaleString())}</small></div>`);
+        $('ta-result').querySelector('[data-copy]').addEventListener('click', () =>
+          navigator.clipboard?.writeText(i.link).then(() => toast.ok(L('AbpAdmin::Common:Copied'))));
+      }
+    } catch (ex) { err.textContent = errorText(ex); err.hidden = false; }
+    btn.disabled = false;
+  });
+
   // ---------- page events ----------
   const byId = id => state.items.find(t => t.id === id);
   on(root, 'click', '[data-act]', (e, el) => {
@@ -268,6 +336,8 @@
     if (act === 'new') openForm(null);
     else if (act === 'edit') openForm(byId(id));
     else if (act === 'db') openDb(byId(id));
+    else if (act === 'features') openFeatures(byId(id));
+    else if (act === 'admins') openAdmins(byId(id));
     else if (act === 'reload') loadList();
     else if (act === 'confirm') { state.confirming = id; drawList(); }
     else if (act === 'cancel') { state.confirming = null; drawList(); }

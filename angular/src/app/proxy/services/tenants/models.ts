@@ -50,3 +50,20 @@ export interface GetTenantUserListInput extends PagedAndSortedResultRequestDto {
 export interface TenantUserListResultDto extends PagedResultDto<IdentityUserDto> {
   tenantNames: Record<string, string>;
 }
+
+export interface SetTenantUserPasswordDto {
+  userName: string;
+  password: string;
+}
+
+export interface InviteTenantAdminDto {
+  email: string;
+}
+
+export interface TenantInvitationDto {
+  userName?: string;
+  link?: string;
+  emailSent?: boolean;
+  emailError?: string | null;
+  expiresAt?: string;
+}
