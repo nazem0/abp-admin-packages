@@ -3,14 +3,16 @@
 An open-source, headless admin console for [ABP Framework](https://abp.io) applications.
 It gives the free ABP modules the admin screens they ship without: an **overview dashboard**,
 **audit, security and entity-change logs**, **users, roles, organization units and permissions**,
-**OpenIddict applications and scopes**, **background jobs**, **tenants** (with per-tenant databases),
-**features**, and **identity, email and time-zone settings**, in English and Arabic.
+**claim types**, **OpenIddict applications and scopes**, **background jobs**, **tenants** (with per-tenant
+databases), **features**, **identity, email, time-zone and audit-retention settings**, and an **entity explorer**
+to browse and edit your own entities, in English and Arabic.
 
 > Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
 
 To add the console to your own ABP application, use the packages in [`packages/`](packages/README.md):
 NuGet for the backend, npm for an Angular UI, or NuGet for a Razor Pages UI with the same look, each split per
-feature so you take only what you need.
+feature so you take only what you need. What changed in each version: [release notes](packages/CHANGELOG.md)
+and [GitHub releases](https://github.com/nazem0/abp-admin-packages/releases).
 
 ## Live demo
 
@@ -36,6 +38,8 @@ Things to try:
 - **Language menu** (sidebar footer) — switch to Arabic (right-to-left) and back.
 - **Tenants** — create a tenant (optionally with its own database), disable it, or switch
   multi-tenancy off and see the sign-in page drop the tenant box.
+- **Entity explorer** (Angular) — each tenant has its own sample library: pick `Book` or `Author`, edit a
+  row, then open its change history.
 
 The demo is public and shared: anyone can change its data, and it may be reset (it is recreated
 whenever its schema changes). Don't put anything real in it.
@@ -60,17 +64,28 @@ whenever its schema changes). Don't put anything real in it.
   an event to the HTTP request that caused it (correlation id).
 - **Background jobs** — the persisted ABP job queue: waiting, retrying and abandoned jobs with their
   arguments and schedule; run now (re-queue) or delete.
+- **Audit log retention** — keep audit logs for a number of days (Settings › Audit logs); an hourly
+  worker deletes older ones, or run the cleanup on demand. Off until a retention is set.
 - **Users** — search, create, edit (profile, password, roles, active/lockout), delete, lock/unlock,
-  per-user permissions and a link to each user's sign-in history. With multi-tenancy on, the host
-  sees every tenant's users (Tenant column and filter) and manages each one inside its tenant.
+  per-user permissions, claims, a link to each user's sign-in history and change history, and CSV
+  export/import. With multi-tenancy on, the host sees every tenant's users (Tenant column and filter)
+  and manages each one inside its tenant.
 - **Tenants** — create, rename, enable/disable and delete tenants; switch multi-tenancy on or off at
   runtime; give a tenant its own database (connection test, then created, migrated and seeded) or move
-  it back to the shared one.
+  it back to the shared one. Set features per tenant, and set the tenant admin's password or invite
+  the admin by email.
 - **Tenant admins** — a tenant's admin uses the same console scoped to their tenant; settings they
   save apply to their tenant only and fall back to the host's values.
 - **Organization units** — the free Identity module's OU tree with a UI: create, rename, move and
   delete units; add members and roles (members inherit the roles of their unit and its parents).
-- **Roles** — create, edit (default/public flags), delete non-static roles, and manage each role's permissions.
+- **Roles** — create, edit (default/public flags), delete non-static roles, manage each role's permissions
+  and claims, and move all of a role's users to another role.
+- **Claim types** — the claims users and roles may carry (string, number, boolean or date, with an
+  optional pattern); claims on users and roles are checked against them.
+- **Entity explorer** — browse and edit the entities you list in `EntityExplorerOptions` as database
+  rows; columns and forms come from the EF model at runtime, and writes go through ABP repositories
+  (audit fields, soft delete, concurrency checks, entity history). Per-entity permissions; tenants see
+  only their own rows.
 - **Permissions editor** — grouped tree with search, select-all per group, parent/child rules
   (granting a child grants its parents, revoking a parent revokes its children), and grants
   inherited from roles shown as locked "via role …".
@@ -85,6 +100,8 @@ whenever its schema changes). Don't put anything real in it.
 - **Email settings** — SMTP sender, server, SSL and credentials, plus a "send test email" form.
 - **Time-zone settings** — pick the zone (or keep each user's browser zone) used for every time,
   day boundary and chart; backed by ABP's `Abp.Timing.TimeZone` setting with a UTC clock.
+- **Pagination on every list** — page numbers, first/last and a page size of 10/20/50/100 that each
+  browser remembers.
 - **English and Arabic** — every screen localized through ABP's `AbpAdmin` resource, right-to-left
   layout for Arabic, and a language menu in the sidebar (shown when the app has more than one language).
 - **Headless Angular UI** — no theme packages; only `@abp/ng.core` + `@abp/ng.oauth`, hand-built
@@ -132,9 +149,11 @@ Edit `ConnectionStrings:Default` in `AbpAdmin/appsettings.json` for a different 
 
 ```
 AbpAdmin/          ASP.NET Core host: app services, EF Core DbContext, OpenIddict, login UI
-  Services/AuditLogs/   AuditLogAppService (ReadOnlyAppService + statistics), DTOs, Mapperly projector
+  Services/AuditLogs/   AuditLogAppService (ReadOnlyAppService + statistics), DTOs, Mapperly projector,
+                        retention setting and cleanup worker
   Services/SecurityLogs/  security log (ReadOnlyAppService + projection)
-  Services/Identity/    organization units, user lock/unlock
+  Services/Identity/    organization units, user lock/unlock, claim types and claims, CSV import/export
+  Services/Entities/    entity explorer (schema from the EF model, generic CRUD)
   Services/OpenIddict/  applications and scopes (through OpenIddict's managers)
   Services/BackgroundJobs/  job queue viewer, retry, delete
   Services/Settings/    identity & account settings (global for the host, per tenant for a tenant)
@@ -148,13 +167,14 @@ angular/           Headless Angular admin UI
   src/app/overview/     dashboard
   src/app/security-logs/  security log
   src/app/background-jobs/  job queue
-  src/app/identity/     users, roles, organization units
+  src/app/identity/     users, roles, organization units, claim types
+  src/app/entities/     entity explorer
   src/app/openiddict/   applications and scopes
   src/app/permissions/  permissions editor sheet (roles, users, clients)
   src/app/features/     host features
   src/app/settings/     identity, time-zone and email settings (one routed tab each)
   src/app/tenants/      tenants and tenant databases
-  src/app/shared/       nav, command palette, toasts, theme, sheet directive, API error helper,
+  src/app/shared/       nav, command palette, pager, toasts, theme, sheet directive, API error helper,
                         i18n helpers, tenant scope (sends a screen's calls to another tenant)
   src/app/proxy/        generated by `pnpm generate-proxy` — do not edit
 etc/               Docker build and compose scripts
@@ -224,10 +244,12 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
 - [x] OpenIddict applications, scopes and client permissions
 - [x] Organization units
 - [x] Identity & sign-in settings, user lock/unlock
-- [ ] Claim types and user/role claims
+- [x] Claim types and user/role claims
 - [ ] Session management (needs ABP session tracking enabled)
 - [x] Tenants, per-tenant databases, users across tenants, tenant-scoped console
 - [x] Localization of the admin UI (English, Arabic)
+- [x] Entity explorer, tenant features and invitations, audit log retention, pagination everywhere
+- [ ] Entity explorer for the Razor Pages console
 
 ## Contributing
 
