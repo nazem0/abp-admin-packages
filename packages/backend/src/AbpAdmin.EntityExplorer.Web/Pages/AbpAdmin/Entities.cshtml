@@ -1,0 +1,9 @@
+@page
+@attribute [Authorize("AbpAdmin.Entities")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:Entities";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/entity-explorer/entities.css" /> }
+<div class="page" id="abp-entities"></div>
+@section scripts { <script src="/abp-admin/entity-explorer/entities.js"></script> }

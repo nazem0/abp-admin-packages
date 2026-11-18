@@ -35,7 +35,7 @@ packages/
 | **OpenIddict**: client applications, client permissions, scopes | `AbpAdmin.OpenIddict` | `@nazem0/abp-admin-ng-openiddict` | `AbpAdmin.OpenIddict.Web` | OpenIddict, Permission Management |
 | **Background jobs**: the persisted job queue | `AbpAdmin.BackgroundJobs` | `@nazem0/abp-admin-ng-background-jobs` | `AbpAdmin.BackgroundJobs.Web` | Background Jobs |
 | **Tenants**: tenants, multi-tenancy switch, tenant databases, users across tenants, features per tenant, admin password and invitations | `AbpAdmin.TenantManagement` | `@nazem0/abp-admin-ng-tenant-management` | `AbpAdmin.TenantManagement.Web` | Tenant Management, Identity |
-| **Entity explorer**: browse and edit the entities you expose, as database rows | `AbpAdmin.EntityExplorer` | `@nazem0/abp-admin-ng-entity-explorer` | *(not yet)* | EF Core |
+| **Entity explorer**: browse and edit the entities you expose, as database rows | `AbpAdmin.EntityExplorer` | `@nazem0/abp-admin-ng-entity-explorer` | `AbpAdmin.EntityExplorer.Web` | EF Core |
 | **Everything** | `AbpAdmin.HttpApi` (or `AbpAdmin.Application`) | `@nazem0/abp-admin-ng` | `AbpAdmin.Web` | all of the above |
 
 Every list in both UIs is paged on the server, with a page size of 10/20/50/100 that each browser remembers.
@@ -58,7 +58,7 @@ Totals add up every package below and refresh daily and after each release (`dow
 | OpenIddict | [![AbpAdmin.OpenIddict](https://img.shields.io/nuget/dt/AbpAdmin.OpenIddict?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.OpenIddict) | [![AbpAdmin.OpenIddict.Web](https://img.shields.io/nuget/dt/AbpAdmin.OpenIddict.Web?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.OpenIddict.Web) | [![@nazem0/abp-admin-ng-openiddict](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng-openiddict?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng-openiddict) |
 | Background jobs | [![AbpAdmin.BackgroundJobs](https://img.shields.io/nuget/dt/AbpAdmin.BackgroundJobs?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.BackgroundJobs) | [![AbpAdmin.BackgroundJobs.Web](https://img.shields.io/nuget/dt/AbpAdmin.BackgroundJobs.Web?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.BackgroundJobs.Web) | [![@nazem0/abp-admin-ng-background-jobs](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng-background-jobs?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng-background-jobs) |
 | Tenants | [![AbpAdmin.TenantManagement](https://img.shields.io/nuget/dt/AbpAdmin.TenantManagement?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.TenantManagement) | [![AbpAdmin.TenantManagement.Web](https://img.shields.io/nuget/dt/AbpAdmin.TenantManagement.Web?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.TenantManagement.Web) | [![@nazem0/abp-admin-ng-tenant-management](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng-tenant-management?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng-tenant-management) |
-| Entity explorer | [![AbpAdmin.EntityExplorer](https://img.shields.io/nuget/dt/AbpAdmin.EntityExplorer?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.EntityExplorer) | — | [![@nazem0/abp-admin-ng-entity-explorer](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng-entity-explorer?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng-entity-explorer) |
+| Entity explorer | [![AbpAdmin.EntityExplorer](https://img.shields.io/nuget/dt/AbpAdmin.EntityExplorer?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.EntityExplorer) | [![AbpAdmin.EntityExplorer.Web](https://img.shields.io/nuget/dt/AbpAdmin.EntityExplorer.Web?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.EntityExplorer.Web) | [![@nazem0/abp-admin-ng-entity-explorer](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng-entity-explorer?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng-entity-explorer) |
 | **Everything** | [![AbpAdmin.HttpApi](https://img.shields.io/nuget/dt/AbpAdmin.HttpApi?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.HttpApi) [![AbpAdmin.Application](https://img.shields.io/nuget/dt/AbpAdmin.Application?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.Application) | [![AbpAdmin.Web](https://img.shields.io/nuget/dt/AbpAdmin.Web?label=downloads&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.Web) | [![@nazem0/abp-admin-ng](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng?label=downloads&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng) |
 
 ## Entity explorer
@@ -96,10 +96,10 @@ No feed setup or token is needed.
 1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
 
    ```xml
-   <PackageReference Include="AbpAdmin.HttpApi" Version="0.3.0" />
+   <PackageReference Include="AbpAdmin.HttpApi" Version="0.3.1" />
    <!-- or, for example: -->
-   <PackageReference Include="AbpAdmin.Identity" Version="0.3.0" />
-   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.3.0" />
+   <PackageReference Include="AbpAdmin.Identity" Version="0.3.1" />
+   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.3.1" />
    ```
 
 2. Depend on the module(s). Each feature module publishes its own APIs under `/api/abp-admin`:
@@ -252,7 +252,7 @@ changing them (`pnpm watch:lib` keeps core rebuilding).
 
 ### Publish
 
-Push a version tag (`git tag v0.3.0 && git push origin v0.3.0`) or run the *Publish packages* workflow
+Push a version tag (`git tag v0.3.1 && git push origin v0.3.1`) or run the *Publish packages* workflow
 (`.github/workflows/publish.yml`). It publishes the NuGet packages to nuget.org and the Angular packages to
 npmjs.com with Trusted Publishing on both: no stored API keys (the `NUGET_USER` repo secret only holds the
 nuget.org profile name). Versions already published are skipped.

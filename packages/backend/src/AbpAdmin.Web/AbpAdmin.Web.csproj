@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>AbpAdmin.Web</PackageId>
-    <Description>All of ABP Admin's Razor Pages UI in one reference (under /AbpAdmin): core, audit logging, identity, OpenIddict, background jobs and tenants, with their APIs. Reference the AbpAdmin.*.Web feature packages instead to pick only some.</Description>
+    <Description>All of ABP Admin's Razor Pages UI in one reference (under /AbpAdmin): core, audit logging, identity, OpenIddict, background jobs, tenants and the entity explorer, with their APIs. Reference the AbpAdmin.*.Web feature packages instead to pick only some.</Description>
     <RootNamespace>AbpAdmin.Web</RootNamespace>
   </PropertyGroup>
 
@@ -14,6 +14,7 @@
     <ProjectReference Include="..\AbpAdmin.OpenIddict.Web\AbpAdmin.OpenIddict.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.BackgroundJobs.Web\AbpAdmin.BackgroundJobs.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.TenantManagement.Web\AbpAdmin.TenantManagement.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.EntityExplorer.Web\AbpAdmin.EntityExplorer.Web.csproj" />
   </ItemGroup>
 
 </Project>

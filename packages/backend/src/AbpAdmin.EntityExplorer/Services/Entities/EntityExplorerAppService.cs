@@ -356,6 +356,40 @@ internal abstract class EntityAccessor
         .Select(p => new ValidationResult($"{p.Name} is required.", [p.Name]))
         .ToList());
 
+    /// <summary>
+    /// Foreign keys being set (all required ones on create) must point at an existing row the caller can see, so a bad
+    /// or missing reference is a validation error instead of a database error. Tenants see only their own rows.
+    /// </summary>
+    protected async Task CheckReferencesAsync(EntityEntry entry, IEnumerable<string> changed, bool isCreate)
+    {
+        var errors = new List<ValidationResult>();
+        var set = changed.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        using var allTenants = AllTenantsForHost();
+        foreach (var fk in entry.Metadata.GetForeignKeys().Where(f => f.Properties.Count == 1 && f.PrincipalKey.IsPrimaryKey()))
+        {
+            var p = fk.Properties[0];
+            if (IsReadOnly(p) || (!isCreate && !set.Contains(p.Name)))
+            {
+                continue;
+            }
+            var value = entry.Property(p.Name).CurrentValue;
+            var type = Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType;
+            if (value == null || (type.IsValueType && value.Equals(Activator.CreateInstance(type))))
+            {
+                if (fk.IsRequired)
+                {
+                    errors.Add(new ValidationResult($"{p.Name} is required.", [p.Name]));
+                }
+                continue;
+            }
+            if (await Context.FindAsync(fk.PrincipalEntityType.ClrType, value) == null)
+            {
+                errors.Add(new ValidationResult($"No {fk.PrincipalEntityType.ClrType.Name} with id {value}.", [p.Name]));
+            }
+        }
+        ThrowIfAny(errors);
+    }
+
     protected static void ThrowIfAny(List<ValidationResult> errors)
     {
         if (errors.Count > 0)
@@ -452,6 +486,7 @@ internal sealed class EntityAccessor<TEntity> : EntityAccessor where TEntity : c
                 entry.Property(nameof(IMultiTenant.TenantId)).CurrentValue = Services.LazyGetRequiredService<ICurrentTenant>().Id;
             }
             CheckRequired(entry);
+            await CheckReferencesAsync(entry, values.Keys, isCreate: true);
             await _repository.InsertAsync(entity, autoSave: true); // ABP sets a Guid key when none was given.
         }
         return ToRow(entity);
@@ -473,6 +508,7 @@ internal sealed class EntityAccessor<TEntity> : EntityAccessor where TEntity : c
                 entry.Property(name).CurrentValue = value;
             }
             CheckRequired(entry);
+            await CheckReferencesAsync(entry, values.Keys, isCreate: false);
         }
 
         if (concurrencyStamp != null && entity is IHasConcurrencyStamp stamped)

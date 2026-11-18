@@ -20,6 +20,7 @@ public class RazorPagesTests : AbpAdminTestBase
     [InlineData("Applications", "abp-applications")]
     [InlineData("Scopes", "abp-scopes")]
     [InlineData("Tenants", "abp-tenants")]
+    [InlineData("Entities", "abp-entities")]
     [InlineData("Features", "abp-features")]
     [InlineData("Settings/time-zone", "abp-settings")]
     [InlineData("Settings/identity", "abp-identity-settings")]

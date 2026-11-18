@@ -1,6 +1,32 @@
 # Release notes
 
-All NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share one version.
+NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
+some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
+
+## 0.3.1 — 2026-11-18
+
+NuGet: every `AbpAdmin.*` package. npm: only `@nazem0/abp-admin-ng-entity-explorer` and `@nazem0/abp-admin-ng`.
+
+### New
+
+- **Entity explorer for the Razor Pages console** (`AbpAdmin.EntityExplorer.Web`, included in `AbpAdmin.Web`): the
+  same page as Angular under `/AbpAdmin/Entities`: entity picker with `?entity=` deep links, search, sorting,
+  paging, and create/edit/delete forms built from the schema (lookups for foreign keys, enums, check rows,
+  Not set / Yes / No for `bool?`, JSON fields), in its sidebar section and Ctrl+K.
+
+### Fixed
+
+- Entity explorer: a missing or unknown foreign key (e.g. a book without an author) failed with a database error
+  (HTTP 500). It is now a validation message ("AuthorId is required.", "No Author with id …"), and a tenant can't
+  point a row at another tenant's data.
+- Entity explorer: dates in the list read backwards in Arabic (right-to-left); they now keep their order.
+
+### Upgrade
+
+- Razor Pages with `AbpAdmin.Web`: bump it to `0.3.1`. Picking feature packages: add `AbpAdmin.EntityExplorer.Web`
+  and depend on `AbpAdminEntityExplorerWebModule`.
+- Angular: bump `@nazem0/abp-admin-ng` or `@nazem0/abp-admin-ng-entity-explorer` to `0.3.1`; the other npm
+  packages stay `0.3.0`.
 
 ## 0.3.0 — 2026-11-18
 

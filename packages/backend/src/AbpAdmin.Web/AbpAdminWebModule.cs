@@ -10,7 +10,8 @@ namespace AbpAdmin.Web;
     typeof(AbpAdminIdentityWebModule),
     typeof(AbpAdminOpenIddictWebModule),
     typeof(AbpAdminBackgroundJobsWebModule),
-    typeof(AbpAdminTenantManagementWebModule)
+    typeof(AbpAdminTenantManagementWebModule),
+    typeof(AbpAdminEntityExplorerWebModule)
 )]
 public class AbpAdminWebModule : AbpModule
 {

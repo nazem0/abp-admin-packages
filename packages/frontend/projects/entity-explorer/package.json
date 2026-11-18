@@ -1,6 +1,6 @@
 {
   "name": "@nazem0/abp-admin-ng-entity-explorer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "ABP Admin entity explorer for Angular: browse and edit any exposed entity as database rows, with forms built from its schema at runtime.",
   "license": "MIT",
   "keywords": [

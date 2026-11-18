@@ -7,6 +7,7 @@
     <Project Path="src/AbpAdmin.BackgroundJobs/AbpAdmin.BackgroundJobs.csproj" />
     <Project Path="src/AbpAdmin.TenantManagement/AbpAdmin.TenantManagement.csproj" />
     <Project Path="src/AbpAdmin.EntityExplorer/AbpAdmin.EntityExplorer.csproj" />
+    <Project Path="src/AbpAdmin.EntityExplorer.Web/AbpAdmin.EntityExplorer.Web.csproj" />
     <Project Path="src/AbpAdmin.Core.Web/AbpAdmin.Core.Web.csproj" />
     <Project Path="src/AbpAdmin.AuditLogging.Web/AbpAdmin.AuditLogging.Web.csproj" />
     <Project Path="src/AbpAdmin.Identity.Web/AbpAdmin.Identity.Web.csproj" />

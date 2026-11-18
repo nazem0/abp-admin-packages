@@ -1,0 +1,15 @@
+/* Entity explorer (port of the Angular entities page's component styles). */
+#abp-entities .filters select.input { width: auto; min-width: 200px; }
+#abp-entities .scroll { overflow-x: auto; }
+#abp-entities td { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#abp-entities tr.clickable { cursor: pointer; }
+#abp-entities .sort { all: unset; cursor: pointer; }
+
+#en-form textarea.input { height: auto; padding: 8px 11px; resize: vertical; line-height: 1.5; }
+#en-form .field small.mono { font-weight: 400; margin-inline-start: 6px; }
+#en-form .check { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; align-items: center; }
+#en-form .check:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+#en-form .check:has(input:disabled) { cursor: default; opacity: .7; }
+#en-form .check input { margin: 0; }
+#en-form .sh-foot .alert { flex: 1; }
+#en-form .foot-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

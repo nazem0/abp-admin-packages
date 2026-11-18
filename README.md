@@ -40,7 +40,7 @@ Things to try:
 - **Language menu** (sidebar footer) — switch to Arabic (right-to-left) and back.
 - **Tenants** — create a tenant (optionally with its own database), disable it, or switch
   multi-tenancy off and see the sign-in page drop the tenant box.
-- **Entity explorer** (Angular) — each tenant has its own sample library: pick `Book` or `Author`, edit a
+- **Entity explorer** — each tenant has its own sample library: pick `Book` or `Author`, edit a
   row, then open its change history.
 
 The demo is public and shared: anyone can change its data, and it may be reset (it is recreated
@@ -251,7 +251,7 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
 - [x] Tenants, per-tenant databases, users across tenants, tenant-scoped console
 - [x] Localization of the admin UI (English, Arabic)
 - [x] Entity explorer, tenant features and invitations, audit log retention, pagination everywhere
-- [ ] Entity explorer for the Razor Pages console
+- [x] Entity explorer for the Razor Pages console
 
 ## Contributing
 

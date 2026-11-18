@@ -61,6 +61,20 @@ public class EntityExplorerLibraryTests : AbpAdminTestBase
     }
 
     [Fact]
+    public async Task Missing_Or_Unknown_Reference_Is_A_Validation_Error()
+    {
+        var book = new { Title = "Orphan", Genre = "Poetry", Price = 5, PublishDate = "2026-01-01T00:00:00Z" };
+
+        // A required foreign key left out: "AuthorId is required", not a database foreign-key error.
+        (await Should.ThrowAsync<AbpValidationException>(() => Service.CreateAsync("Book", Values(book))))
+            .ValidationErrors.SelectMany(e => e.MemberNames).ShouldContain("AuthorId");
+
+        // An id with no Author behind it.
+        (await Should.ThrowAsync<AbpValidationException>(() => Service.CreateAsync("Book", Values(new { book.Title, book.Genre, book.Price, book.PublishDate, AuthorId = Guid.NewGuid() }))))
+            .ValidationErrors.SelectMany(e => e.MemberNames).ShouldContain("AuthorId");
+    }
+
+    [Fact]
     public async Task Tenants_See_Only_Their_Library()
     {
         var acme = await WithUnitOfWorkAsync(async () => (await GetRequiredService<ITenantRepository>().FindByNameAsync("ACME"))!.Id);

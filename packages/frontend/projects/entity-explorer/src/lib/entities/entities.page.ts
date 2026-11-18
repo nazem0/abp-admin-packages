@@ -248,7 +248,7 @@ function parseJson(raw: string, field: string) {
               <tbody>
                 @for (r of rows(); track $index) {
                   <tr class="clickable" tabindex="0" (click)="editing.set(r)" (keydown.enter)="editing.set(r)">
-                    @for (c of columns(); track c.name) { <td [class.mono]="(c.type === 'guid' && !c.reference) || c.isKey">{{ show(r, c) }}</td> }
+                    @for (c of columns(); track c.name) { <td [class.mono]="(c.type === 'guid' && !c.reference) || c.isKey">@if (c.type === 'datetime') { <span dir="ltr">{{ show(r, c) }}</span> } @else { {{ show(r, c) }} }</td> }
                   </tr>
                 }
               </tbody>
