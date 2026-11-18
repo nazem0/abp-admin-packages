@@ -1,5 +1,7 @@
 # ABP Admin
 
+[![AbpAdmin.HttpApi](https://img.shields.io/nuget/dt/AbpAdmin.HttpApi?label=AbpAdmin.HttpApi&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.HttpApi) [![AbpAdmin.Web](https://img.shields.io/nuget/dt/AbpAdmin.Web?label=AbpAdmin.Web&logo=nuget)](https://www.nuget.org/packages/AbpAdmin.Web) [![@nazem0/abp-admin-ng](https://img.shields.io/npm/d18m/@nazem0/abp-admin-ng?label=%40nazem0%2Fabp-admin-ng&logo=npm)](https://www.npmjs.com/package/@nazem0/abp-admin-ng) [![release](https://img.shields.io/github/v/release/nazem0/abp-admin-packages)](https://github.com/nazem0/abp-admin-packages/releases)
+
 An open-source, headless admin console for [ABP Framework](https://abp.io) applications.
 It gives the free ABP modules the admin screens they ship without: an **overview dashboard**,
 **audit, security and entity-change logs**, **users, roles, organization units and permissions**,
