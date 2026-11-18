@@ -1,0 +1,32 @@
+name: Download badges
+
+# Sums every package's downloads into shields.io endpoint badges, kept on the `badges` branch (not main).
+on:
+  schedule: [{ cron: '17 3 * * *' }] # daily
+  workflow_run:
+    workflows: [Publish packages]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  badges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node .github/scripts/download-badges.mjs "$RUNNER_TEMP/badges"
+      - name: Commit to the badges branch
+        run: |
+          cd "$RUNNER_TEMP/badges"
+          git init -q -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -q -m "Download badges"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" badges

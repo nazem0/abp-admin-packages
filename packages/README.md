@@ -46,7 +46,9 @@ target feature is installed.
 
 ## Downloads
 
-Live counts from nuget.org (all time) and npm (last 18 months, the most npm reports).
+[![downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/nazem0/abp-admin-packages/badges/downloads.json)](#downloads) [![nuget](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/nazem0/abp-admin-packages/badges/nuget.json)](https://www.nuget.org/packages?q=AbpAdmin) [![npm](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/nazem0/abp-admin-packages/badges/npm.json)](https://www.npmjs.com/search?q=%40nazem0%2Fabp-admin-ng)
+
+Totals add up every package below and refresh daily and after each release (`download-badges.yml`). Per package, live from nuget.org (all time) and npm (last 18 months, the most npm reports):
 
 | Feature | Backend (NuGet) | Razor Pages (NuGet) | Angular (npm) |
 | --- | --- | --- | --- |
