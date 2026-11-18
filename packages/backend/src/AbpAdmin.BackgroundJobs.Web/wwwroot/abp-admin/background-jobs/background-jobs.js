@@ -2,7 +2,7 @@
 (function () {
   const { html, render, icon, on, api, L, can, fmt, toast, errorText, params, setParams } = AbpAdmin;
   const root = document.getElementById('abp-background-jobs');
-  const PAGE_SIZE = 25;
+
   const STATES = [
     { state: 0, key: 'waiting', label: 'AbpAdmin::BackgroundJobs:State:Waiting', hint: 'AbpAdmin::BackgroundJobs:State:WaitingHint', tone: 'info' },
     { state: 1, key: 'retrying', label: 'AbpAdmin::BackgroundJobs:State:Retrying', hint: 'AbpAdmin::BackgroundJobs:State:RetryingHint', tone: 'warn' },
@@ -14,7 +14,7 @@
 
   const state = {
     state: STATES.find(s => s.key === params().get('state'))?.state ?? null,
-    jobName: '', page: 0, openId: null, confirming: null,
+    jobName: '', page: 0, size: AbpAdmin.pageSize(25), openId: null, confirming: null,
     counts: null, items: [], total: 0, loading: false, error: false,
   };
   let seq = 0;
@@ -27,10 +27,11 @@
     try {
       const [counts, list] = await Promise.all([
         api.get('/api/abp-admin/background-job/counts'),
-        api.get('/api/abp-admin/background-job', { state: state.state, jobName: state.jobName, skipCount: state.page * PAGE_SIZE, maxResultCount: PAGE_SIZE }),
+        api.get('/api/abp-admin/background-job', { state: state.state, jobName: state.jobName, skipCount: state.page * state.size, maxResultCount: state.size }),
       ]);
       if (my !== seq) return;
       state.counts = counts; state.items = list.items ?? []; state.total = list.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return load();
     } catch { if (my !== seq) return; state.error = true; }
     state.loading = false; drawTop(); drawList();
   }
@@ -102,7 +103,6 @@
   }
 
   function drawList() {
-    const pages = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
     let body;
     if (state.error) body = html`<div class="state err">${L('AbpAdmin::BackgroundJobs:LoadFailed')} <button class="btn" data-act="refresh">${L('AbpAdmin::Common:Retry')}</button></div>`;
     else if (state.loading && !state.items.length) body = html`<div class="skeleton rows"><i></i><i></i><i></i></div>`;
@@ -110,17 +110,11 @@
       <b>${L('AbpAdmin::BackgroundJobs:QueueEmpty')}</b><span class="muted">${L(state.state !== null || state.jobName ? 'AbpAdmin::BackgroundJobs:NoMatch' : 'AbpAdmin::BackgroundJobs:AllRun')}</span></div>`;
     else body = html`<ul class="jobs">${state.items.map(row)}</ul>`;
     render(document.getElementById('bj-list'), html`${body}
-      ${state.total > PAGE_SIZE ? html`<footer class="pager">
-        <span class="muted">${L('AbpAdmin::BackgroundJobs:Count', String(state.total))}</span>
-        <div>
-          <button class="btn" data-act="prev" ${state.page === 0 ? 'disabled' : ''}>${L('AbpAdmin::Common:Previous')}</button>
-          <span class="muted">${L('AbpAdmin::BackgroundJobs:PageOf', String(state.page + 1), String(pages))}</span>
-          <button class="btn" data-act="next" ${state.page + 1 >= pages ? 'disabled' : ''}>${L('AbpAdmin::Common:Next')}</button>
-        </div>
-      </footer>` : ''}`);
+      ${state.total ? AbpAdmin.pager(state.total, state.page, state.size) : ''}`);
   }
 
   const reload = () => load();
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; reload(); });
   const setName = e => { const v = e.target.value.trim(); if (v !== state.jobName) { state.jobName = v; state.page = 0; load(); } };
 
   on(root, 'click', '[data-act]', async (e, el) => {
@@ -135,8 +129,6 @@
     if (act === 'open') { state.openId = state.openId === id ? null : id; return drawList(); }
     if (act === 'confirm') { state.confirming = id; return drawList(); }
     if (act === 'cancel') { state.confirming = null; return drawList(); }
-    if (act === 'prev') { state.page--; return reload(); }
-    if (act === 'next') { state.page++; return reload(); }
     if (act === 'retry') {
       const j = state.items.find(x => x.id === id);
       try { await api.post(`/api/abp-admin/background-job/${id}/retry`); toast.ok(L('AbpAdmin::BackgroundJobs:QueuedToRun', fmt.shortType(j?.jobName))); reload(); }

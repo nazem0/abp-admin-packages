@@ -163,6 +163,11 @@
 
   .pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--border); }
   .pager div { display: flex; align-items: center; gap: 10px; }
+  .pager .nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .pager .size { display: flex; align-items: center; gap: 8px; margin-inline-end: 8px; white-space: nowrap; }
+  .pager .size .input { width: auto; height: 30px; padding: 0 8px; }
+  .pager .btn.sm { min-width: 32px; justify-content: center; }
+  .pager .gap { padding: 0 4px; color: var(--muted); }
 
   .state { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 28px; flex-wrap: wrap; }
   .state.err { color: var(--err); }

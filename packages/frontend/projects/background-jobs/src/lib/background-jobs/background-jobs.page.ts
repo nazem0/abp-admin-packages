@@ -1,9 +1,8 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { BackgroundJobDto, BackgroundJobService, BackgroundJobState, BackgroundJobPriority, pretty, relative, shortType, stamp, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { BackgroundJobDto, BackgroundJobService, BackgroundJobState, BackgroundJobPriority, pretty, relative, shortType, stamp, apiError, Toaster , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
-const PAGE_SIZE = 25;
 const STATES = [
   { state: BackgroundJobState.Waiting, key: 'waiting', labelKey: 'AbpAdmin::BackgroundJobs:State:Waiting', hintKey: 'AbpAdmin::BackgroundJobs:State:WaitingHint', tone: 'info' },
   { state: BackgroundJobState.Retrying, key: 'retrying', labelKey: 'AbpAdmin::BackgroundJobs:State:Retrying', hintKey: 'AbpAdmin::BackgroundJobs:State:RetryingHint', tone: 'warn' },
@@ -13,7 +12,7 @@ const STATES = [
 /** ABP's persisted background job queue (AbpBackgroundJobs). */
 @Component({
   selector: 'abp-background-jobs-page',
-  imports: [LocalizationPipe],
+  imports: [PagerComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -99,16 +98,7 @@ const STATES = [
           </ul>
         }
 
-        @if (total() > PAGE_SIZE) {
-          <footer class="pager">
-            <span class="muted">{{ 'AbpAdmin::BackgroundJobs:Count' | abpLocalization: total().toString() }}</span>
-            <div>
-              <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ 'AbpAdmin::Common:Previous' | abpLocalization }}</button>
-              <span class="muted">{{ 'AbpAdmin::BackgroundJobs:PageOf' | abpLocalization: (page() + 1).toString(): pages().toString() }}</span>
-              <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ 'AbpAdmin::Common:Next' | abpLocalization }}</button>
-            </div>
-          </footer>
-        }
+        <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
       </section>
     </div>
   `,
@@ -151,8 +141,6 @@ export class BackgroundJobsPage {
 
   /** `?state=abandoned|retrying|waiting` deep link. */
   readonly stateParam = input<string>(undefined, { alias: 'state' });
-
-  protected readonly PAGE_SIZE = PAGE_SIZE;
   protected readonly states = STATES;
   protected readonly Priority = BackgroundJobPriority;
   protected readonly pretty = pretty;
@@ -164,6 +152,7 @@ export class BackgroundJobsPage {
   protected readonly state = linkedSignal<BackgroundJobState | null>(() => STATES.find(s => s.key === this.stateParam())?.state ?? null);
   protected readonly jobName = signal('');
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   protected readonly openId = signal<string | null>(null);
   protected readonly confirming = signal<string | null>(null);
   private readonly tick = signal(0);
@@ -174,14 +163,15 @@ export class BackgroundJobsPage {
       tick: this.tick(),
       state: this.state() ?? undefined,
       jobName: this.jobName() || undefined,
-      skipCount: this.page() * PAGE_SIZE,
-      maxResultCount: PAGE_SIZE,
+      skipCount: this.page() * this.size(),
+      maxResultCount: this.size(),
     }),
     stream: ({ params: { tick, ...input } }) => this.service.getList(input),
   });
   protected readonly rows = computed<BackgroundJobDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
 
   protected priorityLabel(j: BackgroundJobDto) {
     return this.l.instant('AbpAdmin::BackgroundJobs:Priority:' + BackgroundJobPriority[j.priority!]);

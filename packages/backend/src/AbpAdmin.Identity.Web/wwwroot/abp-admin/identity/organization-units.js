@@ -19,6 +19,7 @@
     selectedId: null, tab: 'members', renaming: false, confirmDelete: false,
     picking: null, picked: new Set(), memberFilter: '', userQuery: '',
     members: [], roles: [], userCands: [], allRoles: [],
+    page: 0, size: AbpAdmin.pageSize(20), total: 0,
   };
   let mseq = 0, rseq = 0, useq = 0, timer = 0;
 
@@ -100,6 +101,8 @@
           ${manageMembers ? html`<button class="icon-btn" type="button" data-act="remove-member" data-id="${m.id}" title="${L('AbpAdmin::OrganizationUnits:RemoveFromUnit')}" aria-label="${L('AbpAdmin::OrganizationUnits:RemoveAria', m.userName ?? '')}">${icon(IC.x)}</button>` : ''}
         </li>`)
         : html`<li class="state empty"><b>${L('AbpAdmin::OrganizationUnits:NoMembers')}</b><span class="muted">${L('AbpAdmin::OrganizationUnits:NoMembersHint')}</span></li>`);
+      const pagerEl = detailEl.querySelector('#ou-pager');
+      if (pagerEl) render(pagerEl, state.total ? AbpAdmin.pager(state.total, state.page, state.size) : '');
     } else {
       render(box, state.roles.length ? state.roles.map(r => html`<li>
           <span class="avatar sq" aria-hidden="true">${(r.name || '?')[0].toUpperCase()}</span>
@@ -196,6 +199,7 @@
           <div class="pick-foot" id="ou-pickfoot"></div>
         </div>` : ''}
         <ul class="people" id="ou-people"></ul>
+        ${state.tab === 'members' ? html`<div id="ou-pager"></div>` : ''}
       </div>`);
     drawPeople(); drawCands(); drawPickFoot();
     const rn = detailEl.querySelector('.rename input');
@@ -215,10 +219,11 @@
     const id = ++mseq;
     if (!state.selectedId) return;
     try {
-      const r = await api.get(`${BASE}/${state.selectedId}/members`, { filter: state.memberFilter || undefined, maxResultCount: 200 });
+      const r = await api.get(`${BASE}/${state.selectedId}/members`, { filter: state.memberFilter || undefined, skipCount: state.page * state.size, maxResultCount: state.size });
       if (id !== mseq) return;
-      state.members = r.items ?? [];
-    } catch { if (id !== mseq) return; state.members = []; }
+      state.members = r.items ?? []; state.total = r.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return loadMembers();
+    } catch { if (id !== mseq) return; state.members = []; state.total = 0; }
     drawPeople(); drawCands();
   }
   async function loadRoles() {
@@ -249,7 +254,7 @@
   /** Selection or tab changed: the dependent state resets, like the Angular linkedSignals. */
   function resetPicking() { state.picking = null; state.picked = new Set(); state.userQuery = ''; state.userCands = []; }
   function select(id) {
-    state.selectedId = id; state.renaming = false; state.confirmDelete = false; state.memberFilter = ''; state.members = []; state.roles = [];
+    state.selectedId = id; state.renaming = false; state.confirmDelete = false; state.memberFilter = ''; state.members = []; state.roles = []; state.page = 0; state.total = 0;
     resetPicking(); draw();
     if (id) { loadMembers(); loadRoles(); }
   }
@@ -309,7 +314,8 @@
   });
 
   on(root, 'click', '[data-act=tab]', (e, b) => { state.tab = b.dataset.tab; resetPicking(); drawDetail(); loadRoles(); });
-  const memberFilter = el => { const v = el.value.trim(); if (v !== state.memberFilter) { state.memberFilter = v; loadMembers(); } };
+  const memberFilter = el => { const v = el.value.trim(); if (v !== state.memberFilter) { state.memberFilter = v; state.page = 0; loadMembers(); } };
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; loadMembers(); });
   on(root, 'change', '[data-act=member-filter]', (e, el) => memberFilter(el));
   root.addEventListener('search', e => { if (e.target.matches('[data-act=member-filter]')) memberFilter(e.target); });
   on(root, 'click', '[data-act=picking]', (e, b) => {

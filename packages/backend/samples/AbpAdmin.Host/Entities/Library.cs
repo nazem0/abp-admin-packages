@@ -45,6 +45,8 @@ public class Book : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public decimal Price { get; protected set; }
     public DateTime PublishDate { get; protected set; }
     public bool InStock { get; protected set; }
+    /// <summary>Unknown for most books: null shows "Not set" in the entity explorer.</summary>
+    public bool? Bestseller { get; protected set; }
 
     protected Book()
     {

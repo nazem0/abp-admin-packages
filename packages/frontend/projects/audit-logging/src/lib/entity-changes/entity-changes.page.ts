@@ -5,11 +5,10 @@ import { forkJoin, map } from 'rxjs';
 import { AuditLogDetailComponent } from '../audit-logs/audit-log-detail.component';
 import { EntityHistoryComponent, EntityRef } from './entity-history.component';
 import { EntityTypePickerComponent, SYSTEM_ENTITY_TYPES } from './entity-type-picker.component';
-import { AuditLogDto, AuditLogService, EntityChangeListItemDto, GetEntityChangeListInput, EntityChangeType, RANGES, RangeKey, changeLabelKey, changeTone, clock, dayLabel, rangeWindow, shortType } from '@nazem0/abp-admin-ng-core';
+import { AuditLogDto, AuditLogService, EntityChangeListItemDto, GetEntityChangeListInput, EntityChangeType, RANGES, RangeKey, changeLabelKey, changeTone, clock, dayLabel, rangeWindow, shortType , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 const HIDE_SYSTEM_KEY = 'abp-admin.entity-changes.hide-system';
 
-const PAGE_SIZE = 30;
 /** Bookkeeping columns ABP touches on every update; listed last so the meaningful property names show first. */
 const NOISE = new Set(['EntityVersion', 'ConcurrencyStamp', 'LastModificationTime', 'LastModifierId', 'ExtraProperties']);
 const KINDS = [
@@ -20,7 +19,7 @@ const KINDS = [
 
 @Component({
   selector: 'abp-entity-changes-page',
-  imports: [EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
+  imports: [PagerComponent, EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
   templateUrl: './entity-changes.page.html',
   styleUrl: './entity-changes.page.scss',
 })
@@ -40,6 +39,7 @@ export class EntityChangesPage {
   protected readonly changeType = signal<EntityChangeType | null>(null);
   protected readonly entityId = signal('');
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   private readonly tick = signal(0);
 
   /** ?type=&id=: open that entity's history (links from the Users, Roles and Tenants pages). */
@@ -84,14 +84,16 @@ export class EntityChangesPage {
     params: (): GetEntityChangeListInput => ({
       ...this.base(),
       changeType: this.changeType() ?? undefined,
-      skipCount: this.page() * PAGE_SIZE,
-      maxResultCount: PAGE_SIZE,
+      skipCount: this.page() * this.size(),
+      maxResultCount: this.size(),
     }),
     stream: ({ params }) => this.service.getEntityChanges(params),
   });
 
   protected readonly total = computed(() => this.changes.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
 
   protected readonly groups = computed(() => {
     const groups: { day: string; items: EntityChangeListItemDto[] }[] = [];

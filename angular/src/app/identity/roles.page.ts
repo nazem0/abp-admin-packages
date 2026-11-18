@@ -1,5 +1,6 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { Toaster } from '../shared/toast';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { IdentityRoleDto, IdentityRoleService } from '../proxy/volo/abp/identity';
@@ -77,7 +78,7 @@ export class RoleFormComponent {
 
 @Component({
   selector: 'app-roles-page',
-  imports: [RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, SheetDirective, LocalizationPipe],
+  imports: [PagerComponent, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -160,9 +161,7 @@ export class RoleFormComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? '::Roles:CountOne' : '::Roles:CountMany') | abpLocalization: total().toString() }}</span>
-            @if (total() > rows().length) { <span class="muted">{{ '::Roles:ShowingFirst' | abpLocalization: rows().length.toString() }}</span> }
-          </footer>
+          <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -211,6 +210,10 @@ export class RolesPage {
   protected readonly relative = relative;
 
   protected readonly filter = signal('');
+
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<RoleEdit | null>(null);
   protected readonly perms = signal<PermissionTarget | null>(null);
   protected readonly confirming = signal<string | null>(null);
@@ -221,14 +224,13 @@ export class RolesPage {
   protected readonly busy = signal(false);
   protected readonly types = ENTITY_TYPES;
   private readonly roleUsers = inject(RoleUsersService);
-
-  // ponytail: first 100 roles only; add paging if a deployment ever has more.
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 100 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpIdentity.Roles.Create')) this.editing.set('new'); });

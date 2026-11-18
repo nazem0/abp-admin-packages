@@ -3,7 +3,6 @@
 (function () {
   const { html, render, icon, on, api, L, can, fmt, toast, errorText, pageUrl, config, currentUser, params } = AbpAdmin;
   const root = document.getElementById('abp-users');
-  const PAGE_SIZE = 20;
   const IC = {
     plus: 'M12 5v14M5 12h14', search: 'M20 20l-3.5-3.5', edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', unlock: 'M7 11V7a5 5 0 0 1 9.6-2M5 11h14v10H5z',
     lock: 'M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z', history: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2', shield: 'M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6zM9 12l2 2 4-4',
@@ -12,7 +11,7 @@
 
   /** Host admin with multi-tenancy on: users of every tenant. */
   const multi = !!config.multiTenancy?.isEnabled && !currentUser.tenantId && can('AbpAdmin.Tenants.ManageUsers');
-  const state = { filter: '', page: 0, tenant: '', rows: [], total: 0, tenantNames: {}, tenants: [], loading: false, error: false, confirming: null, failure: null };
+  const state = { filter: '', page: 0, size: AbpAdmin.pageSize(20), tenant: '', rows: [], total: 0, tenantNames: {}, tenants: [], loading: false, error: false, confirming: null, failure: null };
   let seq = 0;
 
   render(root, html`
@@ -48,7 +47,6 @@
   const fullName = u => [u.name, u.surname].filter(Boolean).join(' ');
   const initials = u => (fullName(u) || u.userName || '?').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
   const locked = u => !!u.lockoutEnd && new Date(u.lockoutEnd).getTime() > Date.now();
-  const pages = () => Math.max(1, Math.ceil(state.total / PAGE_SIZE));
   const tenantName = u => state.tenantNames?.[u.tenantId] ?? u.tenantId;
 
   function drawTenant() {
@@ -107,23 +105,20 @@
       : html`<table class="table ${state.loading ? 'loading' : ''}">
           <thead><tr><th>${L('AbpAdmin::Users:Col:User')}</th>${multi ? html`<th>${L('AbpAdmin::Users:Tenant')}</th>` : ''}<th class="hide-sm">${L('AbpAdmin::Users:Email')}</th><th class="hide-sm">${L('AbpAdmin::Users:Phone')}</th><th>${L('AbpAdmin::Common:Status')}</th><th class="hide-sm">${L('AbpAdmin::Common:Created')}</th><th><span class="sr-only">${L('AbpAdmin::Common:Actions')}</span></th></tr></thead>
           <tbody>${rows.map(row)}</tbody></table>`}
-      ${state.total > PAGE_SIZE ? html`<footer class="pager"><span class="muted">${L('AbpAdmin::Users:CountMany', String(state.total))}</span>
-          <div><button class="btn" type="button" data-act="prev" ${state.page === 0 ? 'disabled' : ''}>${L('AbpAdmin::Common:Previous')}</button>
-          <span class="muted">${L('AbpAdmin::Users:PageOf', String(state.page + 1), String(pages()))}</span>
-          <button class="btn" type="button" data-act="next" ${state.page + 1 >= pages() ? 'disabled' : ''}>${L('AbpAdmin::Common:Next')}</button></div></footer>`
-      : state.total ? html`<footer class="pager"><span class="muted">${L(state.total === 1 ? 'AbpAdmin::Users:CountOne' : 'AbpAdmin::Users:CountMany', String(state.total))}</span></footer>` : ''}`);
+      ${state.total ? AbpAdmin.pager(state.total, state.page, state.size) : ''}`);
   }
 
   async function load() {
     const id = ++seq;
     state.loading = true; state.error = false; drawList();
-    const p = { filter: state.filter || undefined, skipCount: state.page * PAGE_SIZE, maxResultCount: PAGE_SIZE };
+    const p = { filter: state.filter || undefined, skipCount: state.page * state.size, maxResultCount: state.size };
     try {
       const r = multi
         ? await api.get('/api/abp-admin/tenant-user', { ...p, hostOnly: state.tenant === 'host' || undefined, tenantId: state.tenant && state.tenant !== 'host' ? state.tenant : undefined })
         : await api.get('/api/identity/users', p);
       if (id !== seq) return;
       state.rows = r.items ?? []; state.total = r.totalCount ?? 0; state.tenantNames = r.tenantNames ?? {};
+      if (AbpAdmin.pastEnd(state)) return load();
     } catch { if (id !== seq) return; state.error = true; }
     state.loading = false; drawList();
   }
@@ -283,8 +278,7 @@
   root.addEventListener('search', e => { if (e.target.matches('[data-act=search]')) search(e.target); });
   on(root, 'change', '[data-act=tenant]', (e, el) => { state.tenant = el.value; state.page = 0; load(); });
   on(root, 'click', '[data-act=reload]', load);
-  on(root, 'click', '[data-act=prev]', () => { state.page--; load(); });
-  on(root, 'click', '[data-act=next]', () => { state.page++; load(); });
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; load(); });
   on(root, 'click', '[data-act=edit]', (e, b) => { const u = byId(b.dataset.id); if (u) openForm(u, tenantOf(u)); });
   on(root, 'click', '[data-act=lock]', (e, b) => { const u = byId(b.dataset.id); if (u) lockAction(u, 'lock'); });
   on(root, 'click', '[data-act=unlock]', (e, b) => { const u = byId(b.dataset.id); if (u) lockAction(u, 'unlock'); });

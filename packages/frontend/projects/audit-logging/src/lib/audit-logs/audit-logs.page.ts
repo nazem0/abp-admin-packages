@@ -3,15 +3,14 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { AuditLogDetailComponent } from './audit-log-detail.component';
 import { AuditStatsComponent, StatsPick } from './audit-stats.component';
-import { AuditLogDto, AuditLogService, GetAuditLogListInput, RANGES, RangeKey, clock, dayLabel, duration, failed, methodTone, relative, splitUrl, statusTone, rangeWindow } from '@nazem0/abp-admin-ng-core';
+import { AuditLogDto, AuditLogService, GetAuditLogListInput, RANGES, RangeKey, clock, dayLabel, duration, failed, methodTone, relative, splitUrl, statusTone, rangeWindow , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 type Outcome = 'all' | 'ok' | 'failed';
 
-const PAGE_SIZE = 30;
 
 @Component({
   selector: 'abp-audit-logs-page',
-  imports: [AuditStatsComponent, AuditLogDetailComponent, LocalizationPipe],
+  imports: [PagerComponent, AuditStatsComponent, AuditLogDetailComponent, LocalizationPipe],
   templateUrl: './audit-logs.page.html',
   styleUrl: './audit-logs.page.scss',
 })
@@ -37,6 +36,7 @@ export class AuditLogsPage {
   protected readonly outcome = signal<Outcome>('all');
   protected readonly minDuration = signal<number | null>(null);
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   /** Bumped by the refresh button to refetch with identical filters. */
   private readonly tick = signal(0);
 
@@ -61,8 +61,8 @@ export class AuditLogsPage {
     httpStatusCode: this.status() ?? undefined,
     hasException: this.outcome() === 'all' ? undefined : this.outcome() === 'failed',
     minExecutionDuration: this.minDuration() ?? undefined,
-    skipCount: this.page() * PAGE_SIZE,
-    maxResultCount: PAGE_SIZE,
+    skipCount: this.page() * this.size(),
+    maxResultCount: this.size(),
   }));
 
   protected readonly logs = rxResource({
@@ -80,7 +80,9 @@ export class AuditLogsPage {
   }
 
   protected readonly total = computed(() => this.logs.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
   private readonly maxDuration = computed(() => Math.max(1, ...(this.logs.value()?.items ?? []).map(l => l.executionDuration)));
 
   protected readonly groups = computed(() => {

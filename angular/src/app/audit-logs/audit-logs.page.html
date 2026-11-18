@@ -121,16 +121,7 @@
       }
     </div>
 
-    @if (total() > 0) {
-      <footer class="pager">
-        <span class="muted">{{ (total() === 1 ? '::AuditLogs:RequestCountOne' : '::AuditLogs:RequestCountMany') | abpLocalization: total().toString() }}</span>
-        <div>
-          <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ '::Common:Previous' | abpLocalization }}</button>
-          <span class="muted">{{ '::AuditLogs:PageOf' | abpLocalization: (page() + 1).toString(): pages().toString() }}</span>
-          <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ '::Common:Next' | abpLocalization }}</button>
-        </div>
-      </footer>
-    }
+    <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
   </section>
 </div>
 

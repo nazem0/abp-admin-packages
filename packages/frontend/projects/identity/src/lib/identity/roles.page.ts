@@ -1,6 +1,6 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
-import { Toaster, IdentityRoleDto, IdentityRoleService, relative, PermissionsEditorComponent, PermissionTarget, SheetDirective, apiError, RoleUsersService, AbpAdminRegistry } from '@nazem0/abp-admin-ng-core';
+import { Toaster, IdentityRoleDto, IdentityRoleService, relative, PermissionsEditorComponent, PermissionTarget, SheetDirective, apiError, RoleUsersService, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
@@ -70,7 +70,7 @@ export class RoleFormComponent {
 
 @Component({
   selector: 'abp-roles-page',
-  imports: [RouterLink, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, SheetDirective, LocalizationPipe],
+  imports: [PagerComponent, RouterLink, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -153,9 +153,7 @@ export class RoleFormComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? 'AbpAdmin::Roles:CountOne' : 'AbpAdmin::Roles:CountMany') | abpLocalization: total().toString() }}</span>
-            @if (total() > rows().length) { <span class="muted">{{ 'AbpAdmin::Roles:ShowingFirst' | abpLocalization: rows().length.toString() }}</span> }
-          </footer>
+          <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -203,6 +201,10 @@ export class RolesPage {
   protected readonly relative = relative;
 
   protected readonly filter = signal('');
+
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<RoleEdit | null>(null);
   protected readonly perms = signal<PermissionTarget | null>(null);
   protected readonly confirming = signal<string | null>(null);
@@ -213,14 +215,13 @@ export class RolesPage {
   /** Entity changes page (audit-logging package), when installed. */
   protected readonly historyPage = inject(AbpAdminRegistry).link('entity-changes');
   private readonly roleUsers = inject(RoleUsersService);
-
-  // ponytail: first 100 roles only; add paging if a deployment ever has more.
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 100 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpIdentity.Roles.Create')) this.editing.set('new'); });

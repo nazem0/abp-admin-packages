@@ -3,15 +3,14 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
-import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry } from '@nazem0/abp-admin-ng-core';
+import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 import { UserEdit, UserFormComponent } from './user-form.component';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
 
-const PAGE_SIZE = 20;
 
 @Component({
   selector: 'abp-users-page',
-  imports: [UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, RouterLink, LocalizationPipe],
+  imports: [PagerComponent, UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, RouterLink, LocalizationPipe],
   // Identity, lockout and permission calls made from this page (dialogs included) go to the row's tenant.
   providers: provideTenantScope(IdentityUserService, UserLockoutService, PermissionsService, IdentityClaimsService, UserTransferService),
   template: `
@@ -146,18 +145,7 @@ const PAGE_SIZE = 20;
           </table>
         }
 
-        @if (total() > PAGE_SIZE) {
-          <footer class="pager">
-            <span class="muted">{{ 'AbpAdmin::Users:CountMany' | abpLocalization: total().toString() }}</span>
-            <div>
-              <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ 'AbpAdmin::Common:Previous' | abpLocalization }}</button>
-              <span class="muted">{{ 'AbpAdmin::Users:PageOf' | abpLocalization: (page() + 1).toString() : pages().toString() }}</span>
-              <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ 'AbpAdmin::Common:Next' | abpLocalization }}</button>
-            </div>
-          </footer>
-        } @else if (total()) {
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? 'AbpAdmin::Users:CountOne' : 'AbpAdmin::Users:CountMany') | abpLocalization: total().toString() }}</span></footer>
-        }
+        <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
       </section>
     </div>
 
@@ -202,12 +190,11 @@ export class UsersPage {
 
   /** `?new=1` opens the create sheet (used by the command palette). */
   readonly new = input<string>();
-
-  protected readonly PAGE_SIZE = PAGE_SIZE;
   protected readonly relative = relative;
 
   protected readonly filter = signal('');
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<UserEdit | null>(null);
   protected readonly perms = signal<PermissionTarget | null>(null);
   protected readonly confirming = signal<string | null>(null);
@@ -220,7 +207,7 @@ export class UsersPage {
   private readonly transfer = inject(UserTransferService);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * PAGE_SIZE, maxResultCount: PAGE_SIZE, tenant: this.tenant() }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size(), tenant: this.tenant() }),
     stream: ({ params: { tenant, ...p } }) => {
       if (!this.multi()) return this.service.getList(p).pipe(map(r => ({ ...r, tenantNames: {} as Record<string, string> })));
       return this.tenantUsers.getList({ ...p, hostOnly: tenant === 'host', tenantId: tenant && tenant !== 'host' ? tenant : undefined });
@@ -228,7 +215,8 @@ export class UsersPage {
   });
   protected readonly rows = computed(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpIdentity.Users.Create')) this.editing.set('new'); });

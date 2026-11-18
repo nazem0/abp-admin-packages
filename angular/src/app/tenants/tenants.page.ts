@@ -1,5 +1,6 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService } from '../proxy/services/tenants';
@@ -341,7 +342,7 @@ export class TenantAdminComponent {
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'app-tenants-page',
-  imports: [TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
+  imports: [PagerComponent, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -435,7 +436,7 @@ export class TenantAdminComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? '::Tenants:CountOne' : '::Tenants:CountMany') | abpLocalization: total().toString() }}</span></footer>
+          <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -472,6 +473,8 @@ export class TenantsPage {
   readonly new = input<string>();
   protected readonly relative = relative;
   protected readonly filter = signal('');
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<TenantEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
   protected readonly database = signal<TenantDto | null>(null);
@@ -486,11 +489,12 @@ export class TenantsPage {
   protected readonly enabled = linkedSignal(() => !!this.mode.value()?.isEnabled);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 200 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<TenantDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpAdmin.Tenants.Create')) this.editing.set('new'); });

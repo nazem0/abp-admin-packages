@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { forkJoin, map } from 'rxjs';
@@ -11,7 +12,6 @@ import { EntityTypePickerComponent, SYSTEM_ENTITY_TYPES } from './entity-type-pi
 
 const HIDE_SYSTEM_KEY = 'abp-admin.entity-changes.hide-system';
 
-const PAGE_SIZE = 30;
 /** Bookkeeping columns ABP touches on every update; listed last so the meaningful property names show first. */
 const NOISE = new Set(['EntityVersion', 'ConcurrencyStamp', 'LastModificationTime', 'LastModifierId', 'ExtraProperties']);
 const KINDS = [
@@ -22,7 +22,7 @@ const KINDS = [
 
 @Component({
   selector: 'app-entity-changes-page',
-  imports: [EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
+  imports: [PagerComponent, EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
   templateUrl: './entity-changes.page.html',
   styleUrl: './entity-changes.page.scss',
 })
@@ -42,6 +42,7 @@ export class EntityChangesPage {
   protected readonly changeType = signal<EntityChangeType | null>(null);
   protected readonly entityId = signal('');
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   private readonly tick = signal(0);
 
   // Sheets
@@ -82,14 +83,16 @@ export class EntityChangesPage {
     params: (): GetEntityChangeListInput => ({
       ...this.base(),
       changeType: this.changeType() ?? undefined,
-      skipCount: this.page() * PAGE_SIZE,
-      maxResultCount: PAGE_SIZE,
+      skipCount: this.page() * this.size(),
+      maxResultCount: this.size(),
     }),
     stream: ({ params }) => this.service.getEntityChanges(params),
   });
 
   protected readonly total = computed(() => this.changes.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
 
   protected readonly groups = computed(() => {
     const groups: { day: string; items: EntityChangeListItemDto[] }[] = [];

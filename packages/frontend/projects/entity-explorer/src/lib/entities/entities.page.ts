@@ -3,7 +3,7 @@ import { Component, computed, inject, input, linkedSignal, output, signal } from
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, map, of } from 'rxjs';
-import { EntityExplorerService, EntityFieldDto, EntityInfoDto, EntitySchemaDto, SheetDirective, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { EntityExplorerService, EntityFieldDto, EntityInfoDto, EntitySchemaDto, SheetDirective, apiError, Toaster , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 type Row = Record<string, any>;
 type Edit = Row | 'new';
@@ -31,12 +31,25 @@ const cell = (row: Row, name: string) => (name in row ? row[name] : row[name[0].
           <div class="sh-body form">
             @for (fld of s.fields; track fld.name) {
               @if (x || !fld.readOnly) {
-              <label class="field" [class.check]="fld.type === 'boolean'">
+              @if (fld.type === 'boolean' && fld.required) {
+                <label class="check">
+                  <input type="checkbox" [name]="fld.name!" [checked]="!!value(fld)" [disabled]="locked(fld)" />
+                  <span><b>{{ fld.name }}</b><small class="mono">{{ fld.type }}</small>
+                    @if (fld.readOnly) { <small>{{ 'AbpAdmin::Entities:ReadOnlyHint' | abpLocalization }}</small> }</span>
+                </label>
+              } @else {
+              <label class="field">
                 <span>{{ fld.name }}
                   @if (fld.required && !locked(fld) && fld.type === 'string') { <i>*</i> }
                   <small class="muted mono">{{ fld.type }}{{ fld.maxLength ? ' · ' + fld.maxLength : '' }}{{ fld.reference ? ' → ' + fld.reference.entity : '' }}</small></span>
                 @switch (control(fld)) {
-                  @case ('checkbox') { <input type="checkbox" [name]="fld.name!" [checked]="!!value(fld)" [disabled]="locked(fld)" /> }
+                  @case ('tristate') {
+                    <select class="input" [name]="fld.name!" [disabled]="locked(fld)">
+                      <option value="" [selected]="value(fld) == null">{{ 'AbpAdmin::Entities:NotSet' | abpLocalization }}</option>
+                      <option value="true" [selected]="value(fld) === true">{{ 'AbpAdmin::Entities:Yes' | abpLocalization }}</option>
+                      <option value="false" [selected]="value(fld) === false">{{ 'AbpAdmin::Entities:No' | abpLocalization }}</option>
+                    </select>
+                  }
                   @case ('select') {
                     <select class="input" [name]="fld.name!" [disabled]="locked(fld)">
                       @if (!fld.required || !x) { <option value="">—</option> }
@@ -56,6 +69,7 @@ const cell = (row: Row, name: string) => (name in row ? row[name] : row[name[0].
                 }
                 @if (fld.readOnly) { <small>{{ 'AbpAdmin::Entities:ReadOnlyHint' | abpLocalization }}</small> }
               </label>
+              }
               }
             }
           </div>
@@ -82,8 +96,11 @@ const cell = (row: Row, name: string) => (name in row ? row[name] : row[name[0].
   `,
   styles: `
     textarea.input { height: auto; padding: 8px 11px; resize: vertical; line-height: 1.5; }
-    .field.check { flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 10px; }
     .field small.mono { font-weight: 400; margin-inline-start: 6px; }
+    .check { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; align-items: center; }
+    .check:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+    .check:has(input:disabled) { cursor: default; opacity: .7; }
+    .check input { margin: 0; }
     .sh-foot .alert { flex: 1; }
   `,
 })
@@ -110,7 +127,7 @@ export class EntityFormComponent {
   protected locked(f: EntityFieldDto) { return !this.writable() || !!f.readOnly || (!!f.isKey && !!this.existing()); }
 
   protected control(f: EntityFieldDto) {
-    if (f.type === 'boolean') return 'checkbox';
+    if (f.type === 'boolean') return 'tristate'; // bool?: required ones are checkboxes, above.
     if (f.type === 'enum') return 'select';
     if (f.type === 'json' || (f.type === 'string' && (f.maxLength == null || f.maxLength > 512))) return 'textarea';
     return 'input';
@@ -136,7 +153,8 @@ export class EntityFormComponent {
       for (const f of this.schema()!.fields!) {
         if (this.locked(f)) continue;
         if (f.type === 'boolean') {
-          if (isNew || fd.has(f.name!) !== !!this.value(f)) values[f.name!] = fd.has(f.name!);
+          const v = f.required ? fd.has(f.name!) : ({ true: true, false: false } as Record<string, boolean>)[String(fd.get(f.name!))] ?? null;
+          if (isNew ? v != null : v !== (f.required ? !!this.value(f) : this.value(f) ?? null)) values[f.name!] = v;
           continue;
         }
         const raw = String(fd.get(f.name!) ?? '');
@@ -185,7 +203,7 @@ function parseJson(raw: string, field: string) {
  */
 @Component({
   selector: 'abp-entities-page',
-  imports: [EntityFormComponent, LocalizationPipe],
+  imports: [PagerComponent, EntityFormComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -236,12 +254,7 @@ function parseJson(raw: string, field: string) {
               </tbody>
             </table>
           </div>
-          <footer class="pager">
-            <span class="muted">{{ 'AbpAdmin::Entities:Count' | abpLocalization: total().toString() }}</span>
-            <span class="spacer"></span>
-            <button class="btn sm" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ 'AbpAdmin::Common:Previous' | abpLocalization }}</button>
-            <button class="btn sm" [disabled]="(page() + 1) * size >= total()" (click)="page.set(page() + 1)">{{ 'AbpAdmin::Common:Next' | abpLocalization }}</button>
-          </footer>
+          <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -264,7 +277,6 @@ export class EntitiesPage {
 
   /** ?entity=Name deep link. */
   readonly entity = input<string>();
-  protected readonly size = 20;
 
   protected readonly entities = rxResource({ stream: () => this.service.getEntities() });
   protected readonly selected = computed(() => this.entity() || this.entities.value()?.[0]?.name || '');
@@ -272,6 +284,7 @@ export class EntitiesPage {
   protected readonly filter = linkedSignal({ source: this.selected, computation: () => '' });
   protected readonly sorting = linkedSignal<string, string | undefined>({ source: this.selected, computation: () => undefined });
   protected readonly page = linkedSignal({ source: this.selected, computation: () => 0 });
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = linkedSignal<string, Edit | null>({ source: this.selected, computation: () => null });
 
   protected readonly schema = rxResource({
@@ -280,7 +293,7 @@ export class EntitiesPage {
   });
   protected readonly list = rxResource({
     params: () => this.selected()
-      ? { entity: this.selected(), filter: this.filter() || undefined, sorting: this.sorting(), skipCount: this.page() * this.size, maxResultCount: this.size }
+      ? { entity: this.selected(), filter: this.filter() || undefined, sorting: this.sorting(), skipCount: this.page() * this.size(), maxResultCount: this.size() }
       : undefined,
     stream: ({ params: { entity, ...input } }) => this.service.getList(entity, input),
   });
@@ -294,6 +307,7 @@ export class EntitiesPage {
   });
   protected readonly rows = computed<Row[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   /** Keys, the display field, then the first other scalar fields: at most 6 columns. */
   protected readonly columns = computed(() => {

@@ -7,7 +7,7 @@
     del: 'M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3', close: 'M6 6l12 12M18 6 6 18',
   };
   // ponytail: first 100 roles only (as in the Angular page); add paging if a deployment ever has more.
-  const state = { filter: '', rows: [], total: 0, loading: false, error: false, confirming: null, failure: null };
+  const state = { filter: '', page: 0, size: AbpAdmin.pageSize(20), rows: [], total: 0, loading: false, error: false, confirming: null, failure: null };
   let seq = 0;
 
   render(root, html`
@@ -66,17 +66,18 @@
       : html`<table class="table">
           <thead><tr><th>${L('AbpAdmin::Roles:Col:Role')}</th><th>${L('AbpAdmin::Roles:Col:Flags')}</th><th class="hide-sm">${L('AbpAdmin::Common:Created')}</th><th><span class="sr-only">${L('AbpAdmin::Common:Actions')}</span></th></tr></thead>
           <tbody>${rows.map(row)}</tbody></table>
-          <footer class="pager"><span class="muted">${L(state.total === 1 ? 'AbpAdmin::Roles:CountOne' : 'AbpAdmin::Roles:CountMany', String(state.total))}</span>
-            ${state.total > rows.length ? html`<span class="muted">${L('AbpAdmin::Roles:ShowingFirst', String(rows.length))}</span>` : ''}</footer>`}`);
+          ${AbpAdmin.pager(state.total, state.page, state.size)}`}`);
   }
 
   async function load() {
+    if (state.filter !== state.pagedFilter) { state.page = 0; state.pagedFilter = state.filter; }
     const id = ++seq;
     state.loading = true; state.error = false; drawList();
     try {
-      const r = await api.get('/api/identity/roles', { filter: state.filter || undefined, maxResultCount: 100 });
+      const r = await api.get('/api/identity/roles', { filter: state.filter || undefined, skipCount: state.page * state.size, maxResultCount: state.size });
       if (id !== seq) return;
       state.rows = r.items ?? []; state.total = r.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return load();
     } catch { if (id !== seq) return; state.error = true; }
     state.loading = false; drawList();
   }
@@ -198,4 +199,5 @@
 
   drawFail(); drawList(); load();
   if (params().get('new') === '1' && can('AbpIdentity.Roles.Create')) openForm(null);
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; state.pagedFilter = state.filter; load(); });
 })();

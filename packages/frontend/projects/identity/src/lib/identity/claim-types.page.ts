@@ -1,7 +1,7 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ClaimTypeDto, ClaimTypeService, IdentityClaimValueType, SheetDirective, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { ClaimTypeDto, ClaimTypeService, IdentityClaimValueType, SheetDirective, apiError, Toaster , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 type ClaimTypeEdit = ClaimTypeDto | 'new';
 const VALUE_TYPES = [IdentityClaimValueType.String, IdentityClaimValueType.Int, IdentityClaimValueType.Boolean, IdentityClaimValueType.DateTime];
@@ -83,7 +83,7 @@ export class ClaimTypeFormComponent {
 /** Claim types: the claims users and roles may carry (free Identity module, no UI of its own). */
 @Component({
   selector: 'abp-claim-types-page',
-  imports: [ClaimTypeFormComponent, LocalizationPipe],
+  imports: [PagerComponent, ClaimTypeFormComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -145,7 +145,7 @@ export class ClaimTypeFormComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ 'AbpAdmin::ClaimTypes:Count' | abpLocalization: total().toString() }}</span></footer>
+          <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -162,15 +162,20 @@ export class ClaimTypesPage {
   protected readonly l = inject(LocalizationService);
 
   protected readonly filter = signal('');
+
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<ClaimTypeEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 500 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<ClaimTypeDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   protected can(policy: string) {
     return this.permissions.getGrantedPolicy(policy);

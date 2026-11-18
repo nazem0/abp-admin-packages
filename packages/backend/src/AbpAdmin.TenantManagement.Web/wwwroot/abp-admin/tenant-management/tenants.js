@@ -7,7 +7,7 @@
   const CLOSE = 'M6 6l12 12M18 6 6 18';
   const canDb = can('AbpAdmin.Tenants.ManageConnectionStrings');
 
-  const state = { filter: '', items: [], total: 0, loading: false, error: false, enabled: false, modeLoading: true, switching: false, busy: null, confirming: null };
+  const state = { filter: '', page: 0, size: AbpAdmin.pageSize(20), items: [], total: 0, loading: false, error: false, enabled: false, modeLoading: true, switching: false, busy: null, confirming: null };
   let seq = 0;
 
   // ---------- page shell (rendered once; list/multi-tenancy card re-render on their own) ----------
@@ -43,12 +43,14 @@
     state.modeLoading = false; drawMode();
   }
   async function loadList() {
+    if (state.filter !== state.pagedFilter) { state.page = 0; state.pagedFilter = state.filter; }
     const my = ++seq;
     state.loading = true; state.error = false; drawList();
     try {
-      const r = await api.get(API, { filter: state.filter, maxResultCount: 200 });
+      const r = await api.get(API, { filter: state.filter, skipCount: state.page * state.size, maxResultCount: state.size });
       if (my !== seq) return;
       state.items = r.items ?? []; state.total = r.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return loadList();
     } catch { if (my !== seq) return; state.error = true; }
     state.loading = false; drawList();
   }
@@ -105,7 +107,7 @@
         <th class="hide-sm">${L('AbpAdmin::Common:Created')}</th><th><span class="sr-only">${L('AbpAdmin::Common:Actions')}</span></th></tr></thead>
       <tbody>${state.items.map(rowView)}</tbody>
     </table>
-    <footer class="pager"><span class="muted">${L(state.total === 1 ? 'AbpAdmin::Tenants:CountOne' : 'AbpAdmin::Tenants:CountMany', String(state.total))}</span></footer>`);
+    ${AbpAdmin.pager(state.total, state.page, state.size)}`);
   }
 
   // ---------- shared sheet pieces ----------
@@ -370,4 +372,5 @@
 
   drawMode(); loadMode(); loadList();
   if (params().get('new') === '1' && can('AbpAdmin.Tenants.Create')) openForm(null); // ?new=1 deep link
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; state.pagedFilter = state.filter; loadList(); });
 })();

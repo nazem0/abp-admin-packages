@@ -1,4 +1,3 @@
-/* Generated from frontend/projects/core/src/styles/abp-admin.scss by `pnpm build:razor-css`; do not edit. */
 /* Design tokens. Everything visual derives from these. */
 .abp-admin {
   color-scheme: light;
@@ -433,6 +432,32 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.abp-admin .pager .nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.abp-admin .pager .size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-end: 8px;
+  white-space: nowrap;
+}
+.abp-admin .pager .size .input {
+  width: auto;
+  height: 30px;
+  padding: 0 8px;
+}
+.abp-admin .pager .btn.sm {
+  min-width: 32px;
+  justify-content: center;
+}
+.abp-admin .pager .gap {
+  padding: 0 4px;
+  color: var(--muted);
 }
 .abp-admin .state {
   display: flex;

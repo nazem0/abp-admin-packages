@@ -103,16 +103,7 @@
       }
     </div>
 
-    @if (total() > 0) {
-      <footer class="pager">
-        <span class="muted">{{ (total() === 1 ? 'AbpAdmin::EntityChanges:CountOne' : 'AbpAdmin::EntityChanges:CountMany') | abpLocalization: total().toString() }}</span>
-        <div>
-          <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ 'AbpAdmin::Common:Previous' | abpLocalization }}</button>
-          <span class="muted">{{ 'AbpAdmin::EntityChanges:PageOf' | abpLocalization: (page() + 1).toString() : pages().toString() }}</span>
-          <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ 'AbpAdmin::Common:Next' | abpLocalization }}</button>
-        </div>
-      </footer>
-    }
+    <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
   </section>
 </div>
 

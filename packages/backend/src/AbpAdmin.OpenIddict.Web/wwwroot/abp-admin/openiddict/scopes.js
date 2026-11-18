@@ -11,7 +11,7 @@
     del: 'M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   };
 
-  const state = { filter: '', rows: [], total: 0, loading: true, error: false, confirming: null };
+  const state = { filter: '', page: 0, size: AbpAdmin.pageSize(20), rows: [], total: 0, loading: true, error: false, confirming: null };
 
   render(root, html`
     <header class="top">
@@ -39,7 +39,7 @@
       : html`<table class="table">
           <thead><tr><th>${L(S + 'Scope')}</th><th>${L(S + 'Resources')}</th><th class="hide-sm">${L('AbpAdmin::Common:Created')}</th><th><span class="sr-only">${L('AbpAdmin::Common:Actions')}</span></th></tr></thead>
           <tbody>${s.rows.map(row)}</tbody></table>
-          <footer class="pager"><span class="muted">${L(S + (s.total === 1 ? 'CountOne' : 'CountMany'), s.total)}</span></footer>`);
+          ${AbpAdmin.pager(s.total, s.page, s.size)}`);
   }
 
   const row = r => html`<tr>
@@ -56,10 +56,12 @@
     </td></tr>`;
 
   async function load() {
+    if (state.filter !== state.pagedFilter) { state.page = 0; state.pagedFilter = state.filter; }
     state.loading = true; state.error = false; draw();
     try {
-      const page = await api.get(URL_, { filter: state.filter || undefined, maxResultCount: 200 });
+      const page = await api.get(URL_, { filter: state.filter || undefined, skipCount: state.page * state.size, maxResultCount: state.size });
       state.rows = page.items ?? []; state.total = page.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return load();
     } catch { state.error = true; }
     state.loading = false; draw();
   }
@@ -133,4 +135,5 @@
   }
 
   load().then(() => { if (params().get('new') === '1' && can('AbpAdmin.Scopes.Create')) openForm(null); });
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; state.pagedFilter = state.filter; load(); });
 })();

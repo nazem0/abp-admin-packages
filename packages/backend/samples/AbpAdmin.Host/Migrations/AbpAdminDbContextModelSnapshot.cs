@@ -17,7 +17,7 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261117082444_AddLibrary";
+    public override string LastMigrationId => "20261118130845_AddBookBestseller";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -104,6 +104,9 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<Guid>("AuthorId")
                     .HasColumnType("uniqueidentifier");
+
+                b.Property<bool?>("Bestseller")
+                    .HasColumnType("bit");
 
                 b.Property<string>("ConcurrencyStamp")
                     .IsConcurrencyToken()

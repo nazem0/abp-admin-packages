@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, linkedSignal, model, output
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
-import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService, FeaturesPage, relative, SheetDirective, apiError, Toaster, AbpAdminRegistry } from '@nazem0/abp-admin-ng-core';
+import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService, FeaturesPage, relative, SheetDirective, apiError, Toaster, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 type TenantEdit = TenantDto | 'new';
 
@@ -335,7 +335,7 @@ export class TenantAdminComponent {
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'abp-tenants-page',
-  imports: [RouterLink, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, SheetDirective, LocalizationPipe],
+  imports: [PagerComponent, RouterLink, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -430,7 +430,7 @@ export class TenantAdminComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? 'AbpAdmin::Tenants:CountOne' : 'AbpAdmin::Tenants:CountMany') | abpLocalization: total().toString() }}</span></footer>
+          <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -466,6 +466,8 @@ export class TenantsPage {
   readonly new = input<string>();
   protected readonly relative = relative;
   protected readonly filter = signal('');
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<TenantEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
   protected readonly database = signal<TenantDto | null>(null);
@@ -480,11 +482,12 @@ export class TenantsPage {
   protected readonly enabled = linkedSignal(() => !!this.mode.value()?.isEnabled);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 200 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<TenantDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpAdmin.Tenants.Create')) this.editing.set('new'); });

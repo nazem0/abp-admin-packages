@@ -34,11 +34,14 @@ public class EntityExplorerLibraryTests : AbpAdminTestBase
         author.Reference.DisplayField.ShouldBe("Name");
         schema.Fields.Single(f => f.Name == "Genre").EnumValues!.Select(v => v.Name).ShouldContain("Poetry");
         schema.Fields.Single(f => f.Name == "Price").Type.ShouldBe("number");
+        var bestseller = schema.Fields.Single(f => f.Name == "Bestseller");
+        bestseller.Type.ShouldBe("boolean");
+        bestseller.Required.ShouldBeFalse(); // bool?: the form offers Not set / Yes / No.
 
         // Key, declared order, TenantId/ExtraProperties, then ABP's audit fields.
         var names = schema.Fields.Select(f => f.Name).ToList();
-        names.Take(9).ShouldBe(["Id", "AuthorId", "Title", "Genre", "Price", "PublishDate", "InStock", "TenantId", "ExtraProperties"]);
-        names.Skip(9).ShouldBe(["CreationTime", "CreatorId", "LastModificationTime", "LastModifierId", "IsDeleted", "DeleterId", "DeletionTime", "ConcurrencyStamp"]);
+        names.Take(10).ShouldBe(["Id", "AuthorId", "Title", "Genre", "Price", "PublishDate", "InStock", "Bestseller", "TenantId", "ExtraProperties"]);
+        names.Skip(10).ShouldBe(["CreationTime", "CreatorId", "LastModificationTime", "LastModifierId", "IsDeleted", "DeleterId", "DeletionTime", "ConcurrencyStamp"]);
     }
 
     [Fact]

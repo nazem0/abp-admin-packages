@@ -2,7 +2,7 @@
 (function () {
   const { html, render, icon, on, api, L, can, fmt, pageUrl, params } = AbpAdmin;
   const root = document.getElementById('abp-security-logs');
-  const PAGE_SIZE = 25;
+
   const FULL = { dateStyle: 'full', timeStyle: 'long' };
   const REFRESH = 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7';
   // The request trace lives in the audit-logging package: link only when it's installed.
@@ -10,7 +10,7 @@
 
   const q = params();
   const state = {
-    range: '7d', userName: q.get('user') ?? '', failedOnly: q.get('failed') === '1', action: null, ip: '', page: 0, openId: null,
+    range: '7d', userName: q.get('user') ?? '', failedOnly: q.get('failed') === '1', action: null, ip: '', page: 0, size: AbpAdmin.pageSize(25), openId: null,
     counts: [], rows: [], total: 0, loading: false, error: false, tick: 0,
   };
   let seq = 0, cseq = 0;
@@ -36,7 +36,6 @@
 
   const sum = f => state.counts.filter(x => f(x.action ?? '')).reduce((n, x) => n + (x.count ?? 0), 0);
   const totals = () => ({ all: sum(() => true), ok: sum(a => a === 'LoginSucceeded'), failed: sum(fmt.isFailure), lockouts: sum(a => a === 'LoginLockedout') });
-  const pages = () => Math.max(1, Math.ceil(state.total / PAGE_SIZE));
   const filtered = () => !!(state.action || state.failedOnly || state.userName || state.ip);
   const windowOf = () => fmt.rangeWindow(state.range);
 
@@ -102,10 +101,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5z" /></svg>
           <b>${L('AbpAdmin::SecurityLogs:NoEvents')}</b><span class="muted">${L('AbpAdmin::SecurityLogs:NoEventsHint')}</span></div>`
       : html`<ul class="events ${state.loading ? 'loading' : ''}">${rows.map(event)}</ul>`}
-      ${state.total > 0 ? html`<footer class="pager"><span class="muted">${L(state.total === 1 ? 'AbpAdmin::SecurityLogs:CountOne' : 'AbpAdmin::SecurityLogs:CountMany', String(state.total))}</span>
-        ${pages() > 1 ? html`<div><button class="btn" type="button" data-act="prev" ${state.page === 0 ? 'disabled' : ''}>${L('AbpAdmin::Common:Previous')}</button>
-          <span class="muted">${L('AbpAdmin::SecurityLogs:PageOf', String(state.page + 1), String(pages()))}</span>
-          <button class="btn" type="button" data-act="next" ${state.page + 1 >= pages() ? 'disabled' : ''}>${L('AbpAdmin::Common:Next')}</button></div>` : ''}</footer>` : ''}`);
+      ${state.total > 0 ? AbpAdmin.pager(state.total, state.page, state.size) : ''}`);
   }
 
   async function loadCounts() {
@@ -125,10 +121,11 @@
     try {
       const r = await api.get('/api/abp-admin/security-log', {
         ...windowOf(), actionName: state.action || undefined, failedOnly: state.failedOnly || undefined, userName: state.userName || undefined,
-        clientIpAddress: state.ip || undefined, skipCount: state.page * PAGE_SIZE, maxResultCount: PAGE_SIZE,
+        clientIpAddress: state.ip || undefined, skipCount: state.page * state.size, maxResultCount: state.size,
       });
       if (id !== seq) return;
       state.rows = r.items ?? []; state.total = r.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return loadList();
     } catch { if (id !== seq) return; state.error = true; }
     state.loading = false; drawTop(); drawList();
   }
@@ -148,8 +145,7 @@
   on(root, 'click', '[data-act=toggle]', (e, b) => { state.openId = state.openId === b.dataset.id ? null : b.dataset.id; drawList(); });
   on(root, 'click', '[data-act=only-user]', (e, b) => { userInput.value = b.dataset.value; setUser(b.dataset.value); });
   on(root, 'click', '[data-act=only-ip]', (e, b) => { ipInput.value = b.dataset.value; state.ip = b.dataset.value; reload(); });
-  on(root, 'click', '[data-act=prev]', () => { state.page--; loadList(); });
-  on(root, 'click', '[data-act=next]', () => { state.page++; loadList(); });
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; loadList(); });
 
   drawTop(); drawSel(); drawList(); loadCounts(); loadList();
 })();

@@ -5,6 +5,8 @@ can add it, **feature by feature**: NuGet packages for the backend, npm packages
 packages for a **Razor Pages UI** with the same look (for ABP MVC apps). Take everything, or only the features
 you want.
 
+What changed in each version: [CHANGELOG.md](CHANGELOG.md).
+
 ```
 packages/
   backend/
@@ -36,6 +38,8 @@ packages/
 | **Entity explorer**: browse and edit the entities you expose, as database rows | `AbpAdmin.EntityExplorer` | `@nazem0/abp-admin-ng-entity-explorer` | *(not yet)* | EF Core |
 | **Everything** | `AbpAdmin.HttpApi` (or `AbpAdmin.Application`) | `@nazem0/abp-admin-ng` | `AbpAdmin.Web` | all of the above |
 
+Every list in both UIs is paged on the server, with a page size of 10/20/50/100 that each browser remembers.
+
 Each feature package depends only on `AbpAdmin.Core` (or its UI counterpart) and the **domain** package of its ABP
 module. Links between features (a security log's "open request trace", the overview's cards) appear only when the
 target feature is installed.
@@ -53,7 +57,8 @@ Configure<EntityExplorerOptions>(options => options
 ```
 
 - **Any entity EF can load**: private/protected setters, and no parameterless constructor (it binds a constructor by
-  parameter names, like EF does). Writes go through ABP repositories, so audit fields, soft delete, concurrency
+  parameter names, like EF does). Foreign keys get a lookup, enums a list, and optional `bool?` fields offer
+  Not set / Yes / No. Writes go through ABP repositories, so audit fields, soft delete, concurrency
   checks and entity history (the Entity changes page) all apply.
 - **Permissions** per entity: `AbpAdmin.Entities.<Name>` with `.Create`, `.Update`, `.Delete`.
 - **Tenants**: a tenant sees and writes only its own rows, and its `TenantId` is fixed. Entities without `TenantId`
@@ -74,10 +79,10 @@ No feed setup or token is needed.
 1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
 
    ```xml
-   <PackageReference Include="AbpAdmin.HttpApi" Version="0.2.1" />
+   <PackageReference Include="AbpAdmin.HttpApi" Version="0.3.0" />
    <!-- or, for example: -->
-   <PackageReference Include="AbpAdmin.Identity" Version="0.2.1" />
-   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.2.1" />
+   <PackageReference Include="AbpAdmin.Identity" Version="0.3.0" />
+   <PackageReference Include="AbpAdmin.AuditLogging" Version="0.3.0" />
    ```
 
 2. Depend on the module(s). Each feature module publishes its own APIs under `/api/abp-admin`:
@@ -230,12 +235,12 @@ changing them (`pnpm watch:lib` keeps core rebuilding).
 
 ### Publish
 
-Push a version tag (`git tag v0.2.0 && git push origin v0.2.0`) or run the *Publish packages* workflow
+Push a version tag (`git tag v0.3.0 && git push origin v0.3.0`) or run the *Publish packages* workflow
 (`.github/workflows/publish.yml`). It publishes the NuGet packages to nuget.org and the Angular packages to
 npmjs.com with Trusted Publishing on both: no stored API keys (the `NUGET_USER` repo secret only holds the
 nuget.org profile name). Versions already published are skipped.
 
-Bump the version first, in `backend/Directory.Build.props` and in every `frontend/projects/*/package.json`
+Add the version's notes to [CHANGELOG.md](CHANGELOG.md) and bump the version first, in `backend/Directory.Build.props` and in every `frontend/projects/*/package.json`
 (including the `@nazem0/abp-admin-ng-*` peer dependency versions): a published version can't be overwritten.
 
 ### Live demo

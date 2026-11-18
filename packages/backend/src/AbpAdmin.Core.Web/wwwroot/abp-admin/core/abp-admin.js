@@ -136,6 +136,54 @@
     cycle() { const m = theme.mode; theme.set(m === 'light' ? 'dark' : m === 'dark' ? 'system' : 'light'); },
   };
 
+  // ---------- pager (port of pager.component) ----------
+  const PAGE_SIZES = [10, 20, 50, 100];
+  const SIZE_KEY = 'abp-admin.page-size';
+  /** The page size the viewer picked last (any list), else `fallback`. */
+  function pageSize(fallback = 20) {
+    try { const n = Number(localStorage.getItem(SIZE_KEY)); return PAGE_SIZES.includes(n) ? n : fallback; } catch { return fallback; }
+  }
+  /** List footer: "1–20 of 135", first/previous, page numbers, next/last and the page size. `page` is 0-based. */
+  function pager(total, page, size) {
+    const pages = Math.max(1, Math.ceil(total / size));
+    const from = Math.min(total, page * size + 1), to = Math.min(total, (page + 1) * size);
+    const nums = [];
+    for (let p = 0; p < pages; p++) {
+      if (p === 0 || p === pages - 1 || Math.abs(p - page) <= 2) nums.push(p);
+      else if (nums.at(-1) !== -1) nums.push(-1);
+    }
+    const step = (p, label, aria, off) => html`<button type="button" class="btn sm" data-pager-page="${p}" aria-label="${aria}" ${off ? raw('disabled') : ''}>${label}</button>`;
+    return html`<footer class="pager">
+      <span class="muted">${total ? L('AbpAdmin::Pager:Range', String(from), String(to), String(total)) : L('AbpAdmin::Pager:None')}</span>
+      <span class="nav">
+        <label class="size"><span class="muted">${L('AbpAdmin::Pager:PerPage')}</span>
+          <select class="input" data-pager-size aria-label="${L('AbpAdmin::Pager:PerPage')}">
+            ${PAGE_SIZES.map(n => html`<option value="${n}" ${n === size ? raw('selected') : ''}>${n}</option>`)}</select></label>
+        ${pages > 1 ? html`${step(0, '«', L('AbpAdmin::Pager:First'), page === 0)}${step(page - 1, '‹', L('AbpAdmin::Common:Previous'), page === 0)}
+          ${nums.map(p => p < 0 ? html`<span class="gap" aria-hidden="true">…</span>`
+            : html`<button type="button" class="btn sm ${p === page ? 'primary' : ''}" data-pager-page="${p}" ${p === page ? raw('aria-current="page"') : ''}>${p + 1}</button>`)}
+          ${step(page + 1, '›', L('AbpAdmin::Common:Next'), page + 1 >= pages)}${step(pages - 1, '»', L('AbpAdmin::Pager:Last'), page + 1 >= pages)}` : ''}
+      </span></footer>`;
+  }
+  /** After a load: when `state.page` runs past the end (its last row was deleted, say), moves it to the last page and returns true so the caller reloads. */
+  function pastEnd(state, total = state.total) {
+    if (!total || state.page * state.size < total) return false;
+    state.page = Math.ceil(total / state.size) - 1;
+    return true;
+  }
+  /** Wires every pager under `root`: onChange(page, size). A new size goes back to the first page and is remembered. */
+  function onPager(root, onChange) {
+    root.addEventListener('click', e => {
+      const b = e.target.closest('[data-pager-page]');
+      if (b && root.contains(b) && !b.disabled) onChange(+b.dataset.pagerPage, +b.closest('.pager').querySelector('[data-pager-size]').value);
+    });
+    root.addEventListener('change', e => {
+      if (!e.target.matches('[data-pager-size]')) return;
+      try { localStorage.setItem(SIZE_KEY, e.target.value); } catch { /* storage blocked */ }
+      onChange(0, +e.target.value);
+    });
+  }
+
   // ---------- deep links ----------
   const params = () => new URLSearchParams(location.search);
   /** Replace query parameters without a reload (null/'' removes one). */
@@ -314,6 +362,6 @@
 
   window.AbpAdmin = {
     config, html, raw, render, icon, on, L, can, currentUser, locale, api, ApiError, errorText, query, toast, sheet, theme,
-    params, setParams, pageUrl, fmt, setting,
+    params, setParams, pageUrl, fmt, setting, pager, onPager, pageSize, pastEnd,
   };
 })();

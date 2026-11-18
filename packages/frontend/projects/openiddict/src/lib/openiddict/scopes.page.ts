@@ -1,7 +1,7 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { ScopeDto, ScopeService, relative, SheetDirective, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { ScopeDto, ScopeService, relative, SheetDirective, apiError, Toaster , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 type ScopeEdit = ScopeDto | 'new';
 
@@ -80,7 +80,7 @@ export class ScopeFormComponent {
 /** OpenIddict scopes: the API permissions clients can request, and the audiences they map to. */
 @Component({
   selector: 'abp-scopes-page',
-  imports: [ScopeFormComponent, LocalizationPipe],
+  imports: [PagerComponent, ScopeFormComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -139,7 +139,7 @@ export class ScopeFormComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? 'AbpAdmin::Scopes:CountOne' : 'AbpAdmin::Scopes:CountMany') | abpLocalization: total().toString() }}</span></footer>
+          <abp-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -157,15 +157,18 @@ export class ScopesPage {
   readonly new = input<string>();
   protected readonly relative = relative;
   protected readonly filter = signal('');
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<ScopeEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 200 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<ScopeDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpAdmin.Scopes.Create')) this.editing.set('new'); });

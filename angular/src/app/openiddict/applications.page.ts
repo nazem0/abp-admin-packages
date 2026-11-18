@@ -1,5 +1,6 @@
 import { EnvironmentService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, linkedSignal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ApplicationDto, ApplicationService } from '../proxy/services/open-iddict';
 import { relative } from '../audit-logs/format';
@@ -11,7 +12,7 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
 /** OpenIddict client applications: who may ask this server for tokens, and how. */
 @Component({
   selector: 'app-applications-page',
-  imports: [ApplicationFormComponent, PermissionsEditorComponent, LocalizationPipe],
+  imports: [PagerComponent, ApplicationFormComponent, PermissionsEditorComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -87,7 +88,7 @@ import { PermissionsEditorComponent, PermissionTarget } from '../permissions/per
               </li>
             }
           </ul>
-          <footer class="pager"><span class="muted">{{ (total() === 1 ? '::Applications:CountOne' : '::Applications:CountMany') | abpLocalization: total().toString() }}</span></footer>
+          <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -128,17 +129,20 @@ export class ApplicationsPage {
   protected readonly relative = relative;
   protected readonly ownClient = inject(EnvironmentService).getEnvironment().oAuthConfig?.clientId;
   protected readonly filter = signal('');
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<ApplicationEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
   /** Client permissions apply to tokens the client gets for itself (client_credentials), not to signed-in users. */
   protected readonly perms = signal<PermissionTarget | null>(null);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 200 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<ApplicationDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpAdmin.Applications.Create')) this.editing.set('new'); });

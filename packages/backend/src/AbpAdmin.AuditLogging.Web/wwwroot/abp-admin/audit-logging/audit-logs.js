@@ -2,14 +2,14 @@
 (function () {
   const { html, raw, render, on, api, L, fmt, errorText, params, setParams } = AbpAdmin;
   const root = document.getElementById('abp-audit-logs');
-  const PAGE_SIZE = 30;
+  const PAGE_SIZE_DEFAULT = 30;
   const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
   const SEARCH = 'M20 20l-3.5-3.5';
   const deepLink = params().get('correlation') || '';
 
   const state = {
     range: '7d', win: fmt.rangeWindow('7d'),
-    url: '', user: '', correlation: deepLink, method: '', status: null, outcome: 'all', minDuration: null, page: 0,
+    url: '', user: '', correlation: deepLink, method: '', status: null, outcome: 'all', minDuration: null, page: 0, size: AbpAdmin.pageSize(PAGE_SIZE_DEFAULT),
     stats: null, statsError: false, statsLoading: false,
     logs: null, logsError: false, logsLoading: false,
     opened: false,
@@ -266,14 +266,7 @@
 
   function drawPager() {
     const total = state.logs?.totalCount ?? 0;
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    render(slot('pager'), total > 0 ? html`<footer class="pager">
-      <span class="muted">${L(total === 1 ? 'AbpAdmin::AuditLogs:RequestCountOne' : 'AbpAdmin::AuditLogs:RequestCountMany', String(total))}</span>
-      <div>
-        <button class="btn" type="button" data-act="prev" ${state.page === 0 ? raw('disabled') : ''}>${L('AbpAdmin::Common:Previous')}</button>
-        <span class="muted">${L('AbpAdmin::AuditLogs:PageOf', String(state.page + 1), String(pages))}</span>
-        <button class="btn" type="button" data-act="next" ${state.page + 1 >= pages ? raw('disabled') : ''}>${L('AbpAdmin::Common:Next')}</button>
-      </div></footer>` : '');
+    render(slot('pager'), total > 0 ? AbpAdmin.pager(total, state.page, state.size) : '');
   }
 
   function drawSkeleton() {
@@ -338,10 +331,11 @@
         httpMethod: state.method || undefined, httpStatusCode: state.status ?? undefined,
         hasException: state.outcome === 'all' ? undefined : state.outcome === 'failed',
         minExecutionDuration: state.minDuration ?? undefined,
-        skipCount: state.page * PAGE_SIZE, maxResultCount: PAGE_SIZE,
+        skipCount: state.page * state.size, maxResultCount: state.size,
       });
       if (token !== logsToken) return;
       state.logs = r;
+      if (AbpAdmin.pastEnd(state, r.totalCount)) return loadLogs();
     } catch { if (token !== logsToken) return; state.logs = null; state.logsError = true; }
     state.logsLoading = false;
     drawActions(); drawList(); drawPager();
@@ -399,8 +393,7 @@
     }
     syncFilters(); filtersChanged();
   });
-  on(root, 'click', '[data-act=prev]', () => { state.page--; loadLogs(); });
-  on(root, 'click', '[data-act=next]', () => { state.page++; loadLogs(); });
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; loadLogs(); });
   on(root, 'click', '.entry[data-i]', (e, el) => AbpAdmin.auditLogging.openRequest(state.logs.items[+el.dataset.i]));
 
   // Clicking a figure in the dashboard filters the list.

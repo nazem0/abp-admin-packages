@@ -46,7 +46,14 @@ public class TenantUserAppService(IRepository<IdentityUser, Guid> users, IReposi
         using (CurrentTenant.Change(null))
         using (DataFilter.Disable<IMultiTenant>())
         {
+            // A deleted tenant (soft delete) keeps its user rows; hide them. Users and tenants belong to different modules,
+            // so they may sit in different DbContexts (even databases) that can't join in one query: fetch the ids of the
+            // deleted tenants first (usually none), then filter users by them.
+            List<Guid> deletedTenants;
+            using (DataFilter.Disable<ISoftDelete>())
+                deletedTenants = await AsyncExecuter.ToListAsync((await tenants.GetQueryableAsync()).Where(t => t.IsDeleted).Select(t => t.Id));
             var q = await users.GetQueryableAsync();
+            if (deletedTenants.Count > 0) q = q.Where(u => u.TenantId == null || !deletedTenants.Contains(u.TenantId.Value));
             if (input.HostOnly) q = q.Where(u => u.TenantId == null);
             else if (input.TenantId != null) q = q.Where(u => u.TenantId == input.TenantId);
             if (!input.Filter.IsNullOrWhiteSpace())
@@ -60,11 +67,8 @@ public class TenantUserAppService(IRepository<IdentityUser, Guid> users, IReposi
                 .Skip(input.SkipCount).Take(input.MaxResultCount));
 
             var ids = page.Where(u => u.TenantId != null).Select(u => u.TenantId!.Value).Distinct().ToList();
-            Dictionary<Guid, string> names;
-            using (DataFilter.Disable<ISoftDelete>()) // users of a deleted tenant still show which one
-                names = ids.Count == 0 ? new()
-                    : (await AsyncExecuter.ToListAsync((await tenants.GetQueryableAsync()).Where(t => ids.Contains(t.Id))))
-                        .ToDictionary(t => t.Id, t => t.IsDeleted ? $"{t.Name} ✕" : t.Name);
+            var names = ids.Count == 0 ? new Dictionary<Guid, string>()
+                : (await AsyncExecuter.ToListAsync((await tenants.GetQueryableAsync()).Where(t => ids.Contains(t.Id)))).ToDictionary(t => t.Id, t => t.Name);
 
             return new TenantUserListResultDto
             {

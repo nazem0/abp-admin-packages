@@ -1,5 +1,6 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ClaimTypeDto, ClaimTypeService, IdentityClaimValueType } from '../proxy/services/identity';
 import { SheetDirective } from '../shared/sheet.directive';
@@ -86,7 +87,7 @@ export class ClaimTypeFormComponent {
 /** Claim types: the claims users and roles may carry (free Identity module, no UI of its own). */
 @Component({
   selector: 'app-claim-types-page',
-  imports: [ClaimTypeFormComponent, LocalizationPipe],
+  imports: [PagerComponent, ClaimTypeFormComponent, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -148,7 +149,7 @@ export class ClaimTypeFormComponent {
               }
             </tbody>
           </table>
-          <footer class="pager"><span class="muted">{{ '::ClaimTypes:Count' | abpLocalization: total().toString() }}</span></footer>
+          <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
         }
       </section>
     </div>
@@ -165,15 +166,20 @@ export class ClaimTypesPage {
   protected readonly l = inject(LocalizationService);
 
   protected readonly filter = signal('');
+
+  protected readonly page = linkedSignal({ source: this.filter, computation: () => 0 });
+
+  protected readonly size = signal(savedPageSize());
   protected readonly editing = signal<ClaimTypeEdit | null>(null);
   protected readonly confirming = signal<string | null>(null);
 
   protected readonly list = rxResource({
-    params: () => ({ filter: this.filter() || undefined, maxResultCount: 500 }),
+    params: () => ({ filter: this.filter() || undefined, skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
   protected readonly rows = computed<ClaimTypeDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
 
   protected can(policy: string) {
     return this.permissions.getGrantedPolicy(policy);

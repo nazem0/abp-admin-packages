@@ -66,11 +66,18 @@ public class AuditLogCleaner(
         if (days == 0) return new AuditLogCleanupResultDto();
 
         var before = clock.Now.AddDays(-days);
+        return new AuditLogCleanupResultDto { Deleted = await DeleteBeforeAsync(before), Before = before };
+    }
+
+    /// <summary>Deletes every tenant's logs that ran before <paramref name="before"/>; returns how many.</summary>
+    [UnitOfWork]
+    public virtual async Task<int> DeleteBeforeAsync(DateTime before)
+    {
         using (dataFilter.Disable<IMultiTenant>())
         {
             var count = await executer.CountAsync((await auditLogs.GetQueryableAsync()).Where(x => x.ExecutionTime < before));
             if (count > 0) await auditLogs.DeleteDirectAsync(x => x.ExecutionTime < before);
-            return new AuditLogCleanupResultDto { Deleted = count, Before = before };
+            return count;
         }
     }
 }

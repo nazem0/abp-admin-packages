@@ -1,17 +1,17 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { GetSecurityLogListInput, SecurityLogDto, SecurityLogService } from '../proxy/services/security-logs';
 import { RANGES, RangeKey, browserName, rangeWindow, relative, stamp } from '../audit-logs/format';
 import { describeAction, isFailure } from './actions';
 
-const PAGE_SIZE = 25;
 
 /** Identity security log: every sign-in, failure, lockout, sign-out and credential change. */
 @Component({
   selector: 'app-security-logs-page',
-  imports: [RouterLink, LocalizationPipe],
+  imports: [PagerComponent, RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -102,18 +102,7 @@ const PAGE_SIZE = 25;
           </ul>
         }
 
-        @if (total() > 0) {
-          <footer class="pager">
-            <span class="muted">{{ (total() === 1 ? '::SecurityLogs:CountOne' : '::SecurityLogs:CountMany') | abpLocalization: total().toString() }}</span>
-            @if (pages() > 1) {
-              <div>
-                <button class="btn" [disabled]="page() === 0" (click)="page.set(page() - 1)">{{ '::Common:Previous' | abpLocalization }}</button>
-                <span class="muted">{{ '::SecurityLogs:PageOf' | abpLocalization: (page() + 1).toString(): pages().toString() }}</span>
-                <button class="btn" [disabled]="page() + 1 >= pages()" (click)="page.set(page() + 1)">{{ '::Common:Next' | abpLocalization }}</button>
-              </div>
-            }
-          </footer>
-        }
+        <app-pager [total]="total()" [(page)]="page" [(size)]="size" />
       </section>
     </div>
   `,
@@ -172,6 +161,7 @@ export class SecurityLogsPage {
   protected readonly action = signal<string | null>(null);
   protected readonly ip = signal('');
   protected readonly page = signal(0);
+  protected readonly size = signal(savedPageSize());
   protected readonly openId = signal<string | null>(null);
   private readonly tick = signal(0);
 
@@ -201,15 +191,16 @@ export class SecurityLogsPage {
       failedOnly: this.failedOnly() || undefined,
       userName: this.userName() || undefined,
       clientIpAddress: this.ip() || undefined,
-      skipCount: this.page() * PAGE_SIZE,
-      maxResultCount: PAGE_SIZE,
+      skipCount: this.page() * this.size(),
+      maxResultCount: this.size(),
     }),
     stream: ({ params }) => this.service.getList(params),
   });
 
   protected readonly rows = computed<SecurityLogDto[]>(() => this.list.value()?.items ?? []);
   protected readonly total = computed(() => this.list.value()?.totalCount ?? 0);
-  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE)));
+  private readonly pageInRange = keepPageInRange(this.page, this.size, this.total);
+  protected readonly pages = computed(() => Math.max(1, Math.ceil(this.total() / this.size())));
   protected readonly filtered = computed(() => !!(this.action() || this.failedOnly() || this.userName() || this.ip()));
 
   protected actionLabel(action?: string | null) {

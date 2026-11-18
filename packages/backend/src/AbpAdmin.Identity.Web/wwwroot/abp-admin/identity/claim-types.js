@@ -5,7 +5,7 @@
   const API = '/api/abp-admin/claim-type';
   const IC = { plus: 'M12 5v14M5 12h14', edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', del: 'M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3', close: 'M6 6l12 12M18 6 6 18' };
   const TYPES = [0, 1, 2, 3];
-  const state = { filter: '', rows: [], total: 0, loading: false, error: false, confirming: null };
+  const state = { filter: '', page: 0, size: AbpAdmin.pageSize(20), rows: [], total: 0, loading: false, error: false, confirming: null };
   let seq = 0, editing = null;
 
   render(root, html`
@@ -49,16 +49,18 @@
       : html`<table class="table">
           <thead><tr><th>${L('AbpAdmin::Common:Name')}</th><th>${L('AbpAdmin::ClaimTypes:ValueType')}</th><th class="hide-sm">${L('AbpAdmin::ClaimTypes:Regex')}</th><th>${L('AbpAdmin::Roles:Col:Flags')}</th><th><span class="sr-only">${L('AbpAdmin::Common:Actions')}</span></th></tr></thead>
           <tbody>${state.rows.map(row)}</tbody></table>
-        <footer class="pager"><span class="muted">${L('AbpAdmin::ClaimTypes:Count', String(state.total))}</span></footer>`);
+        ${AbpAdmin.pager(state.total, state.page, state.size)}`);
   }
 
   async function load() {
+    if (state.filter !== state.pagedFilter) { state.page = 0; state.pagedFilter = state.filter; }
     const id = ++seq;
     state.loading = true; state.error = false; drawList();
     try {
-      const r = await api.get(API, { filter: state.filter || undefined, maxResultCount: 500 });
+      const r = await api.get(API, { filter: state.filter || undefined, skipCount: state.page * state.size, maxResultCount: state.size });
       if (id !== seq) return;
       state.rows = r.items ?? []; state.total = r.totalCount ?? 0;
+      if (AbpAdmin.pastEnd(state)) return load();
     } catch { if (id !== seq) return; state.error = true; }
     state.loading = false; drawList();
   }
@@ -125,4 +127,5 @@
   root.addEventListener('search', e => { if (e.target.matches('[data-act=search]')) search(e.target); });
 
   load();
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; state.pagedFilter = state.filter; load(); });
 })();

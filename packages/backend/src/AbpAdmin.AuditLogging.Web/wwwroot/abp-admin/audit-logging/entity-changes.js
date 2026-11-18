@@ -2,7 +2,7 @@
 (function () {
   const { html, raw, render, on, api, L, fmt } = AbpAdmin;
   const root = document.getElementById('abp-entity-changes');
-  const PAGE_SIZE = 30;
+  const PAGE_SIZE_DEFAULT = 30;
   const HIDE_SYSTEM_KEY = 'abp-admin.entity-changes.hide-system';
   /** Bookkeeping columns ABP touches on every update; listed last so the meaningful property names show first. */
   const NOISE = new Set(['EntityVersion', 'ConcurrencyStamp', 'LastModificationTime', 'LastModifierId', 'ExtraProperties']);
@@ -27,7 +27,7 @@
 
   const state = {
     range: '7d', win: fmt.rangeWindow('7d'),
-    entityTypes: [], hideSystem: readHideSystem(), changeType: null, entityId: '', page: 0,
+    entityTypes: [], hideSystem: readHideSystem(), changeType: null, entityId: '', page: 0, size: AbpAdmin.pageSize(PAGE_SIZE_DEFAULT),
     typeCounts: [], counts: null, changes: null, loading: false, error: false,
   };
 
@@ -233,14 +233,7 @@
 
   function drawPager() {
     const total = state.changes?.totalCount ?? 0;
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    render(slot('pager'), total > 0 ? html`<footer class="pager">
-      <span class="muted">${L(total === 1 ? 'AbpAdmin::EntityChanges:CountOne' : 'AbpAdmin::EntityChanges:CountMany', String(total))}</span>
-      <div>
-        <button class="btn" type="button" data-act="prev" ${state.page === 0 ? raw('disabled') : ''}>${L('AbpAdmin::Common:Previous')}</button>
-        <span class="muted">${L('AbpAdmin::EntityChanges:PageOf', String(state.page + 1), String(pages))}</span>
-        <button class="btn" type="button" data-act="next" ${state.page + 1 >= pages ? raw('disabled') : ''}>${L('AbpAdmin::Common:Next')}</button>
-      </div></footer>` : '');
+    render(slot('pager'), total > 0 ? AbpAdmin.pager(total, state.page, state.size) : '');
   }
 
   function drawSkeleton() {
@@ -312,8 +305,8 @@
     if (changes) {
       const token = ++tokens.changes;
       state.loading = true; state.error = false; drawActions(); drawList();
-      api.get('/api/abp-admin/audit-log/entity-changes', { ...base(), changeType: state.changeType ?? undefined, skipCount: state.page * PAGE_SIZE, maxResultCount: PAGE_SIZE })
-        .then(r => { if (token === tokens.changes) state.changes = r; })
+      api.get('/api/abp-admin/audit-log/entity-changes', { ...base(), changeType: state.changeType ?? undefined, skipCount: state.page * state.size, maxResultCount: state.size })
+        .then(r => { if (token !== tokens.changes) return; state.changes = r; if (AbpAdmin.pastEnd(state, r.totalCount)) reload({ changes: true }); })
         .catch(() => { if (token === tokens.changes) { state.changes = null; state.error = true; } })
         .finally(() => { if (token === tokens.changes) { state.loading = false; drawActions(); drawList(); drawPager(); } });
     }
@@ -343,8 +336,7 @@
   });
   on(root, 'click', '[data-remove-type]', (e, el) => selectTypes(state.entityTypes.filter(t => t !== el.dataset.removeType)));
   on(root, 'click', '[data-show-system]', () => setHideSystem(false));
-  on(root, 'click', '[data-act=prev]', () => { state.page--; reload({ changes: true }); });
-  on(root, 'click', '[data-act=next]', () => { state.page++; reload({ changes: true }); });
+  AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; reload({ changes: true }); });
   on(root, 'click', '.row[data-i]', (e, el) => {
     const c = state.changes.items[+el.dataset.i];
     AbpAdmin.auditLogging.openEntityHistory({ type: c.entityTypeFullName, id: c.entityId, focus: c.id });

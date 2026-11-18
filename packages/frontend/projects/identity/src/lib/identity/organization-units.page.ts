@@ -2,7 +2,7 @@ import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/n
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { OrganizationUnitDto, OrganizationUnitService, IdentityRoleService, IdentityUserService, apiError, Toaster } from '@nazem0/abp-admin-ng-core';
+import { OrganizationUnitDto, OrganizationUnitService, IdentityRoleService, IdentityUserService, apiError, Toaster, PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
 
 interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean; path: string[] }
 
@@ -12,7 +12,7 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
  */
 @Component({
   selector: 'abp-organization-units-page',
-  imports: [NgTemplateOutlet, LocalizationPipe],
+  imports: [NgTemplateOutlet, LocalizationPipe, PagerComponent],
   template: `
     <div class="page">
       <header class="top">
@@ -162,6 +162,7 @@ interface Node extends OrganizationUnitDto { depth: number; hasChildren: boolean
                     <li class="state empty"><b>{{ 'AbpAdmin::OrganizationUnits:NoMembers' | abpLocalization }}</b><span class="muted">{{ 'AbpAdmin::OrganizationUnits:NoMembersHint' | abpLocalization }}</span></li>
                   }
                 </ul>
+                <abp-pager [total]="memberTotal()" [(page)]="memberPage" [(size)]="memberSize" />
               </div>
             } @else {
               <div class="pane">
@@ -287,6 +288,8 @@ export class OrganizationUnitsPage {
   protected readonly picking = linkedSignal<unknown, 'users' | 'roles' | null>({ source: () => [this.selectedId(), this.tab()], computation: () => null });
   protected readonly picked = linkedSignal({ source: this.picking, computation: () => new Set<string>() });
   protected readonly memberFilter = linkedSignal({ source: this.selectedId, computation: () => '' });
+  protected readonly memberPage = linkedSignal({ source: () => [this.selectedId(), this.memberFilter()], computation: () => 0 });
+  protected readonly memberSize = signal(savedPageSize());
   protected readonly userQuery = linkedSignal({ source: this.picking, computation: () => '' });
 
   /** Tree order with depth, child flags and breadcrumb path. */
@@ -320,9 +323,11 @@ export class OrganizationUnitsPage {
   });
 
   protected readonly members = rxResource({
-    params: () => (this.selectedId() ? { id: this.selectedId()!, filter: this.memberFilter() } : undefined),
-    stream: ({ params }) => this.service.getMembers(params.id, { filter: params.filter || undefined, maxResultCount: 200 }),
+    params: () => (this.selectedId() ? { id: this.selectedId()!, filter: this.memberFilter(), skipCount: this.memberPage() * this.memberSize(), maxResultCount: this.memberSize() } : undefined),
+    stream: ({ params }) => this.service.getMembers(params.id, { filter: params.filter || undefined, skipCount: params.skipCount, maxResultCount: params.maxResultCount }),
   });
+  protected readonly memberTotal = computed(() => this.members.value()?.totalCount ?? 0);
+  private readonly memberPageInRange = keepPageInRange(this.memberPage, this.memberSize, this.memberTotal);
   protected readonly roles = rxResource({
     params: () => (this.selectedId() && this.tab() === 'roles' ? this.selectedId()! : undefined),
     stream: ({ params }) => this.service.getRoles(params),
