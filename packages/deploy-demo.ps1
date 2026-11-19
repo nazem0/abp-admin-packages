@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 $site = Join-Path ([IO.Path]::GetTempPath()) 'abp-admin-demo-site'
 Remove-Item $site -Recurse -Force -ErrorAction SilentlyContinue
 
-dotnet publish "$PSScriptRoot/backend/samples/AbpAdmin.Host" -c Release -r $Runtime --self-contained -o $site
+dotnet publish "$PSScriptRoot/backend/samples/AbpAdmin.Host" -c Release -f net11.0 -r $Runtime --self-contained -o $site
 if ($LASTEXITCODE) { throw 'dotnet publish failed' }
 
 Push-Location "$PSScriptRoot/frontend"

@@ -91,6 +91,10 @@ The sample host exposes `Book` and `Author` (each tenant has its own library) pl
 The packages are public: NuGet packages on **nuget.org**, Angular packages on **npmjs.com** (scope `@nazem0`).
 No feed setup or token is needed.
 
+**Versions:** the NuGet packages support **ABP 10 (.NET 10)** and **ABP 11 (.NET 11)**. Each package holds one build
+per ABP major, and NuGet picks the one that matches your app's target framework. The Angular packages need Angular 22
+and `@abp/ng.core` 11; an ABP 10 app can use the Razor Pages console instead.
+
 ### Backend
 
 1. Reference the packages in the project that hosts your APIs: everything, or the features you want.
@@ -223,7 +227,8 @@ hides whatever the user isn't granted.
 Prerequisites: .NET 11 SDK, Node 22+, pnpm, ABP CLI, SQL Server LocalDB.
 
 ```bash
-# backend: build, test, pack (→ backend/artifacts/*.nupkg)
+# backend: build, test, pack (→ backend/artifacts/*.nupkg). Everything targets net10.0 (ABP 10) and net11.0 (ABP 11);
+# dotnet test runs the suite on both, so the .NET 10 runtime must be installed too.
 cd backend
 dotnet test AbpAdmin.Packages.slnx
 dotnet pack AbpAdmin.Packages.slnx -c Release
@@ -231,8 +236,8 @@ dotnet pack AbpAdmin.Packages.slnx -c Release
 # sample host: database "AbpAdminDemo", https://localhost:44368 (admin / 1q2w3E*)
 cd samples/AbpAdmin.Host
 abp install-libs                     # login page client libraries (not in git)
-dotnet run -- --migrate-database
-dotnet run
+dotnet run -f net11.0 -- --migrate-database   # -f net10.0 runs the same sample on ABP 10
+dotnet run -f net11.0
 
 # Razor console: https://localhost:44368/AbpAdmin (same sample host)
 

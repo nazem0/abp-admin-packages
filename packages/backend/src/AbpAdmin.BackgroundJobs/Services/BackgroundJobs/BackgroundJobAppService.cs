@@ -7,7 +7,6 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.ObjectMapping;
 
 namespace AbpAdmin.Services.BackgroundJobs;
 
@@ -49,7 +48,7 @@ public class BackgroundJobCountsDto
 
 /// <summary>ABP's persisted background job queue (AbpBackgroundJobs): inspect, retry abandoned jobs, delete.</summary>
 [Authorize(AbpAdminPermissions.BackgroundJobs.Default)]
-public class BackgroundJobAppService : ReadOnlyAppService<BackgroundJobRecord, BackgroundJobDto, Guid, GetBackgroundJobListInput>
+public class BackgroundJobAppService : ProjectedReadOnlyAppService<BackgroundJobRecord, BackgroundJobDto, Guid, GetBackgroundJobListInput>
 {
     private readonly IRepository<BackgroundJobRecord, Guid> _repository;
 
@@ -60,8 +59,7 @@ public class BackgroundJobAppService : ReadOnlyAppService<BackgroundJobRecord, B
         GetPolicyName = GetListPolicyName = AbpAdminPermissions.BackgroundJobs.Default;
     }
 
-    protected override async Task<IQueryable<BackgroundJobRecord>> CreateEntityQueryOrNullAsync(Guid id) =>
-        (await ReadOnlyRepository.GetQueryableAsync()).Where(x => x.Id == id);
+    protected override IQueryable<BackgroundJobDto> ProjectTo(IQueryable<BackgroundJobRecord> query) => BackgroundJobDtoProjector.ProjectTo(query);
 
     protected override async Task<IQueryable<BackgroundJobRecord>> CreateFilteredQueryAsync(GetBackgroundJobListInput input) =>
         (await ReadOnlyRepository.GetQueryableAsync())
@@ -100,8 +98,7 @@ public class BackgroundJobAppService : ReadOnlyAppService<BackgroundJobRecord, B
 }
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-[ExposeServices(typeof(IQueryProjector<BackgroundJobRecord, BackgroundJobDto>))]
-public partial class BackgroundJobDtoProjector : IQueryProjector<BackgroundJobRecord, BackgroundJobDto>, ITransientDependency
+public static partial class BackgroundJobDtoProjector
 {
-    public partial IQueryable<BackgroundJobDto> ProjectTo(IQueryable<BackgroundJobRecord> query);
+    public static partial IQueryable<BackgroundJobDto> ProjectTo(IQueryable<BackgroundJobRecord> query);
 }

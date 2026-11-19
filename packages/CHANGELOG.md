@@ -3,6 +3,23 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
+## Unreleased
+
+NuGet: every `AbpAdmin.*` package.
+
+### New
+
+- **ABP 10 / .NET 10 support** next to ABP 11 / .NET 11: every NuGet package targets `net10.0` (ABP 10.7.x) and
+  `net11.0` (ABP 11.0.x), and NuGet picks the build that matches the app.
+
+### Changed
+
+- ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.
+- Audit logs, security logs and background jobs no longer use ABP 11's `IQueryProjector` (ABP 10 has no such hook):
+  their Get/GetList project in SQL through the shared `ProjectedReadOnlyAppService` base, the same code on both versions.
+  The projectors (`AuditLogDtoProjector`, `SecurityLogDtoProjector`, `BackgroundJobDtoProjector`) are now static
+  Mapperly classes and are no longer registered as `IQueryProjector<,>` services.
+
 ## 0.3.1 — 2026-11-18
 
 NuGet: every `AbpAdmin.*` package. npm: only `@nazem0/abp-admin-ng-entity-explorer` and `@nazem0/abp-admin-ng`.
