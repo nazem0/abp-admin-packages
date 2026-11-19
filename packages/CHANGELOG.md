@@ -11,6 +11,8 @@ NuGet: every `AbpAdmin.*` package.
 
 - **ABP 10 / .NET 10 support** next to ABP 11 / .NET 11: every NuGet package targets `net10.0` (ABP 10.7.x) and
   `net11.0` (ABP 11.0.x), and NuGet picks the build that matches the app.
+- **`EntityExplorerOptions.AddAllFrom<TDbContext>(params Type[] except)`**: exposes every entity the context has a
+  `DbSet<T>` property for, except the given types.
 
 ### Changed
 
@@ -19,6 +21,15 @@ NuGet: every `AbpAdmin.*` package.
   their Get/GetList project in SQL through the shared `ProjectedReadOnlyAppService` base, the same code on both versions.
   The projectors (`AuditLogDtoProjector`, `SecurityLogDtoProjector`, `BackgroundJobDtoProjector`) are now static
   Mapperly classes and are no longer registered as `IQueryProjector<,>` services.
+
+### Fixed
+
+- `Add<TEntity>("Field")` now hides `Field`, as documented. It used to bind to the named overload and expose the entity
+  under the name `Field` with nothing hidden. The named overload is now `AddAs<TEntity>(name, hiddenProperties)`
+  (**breaking** for code that called `Add<TEntity>(name, ...)` with a name).
+- One misconfigured entity (no `IRepository<T>`, not in the EF model) no longer breaks the whole entity list: it is left
+  out with a warning in the log, and opening it directly still reports the error. Easy to hit with several DbContexts,
+  or with `AddAllFrom` on a context that only registers aggregate-root repositories.
 
 ## 0.3.1 — 2026-11-18
 

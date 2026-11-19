@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Volo.Abp.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -105,7 +106,20 @@ public class EntityExplorerAppService(IOptions<EntityExplorerOptions> options) :
                 continue;
             }
 
-            var schema = await (await AccessorAsync(entity.Name, null)).GetSchemaAsync();
+            EntitySchemaDto schema;
+            try
+            {
+                schema = await (await AccessorAsync(entity.Name, null)).GetSchemaAsync();
+            }
+            catch (AbpException exception)
+            {
+                /* A misconfigured entity (no IRepository<T>, not in the EF model) must not take the whole picker down,
+                 * e.g. a child entity AddAllFrom picked up from a context that only registers aggregate-root
+                 * repositories. Opening it directly still reports the error. */
+                Logger.LogWarning(exception, "Entity explorer: '{Entity}' is left out of the list: {Reason}", entity.Name, exception.Message);
+                continue;
+            }
+
             var composite = schema.KeyFields.Count != 1;
             result.Add(new EntityInfoDto
             {
