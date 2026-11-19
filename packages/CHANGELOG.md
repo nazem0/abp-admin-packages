@@ -17,6 +17,9 @@ NuGet: `AbpAdmin.EntityExplorer` (and the all-in-one packages).
 - `Add<TEntity>("Field")` now hides `Field`, as documented. It used to bind to the named overload and expose the entity
   under the name `Field` with nothing hidden. The named overload is now `AddAs<TEntity>(name, hiddenProperties)`
   (**breaking** for code that called `Add<TEntity>(name, ...)` with a name).
+- One misconfigured entity (no `IRepository<T>`, not in the EF model) no longer breaks the whole entity list: it is left
+  out with a warning in the log, and opening it directly still reports the error. Easy to hit with several DbContexts,
+  or with `AddAllFrom` on a context that only registers aggregate-root repositories.
 
 ## 0.3.1 — 2026-11-18
 

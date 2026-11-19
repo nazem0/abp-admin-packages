@@ -27,6 +27,29 @@ public class EntityExplorerTests : AbpAdminTestBase
         Values = JsonSerializer.SerializeToElement(values).EnumerateObject().ToDictionary(p => p.Name, p => p.Value.Clone()),
     };
 
+    /// <summary>Registered but unresolvable: no DbSet, so no IRepository and not in the EF model.</summary>
+    public class OrphanEntity : Entity<Guid>
+    {
+    }
+
+    [Fact]
+    public async Task A_Misconfigured_Entity_Is_Left_Out_Of_The_List_Instead_Of_Breaking_It()
+    {
+        var options = GetRequiredService<Microsoft.Extensions.Options.IOptions<EntityExplorerOptions>>().Value;
+        options.Add<OrphanEntity>();
+        try
+        {
+            var names = (await Service.GetEntitiesAsync()).Select(e => e.Name).ToList();
+            names.ShouldContain("IdentityUser");
+            names.ShouldNotContain(nameof(OrphanEntity));
+            await Should.ThrowAsync<AbpException>(() => Service.GetSchemaAsync(nameof(OrphanEntity)));
+        }
+        finally
+        {
+            options.Entities.Remove(nameof(OrphanEntity));
+        }
+    }
+
     [Fact]
     public async Task Lists_Only_Configured_Entities_And_Hides_Secrets()
     {
