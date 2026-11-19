@@ -12,7 +12,7 @@ using Volo.Abp.Domain.Repositories;
 namespace AbpAdmin.Services.AuditLogs;
 
 [Authorize(AbpAdminPermissions.AuditLogs.Default)]
-public class AuditLogAppService : ReadOnlyAppService<AuditLog, AuditLogDto, Guid, GetAuditLogListInput>
+public class AuditLogAppService : ProjectedReadOnlyAppService<AuditLog, AuditLogDto, Guid, GetAuditLogListInput>
 {
     // ponytail: statistics are computed live over the date range; add a rollup table if the log table grows past a few million rows.
     private const int MaxStatisticsDays = 92;
@@ -24,10 +24,8 @@ public class AuditLogAppService : ReadOnlyAppService<AuditLog, AuditLogDto, Guid
         GetPolicyName = GetListPolicyName = AbpAdminPermissions.AuditLogs.Default;
     }
 
-    // GetAsync / GetListAsync come from ReadOnlyAppService and are projected by AuditLogDtoProjector.
-
-    protected override async Task<IQueryable<AuditLog>> CreateEntityQueryOrNullAsync(Guid id) =>
-        (await ReadOnlyRepository.GetQueryableAsync()).Where(x => x.Id == id);
+    // GetAsync / GetListAsync come from ProjectedReadOnlyAppService and are projected by AuditLogDtoProjector.
+    protected override IQueryable<AuditLogDto> ProjectTo(IQueryable<AuditLog> query) => AuditLogDtoProjector.ProjectTo(query);
 
     protected override async Task<IQueryable<AuditLog>> CreateFilteredQueryAsync(GetAuditLogListInput input) =>
         (await ReadOnlyRepository.GetQueryableAsync())

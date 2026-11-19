@@ -1,19 +1,16 @@
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.AuditLogging;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.ObjectMapping;
 
 namespace AbpAdmin.Services.AuditLogs;
 
 /// <summary>
-/// ABP 11 query projection: ReadOnlyAppService.GetAsync/GetListAsync run this inside the SQL SELECT,
-/// so audit logs (with their actions and entity changes) are never loaded as tracked aggregates.
+/// Runs inside the SQL SELECT (AuditLogAppService.GetAsync/GetListAsync), so audit logs (with their actions and
+/// entity changes) are never loaded as tracked aggregates.
 /// </summary>
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-[ExposeServices(typeof(IQueryProjector<AuditLog, AuditLogDto>))]
-public partial class AuditLogDtoProjector : IQueryProjector<AuditLog, AuditLogDto>, ITransientDependency
+public static partial class AuditLogDtoProjector
 {
-    public partial IQueryable<AuditLogDto> ProjectTo(IQueryable<AuditLog> query);
+    public static partial IQueryable<AuditLogDto> ProjectTo(IQueryable<AuditLog> query);
 }
 
 /// <summary>Projects entity changes (with their property changes) straight into the SQL SELECT.</summary>

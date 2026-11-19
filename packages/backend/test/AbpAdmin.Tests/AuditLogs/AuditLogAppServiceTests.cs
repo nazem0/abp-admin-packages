@@ -70,7 +70,8 @@ public class AuditLogAppServiceTests : AbpAdminTestBase
     [Fact]
     public async Task List_And_Get_Are_Projected_With_Nested_Details()
     {
-        GetRequiredService<Volo.Abp.ObjectMapping.IQueryProjector<AuditLog, AuditLogDto>>().ShouldBeOfType<AuditLogDtoProjector>();
+        await Should.ThrowAsync<Volo.Abp.Domain.Entities.EntityNotFoundException>(
+            () => WithUnitOfWorkAsync(() => _service.GetAsync(Guid.NewGuid())));
 
         var time = new DateTime(2031, 3, 1, 9, 0, 0);
         await WithUnitOfWorkAsync(async () =>

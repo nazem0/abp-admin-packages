@@ -5,12 +5,22 @@ some packages publishes only those, so a package can stay on an earlier version 
 
 ## Unreleased
 
-NuGet: `AbpAdmin.EntityExplorer` (and the all-in-one packages).
+NuGet: every `AbpAdmin.*` package.
 
 ### New
 
+- **ABP 10 / .NET 10 support** next to ABP 11 / .NET 11: every NuGet package targets `net10.0` (ABP 10.7.x) and
+  `net11.0` (ABP 11.0.x), and NuGet picks the build that matches the app.
 - **`EntityExplorerOptions.AddAllFrom<TDbContext>(params Type[] except)`**: exposes every entity the context has a
   `DbSet<T>` property for, except the given types.
+
+### Changed
+
+- ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.
+- Audit logs, security logs and background jobs no longer use ABP 11's `IQueryProjector` (ABP 10 has no such hook):
+  their Get/GetList project in SQL through the shared `ProjectedReadOnlyAppService` base, the same code on both versions.
+  The projectors (`AuditLogDtoProjector`, `SecurityLogDtoProjector`, `BackgroundJobDtoProjector`) are now static
+  Mapperly classes and are no longer registered as `IQueryProjector<,>` services.
 
 ### Fixed
 

@@ -1,12 +1,16 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
+    <!-- One package per ABP major: each ABP major ships for one .NET (ABP 10 = net10.0, ABP 11 = net11.0), so NuGet
+         gives an app the build that matches its ABP version. -->
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <NuGetAudit>false</NuGetAudit>
-    <AbpVersion>11.0.0-rc.2</AbpVersion>
+    <AbpVersion>11.0.0</AbpVersion>
+    <MicrosoftPackagesVersion>11.0.0</MicrosoftPackagesVersion>
+    <LeptonXLiteVersion>6.0.0</LeptonXLiteVersion>
 
     <!-- NuGet package metadata -->
     <Version>0.3.1</Version>
@@ -19,6 +23,12 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts</PackageOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <AbpVersion>10.7.1</AbpVersion>
+    <MicrosoftPackagesVersion>10.0.15</MicrosoftPackagesVersion>
+    <LeptonXLiteVersion>5.7.1</LeptonXLiteVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsPackable)' != 'false'">

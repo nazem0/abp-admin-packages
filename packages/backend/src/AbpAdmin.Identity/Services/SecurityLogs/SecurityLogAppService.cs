@@ -6,13 +6,12 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
-using Volo.Abp.ObjectMapping;
 
 namespace AbpAdmin.Services.SecurityLogs;
 
 /// <summary>Identity security log (sign-ins, failures, lockouts, password changes), projected in SQL.</summary>
 [Authorize(AbpAdminPermissions.SecurityLogs.Default)]
-public class SecurityLogAppService : ReadOnlyAppService<IdentitySecurityLog, SecurityLogDto, Guid, GetSecurityLogListInput>
+public class SecurityLogAppService : ProjectedReadOnlyAppService<IdentitySecurityLog, SecurityLogDto, Guid, GetSecurityLogListInput>
 {
     public SecurityLogAppService(IRepository<IdentitySecurityLog, Guid> repository) : base(repository)
     {
@@ -20,8 +19,7 @@ public class SecurityLogAppService : ReadOnlyAppService<IdentitySecurityLog, Sec
         GetPolicyName = GetListPolicyName = AbpAdminPermissions.SecurityLogs.Default;
     }
 
-    protected override async Task<IQueryable<IdentitySecurityLog>> CreateEntityQueryOrNullAsync(Guid id) =>
-        (await ReadOnlyRepository.GetQueryableAsync()).Where(x => x.Id == id);
+    protected override IQueryable<SecurityLogDto> ProjectTo(IQueryable<IdentitySecurityLog> query) => SecurityLogDtoProjector.ProjectTo(query);
 
     protected override async Task<IQueryable<IdentitySecurityLog>> CreateFilteredQueryAsync(GetSecurityLogListInput input) =>
         Filter(await ReadOnlyRepository.GetQueryableAsync(), input.StartTime, input.EndTime)
@@ -53,8 +51,7 @@ public class SecurityLogAppService : ReadOnlyAppService<IdentitySecurityLog, Sec
 }
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-[ExposeServices(typeof(IQueryProjector<IdentitySecurityLog, SecurityLogDto>))]
-public partial class SecurityLogDtoProjector : IQueryProjector<IdentitySecurityLog, SecurityLogDto>, ITransientDependency
+public static partial class SecurityLogDtoProjector
 {
-    public partial IQueryable<SecurityLogDto> ProjectTo(IQueryable<IdentitySecurityLog> query);
+    public static partial IQueryable<SecurityLogDto> ProjectTo(IQueryable<IdentitySecurityLog> query);
 }

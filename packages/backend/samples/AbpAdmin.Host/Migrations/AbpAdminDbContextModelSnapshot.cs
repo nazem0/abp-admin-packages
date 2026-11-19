@@ -17,7 +17,9 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
+#if NET11_0_OR_GREATER // EF Core 11 only; the sample also builds on net10.0 (ABP 10). Keep this guard when regenerating.
     public override string LastMigrationId => "20261118130845_AddBookBestseller";
+#endif
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {

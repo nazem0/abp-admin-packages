@@ -3,7 +3,6 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>AbpAdmin</RootNamespace>
   </PropertyGroup>
