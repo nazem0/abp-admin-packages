@@ -16,6 +16,8 @@ NuGet: every `AbpAdmin.*` package.
 
 ### Changed
 
+- **Debuggable, verifiable NuGet packages** (nuget.org Health checks): each DLL embeds its PDB with Source Link and the
+  compiler flags, and CI builds are deterministic. You can step into ABP Admin's source while debugging.
 - ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.
 - Audit logs, security logs and background jobs no longer use ABP 11's `IQueryProjector` (ABP 10 has no such hook):
   their Get/GetList project in SQL through the shared `ProjectedReadOnlyAppService` base, the same code on both versions.
