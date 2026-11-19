@@ -71,7 +71,19 @@ Configure<EntityExplorerOptions>(options => options
     .Add<Book>()
     .Add<Author>()
     .Add<IdentityUser>("Email")); // extra fields to hide; PasswordHash, SecurityStamp and ClientSecret are always hidden
+
+// ...or every entity your DbContext has a DbSet<T> property for, minus some
+Configure<EntityExplorerOptions>(options => options
+    .AddAllFrom<MyDbContext>(typeof(IdentitySecurityLog), typeof(Tenant))
+    .Add<IdentityUser>("Email")); // Add after AddAllFrom replaces that entity's registration (here: hides Email)
 ```
+
+`AddAllFrom` takes the `DbSet<T>` properties only (ABP's `AddDefaultRepositories` rule): module tables your context
+maps with `builder.ConfigureXxx()` but has no `DbSet` for are left out. `AddAs<T>("Name", ...)` exposes an entity under
+another name.
+
+Configure the options in a module your **DbMigrator** also loads (e.g. your EntityFrameworkCore module): each entity
+gets its own permissions, and the migrator only grants `admin` the ones it can see.
 
 - **Any entity EF can load**: private/protected setters, and no parameterless constructor (it binds a constructor by
   parameter names, like EF does). Foreign keys get a lookup, enums a list, and optional `bool?` fields offer
