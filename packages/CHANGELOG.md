@@ -3,6 +3,24 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
+## Unreleased
+
+NuGet: `AbpAdmin.EntityExplorer` (and the all-in-one packages).
+
+### New
+
+- **`EntityExplorerOptions.AddAllFrom<TDbContext>(params Type[] except)`**: exposes every entity the context has a
+  `DbSet<T>` property for, except the given types.
+
+### Fixed
+
+- `Add<TEntity>("Field")` now hides `Field`, as documented. It used to bind to the named overload and expose the entity
+  under the name `Field` with nothing hidden. The named overload is now `AddAs<TEntity>(name, hiddenProperties)`
+  (**breaking** for code that called `Add<TEntity>(name, ...)` with a name).
+- One misconfigured entity (no `IRepository<T>`, not in the EF model) no longer breaks the whole entity list: it is left
+  out with a warning in the log, and opening it directly still reports the error. Easy to hit with several DbContexts,
+  or with `AddAllFrom` on a context that only registers aggregate-root repositories.
+
 ## 0.3.1 — 2026-11-18
 
 NuGet: every `AbpAdmin.*` package. npm: only `@nazem0/abp-admin-ng-entity-explorer` and `@nazem0/abp-admin-ng`.
