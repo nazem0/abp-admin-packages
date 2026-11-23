@@ -24,7 +24,9 @@ explorer** to browse and edit your own entities, in English and Arabic (right-to
 | **Languages** | English and Arabic, right-to-left included; any other language through ABP's localization |
 | **This repository's app** | the reference app the packages come from: .NET 11, ABP 11, Angular 22, SQL Server |
 
-To add the console to your own ABP application, use the packages in [`packages/`](packages/README.md):
+To add the console to your own ABP application, run **`dnx AbpAdmin.Cli`** in your solution folder: it detects
+your ABP and .NET versions and installs the packages that fit, from a menu ([installer](packages/README.md#quick-start-the-installer)).
+Or use the packages in [`packages/`](packages/README.md) by hand:
 NuGet for the backend, npm for an Angular UI, or NuGet for a Razor Pages UI with the same look, each split per
 feature so you take only what you need. What changed in each version: [release notes](packages/CHANGELOG.md)
 and [GitHub releases](https://github.com/nazem0/abp-admin-packages/releases).

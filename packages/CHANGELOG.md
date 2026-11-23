@@ -3,6 +3,22 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
+## 0.4.1 — 2026-11-23
+
+NuGet: every `AbpAdmin.*` package. npm: none (unchanged). New: `AbpAdmin.Cli` 0.1.0.
+
+### New
+
+- **Installer CLI** (`AbpAdmin.Cli`, command `abp-admin`; run it with `dnx AbpAdmin.Cli`): detects the app's ABP and .NET
+  versions, its hosts and UIs, offers a menu of features and UIs, installs the newest ABP Admin packages that fit that
+  stack (NuGet and npm), wires the modules and prints the remaining steps. `--dry-run`, `--features`, `--ui`, `--yes`.
+
+### Fixed
+
+- **ABP 10 apps before 10.7.1 couldn't install 0.4.0** (`NU1605` package downgrade): the ABP 10 build was compiled
+  against ABP 10.7.1, which made it the minimum. It now compiles against ABP 10.0.0 (and Microsoft packages 10.0.0),
+  so any ABP 10.x app can install it; tested with a fresh ABP 10.6 app. The ABP 11 build's minimum stays 11.0.0.
+
 ## 0.4.0 — 2026-11-23
 
 NuGet: every `AbpAdmin.*` package (new: `AbpAdmin.EventBus`, `AbpAdmin.EventBus.Web`). npm: every

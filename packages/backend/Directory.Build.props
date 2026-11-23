@@ -13,7 +13,7 @@
     <LeptonXLiteVersion>6.0.0</LeptonXLiteVersion>
 
     <!-- NuGet package metadata -->
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Authors>ABP Admin contributors</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/nazem0/abp-admin-packages</RepositoryUrl>
@@ -33,10 +33,21 @@
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
+  <!-- Packages compile against the FIRST release of each ABP major: dependency versions in a package are minimums, so
+       every ABP 10.x / 11.x app can install them (NuGet keeps the app's newer ABP). Pinning the latest ABP 10 minor here
+       made 10.7.1 the minimum and broke apps on 10.0 - 10.6 (NU1605).
+       The sample host and the tests use the newest release instead (*HostVersion): they show the packages also run there,
+       and dev-only dependencies such as the ABP Studio client need it. -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <AbpVersion>10.7.1</AbpVersion>
-    <MicrosoftPackagesVersion>10.0.15</MicrosoftPackagesVersion>
+    <AbpVersion>10.0.0</AbpVersion>
+    <MicrosoftPackagesVersion>10.0.0</MicrosoftPackagesVersion>
+    <AbpHostVersion>10.7.1</AbpHostVersion>
+    <MicrosoftHostVersion>10.0.15</MicrosoftHostVersion>
     <LeptonXLiteVersion>5.7.1</LeptonXLiteVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AbpHostVersion Condition="'$(AbpHostVersion)' == ''">$(AbpVersion)</AbpHostVersion>
+    <MicrosoftHostVersion Condition="'$(MicrosoftHostVersion)' == ''">$(MicrosoftPackagesVersion)</MicrosoftHostVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsPackable)' != 'false'">
