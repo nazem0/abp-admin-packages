@@ -14,6 +14,7 @@ public class RazorPagesTests : AbpAdminTestBase
     [InlineData("EntityChanges", "abp-entity-changes")]
     [InlineData("SecurityLogs", "abp-security-logs")]
     [InlineData("BackgroundJobs", "abp-background-jobs")]
+    [InlineData("Events", "abp-events")]
     [InlineData("Users", "abp-users")]
     [InlineData("Roles", "abp-roles")]
     [InlineData("OrganizationUnits", "abp-ous")]
@@ -24,6 +25,7 @@ public class RazorPagesTests : AbpAdminTestBase
     [InlineData("Features", "abp-features")]
     [InlineData("Settings/time-zone", "abp-settings")]
     [InlineData("Settings/identity", "abp-identity-settings")]
+    [InlineData("Settings/all", "abp-settings")]
     public async Task Page_Renders_In_The_Console_Layout(string page, string rootId)
     {
         var body = await GetResponseAsStringAsync($"/AbpAdmin/{page}");
