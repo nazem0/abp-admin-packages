@@ -48,6 +48,7 @@
           <div class="seg" role="radiogroup" aria-label="${L('AbpAdmin::SecurityLogs:TimeRange')}">
             ${fmt.RANGES.map(r => html`<button type="button" role="radio" data-act="range" data-key="${r.key}" aria-checked="${state.range === r.key}">${L(r.labelKey)}</button>`)}
           </div>
+          ${AbpAdmin.exportButton()}
           <button class="icon-btn ${state.loading ? 'spin' : ''}" type="button" data-act="refresh" aria-label="${L('AbpAdmin::Common:Refresh')}" title="${L('AbpAdmin::Common:Refresh')}">${icon(REFRESH)}</button>
         </div>
       </header>
@@ -115,14 +116,17 @@
     drawTop(); drawSel();
   }
 
+  /** The list's filters (without paging): shared by the list and its CSV export. */
+  const filters = () => ({
+    ...windowOf(), actionName: state.action || undefined, failedOnly: state.failedOnly || undefined, userName: state.userName || undefined,
+    clientIpAddress: state.ip || undefined,
+  });
+
   async function loadList() {
     const id = ++seq;
     state.loading = true; state.error = false; drawTop(); drawList();
     try {
-      const r = await api.get('/api/abp-admin/security-log', {
-        ...windowOf(), actionName: state.action || undefined, failedOnly: state.failedOnly || undefined, userName: state.userName || undefined,
-        clientIpAddress: state.ip || undefined, skipCount: state.page * state.size, maxResultCount: state.size,
-      });
+      const r = await api.get('/api/abp-admin/security-log', { ...filters(), skipCount: state.page * state.size, maxResultCount: state.size });
       if (id !== seq) return;
       state.rows = r.items ?? []; state.total = r.totalCount ?? 0;
       if (AbpAdmin.pastEnd(state)) return loadList();
@@ -135,6 +139,7 @@
 
   on(root, 'click', '[data-act=range]', (e, b) => { state.range = b.dataset.key; state.page = 0; loadCounts(); loadList(); });
   on(root, 'click', '[data-act=refresh]', () => { loadCounts(); loadList(); });
+  on(root, 'click', '[data-act=export]', () => AbpAdmin.download('/api/abp-admin/security-log/export', filters(), 'security-logs.csv'));
   on(root, 'click', '[data-act=pick]', (e, b) => pick(b.dataset.action || null, b.dataset.failed === '1'));
   on(root, 'change', '[data-act=action]', (e, el) => pick(el.value || null, false));
   on(root, 'click', '[data-act=clear]', () => { state.userName = ''; state.ip = ''; userInput.value = ''; ipInput.value = ''; pick(null, false); });

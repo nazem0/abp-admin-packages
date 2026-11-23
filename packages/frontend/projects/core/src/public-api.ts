@@ -9,6 +9,7 @@ export * from './lib/shared/theme';
 export * from './lib/shared/toast';
 export * from './lib/shared/sheet.directive';
 export * from './lib/shared/pager.component';
+export * from './lib/shared/export-button.component';
 export * from './lib/shared/api-error';
 export * from './lib/shared/format';
 export * from './lib/shared/i18n';

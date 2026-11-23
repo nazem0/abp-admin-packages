@@ -30,8 +30,8 @@ packages/
 | Feature | Backend (NuGet) | Angular (npm) | Razor Pages (NuGet) | Needs in your host |
 | --- | --- | --- | --- | --- |
 | **Core**: overview, settings (time zone, email), host features, permissions editor, shell | `AbpAdmin.Core` | `@nazem0/abp-admin-ng-core` | `AbpAdmin.Core.Web` | Setting, Feature and Permission Management |
-| **Audit logging**: request log and dashboard, traces, entity changes and history, retention (hourly cleanup) | `AbpAdmin.AuditLogging` | `@nazem0/abp-admin-ng-audit-logging` | `AbpAdmin.AuditLogging.Web` | Audit Logging |
-| **Identity**: users (claims, CSV import/export), roles (claims, move all users), organization units, claim types, security logs, identity settings | `AbpAdmin.Identity` | `@nazem0/abp-admin-ng-identity` | `AbpAdmin.Identity.Web` | Identity, Setting Management |
+| **Audit logging**: request log and dashboard, traces, entity changes and history, retention (hourly cleanup), CSV export | `AbpAdmin.AuditLogging` | `@nazem0/abp-admin-ng-audit-logging` | `AbpAdmin.AuditLogging.Web` | Audit Logging |
+| **Identity**: users (claims, CSV import/export), roles (claims, move all users), organization units, claim types, security logs (CSV export), identity settings | `AbpAdmin.Identity` | `@nazem0/abp-admin-ng-identity` | `AbpAdmin.Identity.Web` | Identity, Setting Management |
 | **OpenIddict**: client applications, client permissions, scopes | `AbpAdmin.OpenIddict` | `@nazem0/abp-admin-ng-openiddict` | `AbpAdmin.OpenIddict.Web` | OpenIddict, Permission Management |
 | **Background jobs**: the persisted job queue | `AbpAdmin.BackgroundJobs` | `@nazem0/abp-admin-ng-background-jobs` | `AbpAdmin.BackgroundJobs.Web` | Background Jobs |
 | **Tenants**: tenants, multi-tenancy switch, tenant databases, users across tenants, features per tenant, admin password and invitations | `AbpAdmin.TenantManagement` | `@nazem0/abp-admin-ng-tenant-management` | `AbpAdmin.TenantManagement.Web` | Tenant Management, Identity |

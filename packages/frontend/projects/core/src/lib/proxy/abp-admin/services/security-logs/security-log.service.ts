@@ -12,6 +12,18 @@ export class SecurityLogService {
   
 
   
+  export = (input: GetSecurityLogListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'GET',
+      responseType: 'blob',
+      headers: { Accept: 'application/octet-stream' },
+      url: '/api/abp-admin/security-log/export',
+      params: { startTime: input.startTime, endTime: input.endTime, actionName: input.actionName, userName: input.userName, userId: input.userId, clientId: input.clientId, clientIpAddress: input.clientIpAddress, correlationId: input.correlationId, failedOnly: input.failedOnly, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+    },
+      { apiName: this.apiName,...config });
+  
+
+  
   get = (id: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, SecurityLogDto>({
       method: 'GET',

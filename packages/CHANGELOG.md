@@ -13,8 +13,14 @@ NuGet: every `AbpAdmin.*` package.
   `net11.0` (ABP 11.0.x), and NuGet picks the build that matches the app.
 - **`EntityExplorerOptions.AddAllFrom<TDbContext>(params Type[] except)`**: exposes every entity the context has a
   `DbSet<T>` property for, except the given types.
+- **CSV export** of audit logs, entity changes and security logs (Angular and Razor Pages): a download button next to
+  Refresh exports every row matching the page's current filters, up to 50,000 (`ExportAsync`,
+  `ExportEntityChangesAsync`). Times are in the configured time zone.
 
 ### Changed
+
+- `Csv` (CSV helper) moved from `AbpAdmin.Identity` (`AbpAdmin.Services.Identity`) to `AbpAdmin.Core`
+  (`AbpAdmin.Services`), with `Csv.File(...)` for downloads.
 
 - **Debuggable, verifiable NuGet packages** (nuget.org Health checks): each DLL embeds its PDB with Source Link and the
   compiler flags, and CI builds are deterministic. You can step into ABP Admin's source while debugging.
@@ -29,6 +35,8 @@ NuGet: every `AbpAdmin.*` package.
 - `Add<TEntity>("Field")` now hides `Field`, as documented. It used to bind to the named overload and expose the entity
   under the name `Field` with nothing hidden. The named overload is now `AddAs<TEntity>(name, hiddenProperties)`
   (**breaking** for code that called `Add<TEntity>(name, ...)` with a name).
+- Razor Pages console: the Users CSV export downloaded a JSON description of the file instead of the CSV (file
+  downloads now ask for `application/octet-stream`).
 - One misconfigured entity (no `IRepository<T>`, not in the EF model) no longer breaks the whole entity list: it is left
   out with a warning in the log, and opening it directly still reports the error. Easy to hit with several DbContexts,
   or with `AddAllFrom` on a context that only registers aggregate-root repositories.

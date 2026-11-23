@@ -75,7 +75,8 @@
   /** `body`: JSON, or FormData (sent as multipart). `blob`: return the response body as a Blob (downloads). */
   async function request(method, url, { params, body, tenant, blob } = {}) {
     const form = body instanceof FormData;
-    const headers = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+    // A file download asks for bytes: with Accept JSON, ABP serializes IRemoteStreamContent's metadata instead.
+    const headers = { Accept: blob ? 'application/octet-stream' : 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
     if (body !== undefined && !form) headers['Content-Type'] = 'application/json';
     if (method !== 'GET') headers.RequestVerificationToken = antiforgery();
     if (tenant) headers.__tenant = tenant;
@@ -93,6 +94,18 @@
     delete: (url, params, opts) => request('DELETE', url, { ...opts, params }),
     request,
   };
+  /** GETs `url` as a file and saves it as `fileName` (CSV exports); errors become a toast. */
+  async function download(url, params, fileName, opts) {
+    try {
+      const blob = await request('GET', url, { ...opts, params, blob: true });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: fileName });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) { toast.error(errorText(e)); }
+  }
+  /** The "Export CSV" icon button of a list header; the page handles `data-act="export"`. */
+  const exportButton = () => html`<button class="icon-btn" type="button" data-act="export" title="${L('AbpAdmin::Common:ExportCsvHint')}" aria-label="${L('AbpAdmin::Common:ExportCsv')}">${icon('M12 4v11M7 10l5 5 5-5M5 20h14')}</button>`;
+
   /** Human message of any error (ApiError messages come localized from ABP). */
   const errorText = e => (e instanceof ApiError ? e.message : L('AbpAdmin::Common:SomethingWentWrong'));
 
@@ -362,6 +375,6 @@
 
   window.AbpAdmin = {
     config, html, raw, render, icon, on, L, can, currentUser, locale, api, ApiError, errorText, query, toast, sheet, theme,
-    params, setParams, pageUrl, fmt, setting, pager, onPager, pageSize, pastEnd,
+    params, setParams, pageUrl, fmt, setting, pager, onPager, pageSize, pastEnd, download, exportButton,
   };
 })();

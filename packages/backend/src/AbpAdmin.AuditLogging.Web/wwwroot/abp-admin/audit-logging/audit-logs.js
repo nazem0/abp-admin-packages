@@ -176,6 +176,7 @@
       <div class="seg" role="radiogroup" aria-label="${L('AbpAdmin::AuditLogs:TimeRange')}">
         ${fmt.RANGES.map(r => html`<button role="radio" type="button" aria-checked="${String(state.range === r.key)}" data-range="${r.key}">${L(r.labelKey)}</button>`)}
       </div>
+      ${AbpAdmin.exportButton()}
       <button class="icon-btn ${busy ? 'spin' : ''}" type="button" data-act="refresh" aria-label="${L('AbpAdmin::Common:Refresh')}" title="${L('AbpAdmin::Common:Refresh')}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg></button>`);
   }
@@ -321,18 +322,20 @@
     drawActions(); drawStats(); drawStatusOptions();
   }
 
+  /** The list's filters (without paging): shared by the list and its CSV export. */
+  const filters = () => ({
+    ...state.win,
+    url: state.url || undefined, userName: state.user || undefined, correlationId: state.correlation || undefined,
+    httpMethod: state.method || undefined, httpStatusCode: state.status ?? undefined,
+    hasException: state.outcome === 'all' ? undefined : state.outcome === 'failed',
+    minExecutionDuration: state.minDuration ?? undefined,
+  });
+
   async function loadLogs() {
     const token = ++logsToken;
     state.logsLoading = true; state.logsError = false; drawActions(); drawList();
     try {
-      const r = await api.get('/api/abp-admin/audit-log', {
-        ...state.win,
-        url: state.url || undefined, userName: state.user || undefined, correlationId: state.correlation || undefined,
-        httpMethod: state.method || undefined, httpStatusCode: state.status ?? undefined,
-        hasException: state.outcome === 'all' ? undefined : state.outcome === 'failed',
-        minExecutionDuration: state.minDuration ?? undefined,
-        skipCount: state.page * state.size, maxResultCount: state.size,
-      });
+      const r = await api.get('/api/abp-admin/audit-log', { ...filters(), skipCount: state.page * state.size, maxResultCount: state.size });
       if (token !== logsToken) return;
       state.logs = r;
       if (AbpAdmin.pastEnd(state, r.totalCount)) return loadLogs();
@@ -382,6 +385,7 @@
     refreshWindow();
   });
   on(root, 'click', '[data-act=refresh]', refreshWindow);
+  on(root, 'click', '[data-act=export]', () => AbpAdmin.download('/api/abp-admin/audit-log/export', filters(), 'audit-logs.csv'));
   on(root, 'click', '[data-act=clear-all]', clearAll);
   on(root, 'click', '[data-chip]', (e, el) => {
     const key = el.dataset.chip;

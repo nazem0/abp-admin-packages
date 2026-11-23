@@ -37,14 +37,11 @@ public class UserTransferAppService(IdentityUserManager users, IIdentityUserRepo
     {
         var roleNames = (await roleRepository.GetListAsync()).ToDictionary(r => r.Id, r => r.Name);
         var list = await userRepository.GetListAsync(nameof(IdentityUser.UserName), int.MaxValue, 0, includeDetails: true);
-        var csv = new StringBuilder().AppendLine(string.Join(",", Columns));
-        foreach (var u in list)
+        return Csv.File("users.csv", Columns, list.Select(u => new[]
         {
-            var roles = string.Join(";", u.Roles.Select(r => roleNames.GetValueOrDefault(r.RoleId)).Where(n => n != null));
-            csv.AppendLine(Csv.Line([u.UserName, u.Email, u.Name, u.Surname, u.PhoneNumber, u.IsActive ? "true" : "false", roles]));
-        }
-        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray(); // BOM: Excel reads it as UTF-8
-        return new RemoteStreamContent(new MemoryStream(bytes), "users.csv", "text/csv");
+            u.UserName, u.Email, u.Name, u.Surname, u.PhoneNumber, u.IsActive ? "true" : "false",
+            string.Join(";", u.Roles.Select(r => roleNames.GetValueOrDefault(r.RoleId)).Where(n => n != null)),
+        }));
     }
 
     [Authorize(IdentityPermissions.Users.Create)]
@@ -111,57 +108,5 @@ public class UserTransferAppService(IdentityUserManager users, IIdentityUserRepo
             }
         }
         return result;
-    }
-}
-
-/// <summary>Minimal RFC 4180 CSV: quoted fields, doubled quotes, CRLF or LF.</summary>
-public static class Csv
-{
-    public static string Line(IEnumerable<string?> fields) => string.Join(",", fields.Select(Escape));
-
-    public static string Escape(string? field)
-    {
-        field ??= "";
-        // A leading = + - @ would run as a formula in Excel (CSV injection): prefix it with '.
-        if (field.Length > 0 && "=+-@".Contains(field[0])) field = "'" + field;
-        return field.IndexOfAny([',', '"', '\n', '\r']) >= 0 ? "\"" + field.Replace("\"", "\"\"") + "\"" : field;
-    }
-
-    /// <summary>Undoes the formula guard of <see cref="Escape"/>, so an exported "+962…" phone imports back unchanged.</summary>
-    public static string Unescape(string field) => field.Length > 1 && field[0] == '\'' && "=+-@".Contains(field[1]) ? field[1..] : field;
-
-    public static List<string[]> Parse(string text)
-    {
-        var rows = new List<string[]>();
-        var row = new List<string>();
-        var field = new StringBuilder();
-        var quoted = false;
-        for (var i = 0; i < text.Length; i++)
-        {
-            var c = text[i];
-            if (quoted)
-            {
-                if (c == '"' && i + 1 < text.Length && text[i + 1] == '"') { field.Append('"'); i++; }
-                else if (c == '"') quoted = false;
-                else field.Append(c);
-            }
-            else if (c == '"') quoted = true;
-            else if (c == ',') { row.Add(field.ToString()); field.Clear(); }
-            else if (c is '\n' or '\r')
-            {
-                if (c == '\r' && i + 1 < text.Length && text[i + 1] == '\n') i++;
-                row.Add(field.ToString());
-                field.Clear();
-                rows.Add([.. row]);
-                row.Clear();
-            }
-            else if (c != '﻿') field.Append(c); // skip a BOM
-        }
-        if (field.Length > 0 || row.Count > 0)
-        {
-            row.Add(field.ToString());
-            rows.Add([.. row]);
-        }
-        return rows;
     }
 }

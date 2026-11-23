@@ -137,12 +137,7 @@
   // ---------- CSV import / export (users of the tenant picked in the filter, else the host) ----------
   const filterTenant = () => (multi && state.tenant && state.tenant !== 'host' ? state.tenant : undefined);
   async function exportCsv() {
-    try {
-      const blob = await api.request('GET', '/api/abp-admin/user-transfer/export', { tenant: filterTenant(), blob: true });
-      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'users.csv' });
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } catch (e) { toast.error(errorText(e)); }
+    await AbpAdmin.download('/api/abp-admin/user-transfer/export', undefined, 'users.csv', { tenant: filterTenant() });
   }
   async function importCsv(input) {
     const file = input.files?.[0];
