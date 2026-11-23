@@ -2984,18 +2984,29 @@
           "displayName": null,
           "interfaces": [],
           "actions": {
-            "ClearAsyncByInput": {
-              "uniqueName": "ClearAsyncByInput",
-              "name": "ClearAsync",
+            "ClearUserAsyncByIdAndTenant": {
+              "uniqueName": "ClearUserAsyncByIdAndTenant",
+              "name": "ClearUserAsync",
               "httpMethod": "POST",
-              "url": "api/app/cache/clear",
+              "url": "api/app/cache/{id}/clear-user",
               "supportedVersions": [],
               "parametersOnMethod": [
                 {
-                  "name": "input",
-                  "typeAsString": "AbpAdmin.Services.Caching.ClearCacheInput, AbpAdmin",
-                  "type": "AbpAdmin.Services.Caching.ClearCacheInput",
-                  "typeSimple": "AbpAdmin.Services.Caching.ClearCacheInput",
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "name": "tenant",
+                  "typeAsString": "System.Nullable`1[[System.Guid, System.Private.CoreLib, Version=11.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib",
+                  "type": "System.Guid?",
+                  "typeSimple": "string?",
                   "isOptional": false,
                   "defaultValue": null,
                   "summary": null,
@@ -3005,21 +3016,128 @@
               ],
               "parameters": [
                 {
-                  "nameOnMethod": "input",
-                  "name": "input",
+                  "nameOnMethod": "id",
+                  "name": "id",
                   "jsonName": null,
-                  "type": "AbpAdmin.Services.Caching.ClearCacheInput",
-                  "typeSimple": "AbpAdmin.Services.Caching.ClearCacheInput",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                },
+                {
+                  "nameOnMethod": "tenant",
+                  "name": "tenant",
+                  "jsonName": null,
+                  "type": "System.Guid?",
+                  "typeSimple": "string?",
                   "isOptional": false,
                   "defaultValue": null,
                   "constraintTypes": null,
-                  "bindingSourceId": "Body",
+                  "bindingSourceId": "ModelBinding",
                   "descriptorName": "",
                   "summary": null,
                   "description": null,
                   "displayName": null
                 }
               ],
+              "returnValue": {
+                "type": "AbpAdmin.Services.Caching.ClearCacheResultDto",
+                "typeSimple": "AbpAdmin.Services.Caching.ClearCacheResultDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "AbpAdmin.Cache",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "AbpAdmin.Services.Caching.CacheAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "ClearRoleAsyncById": {
+              "uniqueName": "ClearRoleAsyncById",
+              "name": "ClearRoleAsync",
+              "httpMethod": "POST",
+              "url": "api/app/cache/{id}/clear-role",
+              "supportedVersions": [],
+              "parametersOnMethod": [
+                {
+                  "name": "id",
+                  "typeAsString": "System.Guid, System.Private.CoreLib",
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "parameters": [
+                {
+                  "nameOnMethod": "id",
+                  "name": "id",
+                  "jsonName": null,
+                  "type": "System.Guid",
+                  "typeSimple": "string",
+                  "isOptional": false,
+                  "defaultValue": null,
+                  "constraintTypes": [],
+                  "bindingSourceId": "Path",
+                  "descriptorName": "",
+                  "summary": null,
+                  "description": null,
+                  "displayName": null
+                }
+              ],
+              "returnValue": {
+                "type": "AbpAdmin.Services.Caching.ClearCacheResultDto",
+                "typeSimple": "AbpAdmin.Services.Caching.ClearCacheResultDto",
+                "summary": null,
+                "contentTypes": [
+                  "text/plain",
+                  "application/json",
+                  "text/json"
+                ],
+                "isRemoteStream": false
+              },
+              "allowAnonymous": false,
+              "authorizeDatas": [
+                {
+                  "policy": "AbpAdmin.Cache",
+                  "roles": null
+                }
+              ],
+              "implementFrom": "AbpAdmin.Services.Caching.CacheAppService",
+              "summary": null,
+              "remarks": null,
+              "description": null,
+              "displayName": null
+            },
+            "ClearAllAsync": {
+              "uniqueName": "ClearAllAsync",
+              "name": "ClearAllAsync",
+              "httpMethod": "POST",
+              "url": "api/app/cache/clear-all",
+              "supportedVersions": [],
+              "parametersOnMethod": [],
+              "parameters": [],
               "returnValue": {
                 "type": "AbpAdmin.Services.Caching.ClearCacheResultDto",
                 "typeSimple": "AbpAdmin.Services.Caching.ClearCacheResultDto",
@@ -15002,77 +15120,6 @@
         },
         {
           "name": "JobName",
-          "jsonName": null,
-          "type": "System.String",
-          "typeSimple": "string",
-          "isRequired": false,
-          "minLength": null,
-          "maxLength": null,
-          "minimum": null,
-          "maximum": null,
-          "minimumIsExclusive": null,
-          "maximumIsExclusive": null,
-          "regex": null,
-          "isNullable": true,
-          "summary": null,
-          "description": null,
-          "displayName": null
-        }
-      ],
-      "summary": null,
-      "remarks": null,
-      "description": null,
-      "displayName": null
-    },
-    "AbpAdmin.Services.Caching.CacheScope": {
-      "assemblyName": "AbpAdmin",
-      "baseType": "System.Enum",
-      "isEnum": true,
-      "enumNames": [
-        "Everything",
-        "User",
-        "Role"
-      ],
-      "enumValues": [
-        0,
-        1,
-        2
-      ],
-      "genericArguments": null,
-      "properties": null,
-      "summary": null,
-      "remarks": null,
-      "description": null,
-      "displayName": null
-    },
-    "AbpAdmin.Services.Caching.ClearCacheInput": {
-      "assemblyName": "AbpAdmin",
-      "baseType": null,
-      "isEnum": false,
-      "enumNames": null,
-      "enumValues": null,
-      "genericArguments": null,
-      "properties": [
-        {
-          "name": "Scope",
-          "jsonName": null,
-          "type": "AbpAdmin.Services.Caching.CacheScope",
-          "typeSimple": "enum",
-          "isRequired": false,
-          "minLength": null,
-          "maxLength": null,
-          "minimum": null,
-          "maximum": null,
-          "minimumIsExclusive": null,
-          "maximumIsExclusive": null,
-          "regex": null,
-          "isNullable": false,
-          "summary": null,
-          "description": null,
-          "displayName": null
-        },
-        {
-          "name": "Name",
           "jsonName": null,
           "type": "System.String",
           "typeSimple": "string",

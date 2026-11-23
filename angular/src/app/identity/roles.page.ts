@@ -10,6 +10,7 @@ import { SheetDirective } from '../shared/sheet.directive';
 import { apiError } from '../shared/api-error';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
 import { RoleUsersService } from '../proxy/services/identity';
+import { CacheService } from '../proxy/services/caching';
 import { ENTITY_TYPES, HistorySheetComponent } from '../entity-changes/history-sheet.component';
 import { EntityRef } from '../entity-changes/entity-history.component';
 
@@ -142,6 +143,10 @@ export class RoleFormComponent {
                       <button class="icon-btn" [title]="'::Claims:Title' | abpLocalization" [attr.aria-label]="'::Claims:Of' | abpLocalization: r.name ?? ''"
                               (click)="claims.set({ kind: 'role', id: r.id!, title: r.name! })">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpAdmin.Cache')) {
+                        <button class="icon-btn" [title]="'::Cache:ClearRole' | abpLocalization" [attr.aria-label]="'::Cache:ClearFor' | abpLocalization: r.name ?? ''" (click)="clearCache(r)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7" /></svg></button>
+                      }
                       @if (can('AbpIdentity.Roles.Update') && can('AbpIdentity.Users.Update')) {
                         <button class="icon-btn" [title]="'::Roles:MoveUsers' | abpLocalization" [attr.aria-label]="'::Roles:MoveUsersOf' | abpLocalization: r.name ?? ''" (click)="moving.set(r)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3" /></svg></button>
@@ -204,6 +209,7 @@ export class RoleFormComponent {
 export class RolesPage {
   private readonly service = inject(IdentityRoleService);
   protected readonly toaster = inject(Toaster);
+  private readonly cache = inject(CacheService);
   protected readonly l = inject(LocalizationService);
   readonly new = input<string>();
   private readonly permissions = inject(PermissionService);
@@ -234,6 +240,14 @@ export class RolesPage {
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpIdentity.Roles.Create')) this.editing.set('new'); });
+  }
+
+  /** The role's cached permission grants. */
+  protected clearCache(r: IdentityRoleDto) {
+    this.cache.clearRole(r.id!).subscribe({
+      next: () => this.toaster.ok(this.l.instant('::Cache:Cleared', r.name ?? '')),
+      error: e => this.toaster.error(apiError(e)),
+    });
   }
 
   protected can(policy: string) {

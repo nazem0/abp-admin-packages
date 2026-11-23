@@ -50,8 +50,6 @@ export const NAV: NavItem[] = [
     icon: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3' },
   { path: '/features', label: 'Features', labelKey: '::Nav:Features', section: 'System', policy: 'FeatureManagement.ManageHostFeatures', keywords: 'toggles limits',
     icon: 'M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4' },
-  { path: '/cache', label: 'Cache', labelKey: '::Nav:Cache', section: 'System', policy: 'AbpAdmin.Cache', keywords: 'clear reset stale permissions settings features redis',
-    icon: 'M13 2 4 14h7l-1 8 9-12h-7z' },
   { path: '/settings', label: 'Settings', labelKey: '::Nav:Settings', section: 'System', keywords: 'email smtp time zone password lockout identity',
     policy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention || AbpAdmin.Settings',
     icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z',

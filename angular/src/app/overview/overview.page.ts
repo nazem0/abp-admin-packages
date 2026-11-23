@@ -1,9 +1,12 @@
 import { ConfigStateService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { DashboardService } from '../proxy/services/dashboard';
+import { CacheService } from '../proxy/services/caching';
+import { Toaster } from '../shared/toast';
+import { apiError } from '../shared/api-error';
 import { SecurityLogService } from '../proxy/services/security-logs';
 import { duration, relative } from '../audit-logs/format';
 import { NAV } from '../shared/nav';
@@ -22,6 +25,10 @@ interface Alert { tone: 'err' | 'warn'; text: string; link: string; query?: Reco
           <p class="muted">{{ '::Overview:Subtitle' | abpLocalization }}</p>
         </div>
         <div class="top-actions">
+          @if (can('AbpAdmin.Cache')) {
+            <button class="btn" (click)="clearCaches()" [disabled]="clearing()" [title]="'::Cache:ClearAllHint' | abpLocalization">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7" /></svg> {{ '::Cache:ClearAll' | abpLocalization }}</button>
+          }
           <button class="icon-btn" (click)="data.reload(); recent.reload()" [attr.aria-label]="'::Common:Refresh' | abpLocalization" [title]="'::Common:Refresh' | abpLocalization" [class.spin]="data.isLoading()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>
           </button>
@@ -156,6 +163,10 @@ interface Alert { tone: 'err' | 'warn'; text: string; link: string; query?: Reco
   `,
 })
 export class OverviewPage {
+  private readonly cache = inject(CacheService);
+  private readonly toaster = inject(Toaster);
+  protected readonly clearing = signal(false);
+  protected readonly can = (policy: string) => this.permissions.getGrantedPolicy(policy);
   private readonly permissions = inject(PermissionService);
   private readonly config = toSignal(inject(ConfigStateService).getAll$());
   private readonly security = inject(SecurityLogService);
@@ -201,4 +212,14 @@ export class OverviewPage {
     if (d.jobs?.abandoned) list.push({ tone: 'warn', text: n(d.jobs.abandoned, '::Overview:Alert:JobsAbandonedOne', '::Overview:Alert:JobsAbandonedMany'), link: '/background-jobs', query: { state: 'abandoned' } });
     return list;
   });
+
+  /** Every cached permission, setting and feature value (from the host: in every tenant too). */
+  protected clearCaches() {
+    this.clearing.set(true);
+    this.cache.clearAll().subscribe({
+      next: r => { this.clearing.set(false); this.toaster.ok(this.l.instant('::Cache:ClearedAll', `${r.users}`, `${r.roles}`, `${r.tenants}`)); },
+      error: e => { this.clearing.set(false); this.toaster.error(apiError(e)); },
+    });
+  }
 }
+

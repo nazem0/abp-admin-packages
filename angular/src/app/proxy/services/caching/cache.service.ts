@@ -1,4 +1,4 @@
-import type { ClearCacheInput, ClearCacheResultDto } from './models';
+import type { ClearCacheResultDto } from './models';
 import { RestService, Rest } from '@abp/ng.core';
 import { Injectable, inject } from '@angular/core';
 
@@ -11,12 +11,32 @@ export class CacheService {
   
 
   
-  clear = (input: ClearCacheInput, config?: Partial<Rest.Config>) =>
+  clearAll = (config?: Partial<Rest.Config>) =>
     this.restService.request<any, ClearCacheResultDto>({
       method: 'POST',
       headers: { Accept: 'application/json' },
-      url: '/api/app/cache/clear',
-      body: input,
+      url: '/api/app/cache/clear-all',
+    },
+      { apiName: this.apiName,...config });
+  
+
+  
+  clearRole = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, ClearCacheResultDto>({
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/cache/${id}/clear-role`,
+    },
+      { apiName: this.apiName,...config });
+  
+
+  
+  clearUser = (id: string, tenant: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, ClearCacheResultDto>({
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      url: `/api/app/cache/${id}/clear-user`,
+      params: { tenant },
     },
       { apiName: this.apiName,...config });
 }

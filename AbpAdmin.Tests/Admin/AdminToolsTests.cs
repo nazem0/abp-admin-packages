@@ -59,18 +59,19 @@ public class AdminToolsTests : AbpAdminTestBase
     public async Task Cache_Clears_By_Scope()
     {
         var cache = GetRequiredService<CacheAppService>();
-        var everything = await cache.ClearAsync(new ClearCacheInput { Scope = CacheScope.Everything });
+        var everything = await cache.ClearAllAsync();
         everything.Users.ShouldBeGreaterThan(0);
         everything.Roles.ShouldBeGreaterThan(0);
         everything.Keys.ShouldBeGreaterThan(0);
 
-        var user = await cache.ClearAsync(new ClearCacheInput { Scope = CacheScope.User, Name = "admin" });
+        var admin = await WithUnitOfWorkAsync(() => GetRequiredService<Volo.Abp.Identity.IIdentityUserRepository>().FindByNormalizedUserNameAsync("ADMIN"));
+        var user = await cache.ClearUserAsync(admin!.Id, null);
         user.Users.ShouldBe(1);
         user.Roles.ShouldBe(1); // admin's role
-        (await cache.ClearAsync(new ClearCacheInput { Scope = CacheScope.Role, Name = "Admin" })).Roles.ShouldBe(1);
+        var role = await WithUnitOfWorkAsync(() => GetRequiredService<Volo.Abp.Identity.IIdentityRoleRepository>().FindByNormalizedNameAsync("ADMIN"));
+        (await cache.ClearRoleAsync(role!.Id)).Roles.ShouldBe(1);
 
-        await Should.ThrowAsync<UserFriendlyException>(() => cache.ClearAsync(new ClearCacheInput { Scope = CacheScope.User, Name = "nobody" }));
-        await Should.ThrowAsync<UserFriendlyException>(() => cache.ClearAsync(new ClearCacheInput { Scope = CacheScope.Role }));
+        await Should.ThrowAsync<Volo.Abp.Domain.Entities.EntityNotFoundException>(() => cache.ClearUserAsync(Guid.NewGuid(), null));
     }
 
     [Fact]

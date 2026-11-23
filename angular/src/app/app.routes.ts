@@ -27,12 +27,6 @@ export const APP_ROUTES: Routes = [
     data: { requiredPolicy: 'AbpAdmin.EventBoxes' },
   },
   {
-    path: 'cache',
-    loadComponent: () => import('./cache/cache.page').then(c => c.CachePage),
-    canActivate: [authGuard, permissionGuard],
-    data: { requiredPolicy: 'AbpAdmin.Cache' },
-  },
-  {
     path: 'organization-units',
     loadComponent: () => import('./identity/organization-units.page').then(c => c.OrganizationUnitsPage),
     canActivate: [authGuard, permissionGuard],

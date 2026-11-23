@@ -69,8 +69,9 @@ whenever its schema changes). Don't put anything real in it.
 - **Event outbox & inbox** — every distributed event bus box stored with EF Core
   (`UseDbContext<T>()`): events waiting to be sent, and received events waiting, retrying, discarded or
   processed, with their payload; handle an inbox event again, or delete one.
-- **Cache tools** — clear the permission, setting and feature caches for one user, one role, or
-  everything (every tenant, from the host), when a change made outside the admin doesn't apply.
+- **Cache clearing** — when a change made outside the admin doesn't apply, clear a user's or a role's
+  cached permissions and settings from its row (Users, Roles), or every cache from the Overview
+  (from the host: every tenant too).
 - **CSV export** — audit logs, entity changes and security logs download as CSV with the page's
   current filters (up to 50,000 rows).
 - **Audit log retention** — keep audit logs for a number of days (Settings › Audit logs); an hourly

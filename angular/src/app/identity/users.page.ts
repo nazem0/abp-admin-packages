@@ -11,6 +11,7 @@ import { PermissionsService } from '../proxy/volo/abp/permission-management';
 import { TenantScope, provideTenantScope } from '../shared/tenant-scope';
 import { Toaster } from '../shared/toast';
 import { download } from '../shared/export-button.component';
+import { CacheService } from '../proxy/services/caching';
 import { relative } from '../audit-logs/format';
 import { PermissionsEditorComponent, PermissionTarget } from '../permissions/permissions-editor.component';
 import { apiError } from '../shared/api-error';
@@ -135,6 +136,10 @@ import { EntityRef } from '../entity-changes/entity-history.component';
                       <button class="icon-btn" [title]="'::Claims:Title' | abpLocalization" [attr.aria-label]="'::Claims:Of' | abpLocalization: u.userName ?? ''"
                               (click)="act(u.tenantId, () => claims.set({ kind: 'user', id: u.id!, title: u.userName! }))">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpAdmin.Cache')) {
+                        <button class="icon-btn" [title]="'::Cache:ClearUser' | abpLocalization" [attr.aria-label]="'::Cache:ClearFor' | abpLocalization: u.userName ?? ''" (click)="clearCache(u)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7" /></svg></button>
+                      }
                       @if (can('AbpAdmin.AuditLogs') && (!multi() || !u.tenantId)) {
                         <button class="icon-btn" [title]="'::Common:ChangeHistory' | abpLocalization" [attr.aria-label]="'::Common:ChangeHistoryOf' | abpLocalization: u.userName ?? ''"
                                 (click)="history.set({ type: types.user, id: u.id! })">
@@ -184,6 +189,7 @@ export class UsersPage {
   private readonly permissions = inject(PermissionService);
   private readonly lockout = inject(UserLockoutService);
   protected readonly toaster = inject(Toaster);
+  private readonly cache = inject(CacheService);
   protected readonly l = inject(LocalizationService);
   private readonly config = inject(ConfigStateService);
   protected readonly me = this.config.getOne('currentUser')?.id;
@@ -291,6 +297,14 @@ export class UsersPage {
     const until = new Date(Date.now() + 24 * 3600_000).toISOString();
     this.lockout.lock(u.id!, { until }).subscribe({
       next: () => { this.toaster.ok(this.l.instant('::Users:LockedFor24h', u.userName ?? '')); this.list.reload(); },
+      error: e => this.toaster.error(apiError(e)),
+    });
+  }
+
+  /** The user's cached permissions and settings (and their roles'), in the user's tenant. */
+  protected clearCache(u: IdentityUserDto) {
+    this.cache.clearUser(u.id!, u.tenantId as string).subscribe({ // a null tenant (host user) is not sent
+      next: () => this.toaster.ok(this.l.instant('::Cache:Cleared', u.userName ?? '')),
       error: e => this.toaster.error(apiError(e)),
     });
   }
