@@ -13,8 +13,8 @@
   },
   "private": true,
   "dependencies": {
-    "@abp/ng.core": "~11.0.0-rc.2",
-    "@abp/ng.oauth": "~11.0.0-rc.2",
+    "@abp/ng.core": "~11.0.0",
+    "@abp/ng.oauth": "~11.0.0",
     "@angular/aria": "~22.2.0",
     "@angular/common": "~22.2.0",
     "@angular/compiler": "~22.2.0",
@@ -30,7 +30,7 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@abp/ng.schematics": "~11.0.0-rc.2",
+    "@abp/ng.schematics": "~11.0.0",
     "@angular-eslint/builder": "~22.6.0",
     "@angular-eslint/eslint-plugin": "~22.6.0",
     "@angular-eslint/eslint-plugin-template": "~22.6.0",

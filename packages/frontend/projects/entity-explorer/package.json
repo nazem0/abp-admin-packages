@@ -12,7 +12,7 @@
     "openiddict"
   ],
   "peerDependencies": {
-    "@abp/ng.core": "~11.0.0-rc.2",
+    "@abp/ng.core": "~11.0.0",
     "@angular/aria": "~22.2.0",
     "@angular/common": "~22.2.0",
     "@angular/core": "~22.2.0",
