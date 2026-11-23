@@ -40,8 +40,8 @@ export const ICONS = {
     </ul>
   `,
   styles: `
-    .legend { list-style: none; margin: 0; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 4px 14px;
-      border-bottom: 1px solid var(--border); background: var(--surface-2); font-size: 12px; color: var(--muted); }
+    .legend { list-style: none; margin: 0; padding: 8px 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); font-size: 12px; color: var(--muted); }
     li { display: inline-flex; align-items: center; gap: 5px; cursor: help; white-space: nowrap; }
     svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   `,

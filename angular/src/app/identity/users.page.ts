@@ -49,6 +49,7 @@ import { EntityRef } from '../entity-changes/entity-history.component';
         }
         </span>
       </header>
+      <app-icon-legend [items]="legend" />
 
       @if (imported(); as r) {
         <section class="card import" role="status">
@@ -88,7 +89,6 @@ import { EntityRef } from '../entity-changes/entity-history.component';
             <b>{{ '::Users:NoUsers' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Users:NoMatch' | abpLocalization: filter()) : ('::Users:CreateFirst' | abpLocalization) }}</span>
           </div>
         } @else {
-          <app-icon-legend [items]="legend" />
           <table class="table" [class.loading]="list.isLoading()">
             <thead><tr><th>{{ '::Users:Col:User' | abpLocalization }}</th>@if (multi()) { <th>{{ '::Users:Tenant' | abpLocalization }}</th> }<th class="hide-sm">{{ '::Users:Email' | abpLocalization }}</th><th class="hide-sm">{{ '::Users:Phone' | abpLocalization }}</th><th>{{ '::Common:Status' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>

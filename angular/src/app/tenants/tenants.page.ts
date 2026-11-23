@@ -357,6 +357,7 @@ export class TenantAdminComponent {
           </button>
         }
       </header>
+      <app-icon-legend [items]="legend" />
 
       <section class="card mt" [class.off]="!enabled()">
         <label class="check">
@@ -383,7 +384,6 @@ export class TenantAdminComponent {
         } @else if (!rows().length) {
           <div class="state empty"><b>{{ '::Tenants:Empty' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Tenants:NoMatch' | abpLocalization: filter()) : ('::Tenants:CreateFirst' | abpLocalization) }}</span></div>
         } @else {
-          <app-icon-legend [items]="legend" />
           <table class="table">
             <thead><tr><th>{{ '::Tenants:Tenant' | abpLocalization }}</th><th>{{ '::Common:Status' | abpLocalization }}</th><th>{{ '::Tenants:Database' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>

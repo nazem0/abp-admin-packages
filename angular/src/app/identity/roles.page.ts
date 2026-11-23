@@ -94,6 +94,7 @@ export class RoleFormComponent {
           </button>
         }
       </header>
+      <app-icon-legend [items]="legend" />
 
       <section class="card stream">
         <div class="filters">
@@ -112,7 +113,6 @@ export class RoleFormComponent {
         } @else if (!rows().length) {
           <div class="state empty"><b>{{ '::Roles:NoRoles' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Roles:NoMatch' | abpLocalization: filter()) : ('::Roles:CreateFirst' | abpLocalization) }}</span></div>
         } @else {
-          <app-icon-legend [items]="legend" />
           <table class="table">
             <thead><tr><th>{{ '::Roles:Col:Role' | abpLocalization }}</th><th>{{ '::Roles:Col:Flags' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>
