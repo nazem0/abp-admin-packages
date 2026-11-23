@@ -38,6 +38,13 @@ public static class AbpAdminPermissions
         public const string Default = GroupName + ".Cache";
     }
 
+    /// <summary>The distributed event bus outbox/inbox tables (AbpAdmin.EventBus): host only.</summary>
+    public static class EventBoxes
+    {
+        public const string Default = GroupName + ".EventBoxes";
+        public const string Manage = Default + ".Manage";
+    }
+
     public static class IdentitySettings
     {
         public const string Default = GroupName + ".IdentitySettings";

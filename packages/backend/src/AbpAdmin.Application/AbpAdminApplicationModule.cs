@@ -9,6 +9,7 @@ namespace AbpAdmin;
     typeof(AbpAdminIdentityModule),
     typeof(AbpAdminOpenIddictModule),
     typeof(AbpAdminBackgroundJobsModule),
+    typeof(AbpAdminEventBusModule),
     typeof(AbpAdminTenantManagementModule),
     typeof(AbpAdminEntityExplorerModule)
 )]

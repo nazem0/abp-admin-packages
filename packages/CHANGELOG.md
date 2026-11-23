@@ -27,6 +27,11 @@ NuGet: every `AbpAdmin.*` package.
   AbpAdmin.Identity, permission `AbpAdmin.Cache`.
 - **Icon key** under the heading of Users, Roles and Tenants: every row action icon with its name, and what it does
   on hover.
+- **Event outbox & inbox** (new feature: `AbpAdmin.EventBus`, `AbpAdmin.EventBus.Web`, `@nazem0/abp-admin-ng-event-bus`;
+  included in the all-in-one packages): the distributed event bus boxes stored with EF Core, found from
+  `AbpDistributedEventBusOptions`. Outbox: events waiting to be sent. Inbox: waiting, retrying, discarded and processed
+  events with their payload; handle one again, or delete it. Permissions `AbpAdmin.EventBoxes` and
+  `AbpAdmin.EventBoxes.Manage` (host).
 
 ### Changed
 
@@ -36,6 +41,9 @@ NuGet: every `AbpAdmin.*` package.
   of Core's settings pages). `UpdateSettingDto` moved from AbpAdmin.Identity to AbpAdmin.Core (same namespace).
 - AbpAdmin.Identity now depends on `Volo.Abp.PermissionManagement.Domain` and `Volo.Abp.FeatureManagement.Domain`
   (for the cache keys; both were already host requirements of Core).
+- `TenantAppService` publishes the tenant database events (`TenantCreatedEto`, `TenantConnectionStringUpdatedEto`) with
+  `useOutbox: false`, so setting up a tenant's database still happens, and fails visibly, in the request that saves it
+  when the host uses an event outbox.
 - **Debuggable, verifiable NuGet packages** (nuget.org Health checks): each DLL embeds its PDB with Source Link and the
   compiler flags, and CI builds are deterministic. You can step into ABP Admin's source while debugging.
 - ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.

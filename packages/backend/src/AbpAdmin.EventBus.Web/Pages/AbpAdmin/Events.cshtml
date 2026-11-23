@@ -1,0 +1,9 @@
+@page
+@attribute [Authorize("AbpAdmin.EventBoxes")]
+@{
+    Layout = "_AbpAdminLayout";
+    ViewData["Title"] = "AbpAdmin::Nav:Events";
+}
+@section styles { <link rel="stylesheet" href="/abp-admin/event-bus/events.css" /> }
+<div class="page" id="abp-events"></div>
+@section scripts { <script src="/abp-admin/event-bus/events.js"></script> }

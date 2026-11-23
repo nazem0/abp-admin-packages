@@ -9,6 +9,10 @@ using AbpAdmin.Services.SecurityLogs;
 using AbpAdmin.Services.Settings;
 using Volo.Abp.SettingManagement;
 using AbpAdmin.Services.Caching;
+using AbpAdmin.Services.EventBus;
+using AbpAdmin.Host.Data;
+using Volo.Abp.EntityFrameworkCore.DistributedEvents;
+using Volo.Abp.EventBus.Distributed;
 using AbpAdmin.Services.Identity;
 using AbpAdmin.Services.Tenants;
 using Shouldly;
@@ -103,6 +107,44 @@ public class AdminExtrasTests : AbpAdminTestBase
         (await cache.ClearRoleAsync(role!.Id)).Roles.ShouldBe(1);
 
         await Should.ThrowAsync<Volo.Abp.Domain.Entities.EntityNotFoundException>(() => cache.ClearUserAsync(Guid.NewGuid(), null));
+    }
+
+    [Fact]
+    public async Task Event_Boxes_List_Retry_And_Delete()
+    {
+        var boxes = GetRequiredService<EventBoxAppService>();
+        var found = await WithUnitOfWorkAsync(boxes.GetBoxesAsync);
+        found.ShouldContain(b => b.Kind == EventBoxKind.Outbox && b.DbContext == nameof(AbpAdminDbContext));
+        var inbox = found.Single(b => b.Kind == EventBoxKind.Inbox);
+
+        var outgoing = Guid.NewGuid();
+        var incoming = Guid.NewGuid();
+        var data = Encoding.UTF8.GetBytes("{\"name\":\"test\"}");
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await GetRequiredService<IDbContextEventOutbox<AbpAdminDbContext>>().EnqueueAsync(new OutgoingEventInfo(outgoing, "test.sent", data, DateTime.UtcNow));
+            var box = GetRequiredService<IDbContextEventInbox<AbpAdminDbContext>>();
+            await box.EnqueueAsync(new IncomingEventInfo(incoming, "msg-1", "test.received", data, DateTime.UtcNow));
+        });
+        await WithUnitOfWorkAsync(() => GetRequiredService<IDbContextEventInbox<AbpAdminDbContext>>().MarkAsDiscardAsync(incoming));
+
+        var discarded = await WithUnitOfWorkAsync(() => boxes.GetListAsync(new GetEventRecordListInput
+            { Kind = EventBoxKind.Inbox, Box = inbox.Name, Status = EventRecordStatus.Discarded }));
+        var record = discarded.Items.Single(x => x.Id == incoming);
+        record.EventData.ShouldContain("test");
+        record.MessageId.ShouldBe("msg-1");
+
+        await WithUnitOfWorkAsync(() => boxes.RetryAsync(inbox.Name, incoming));
+        (await WithUnitOfWorkAsync(() => boxes.GetListAsync(new GetEventRecordListInput { Kind = EventBoxKind.Inbox, Box = inbox.Name, Status = EventRecordStatus.Waiting })))
+            .Items.ShouldContain(x => x.Id == incoming);
+
+        var waiting = await WithUnitOfWorkAsync(() => boxes.GetListAsync(new GetEventRecordListInput { Kind = EventBoxKind.Outbox, Box = found.First(b => b.Kind == EventBoxKind.Outbox).Name, EventName = "test.sent" }));
+        waiting.Items.Single().Id.ShouldBe(outgoing);
+
+        await WithUnitOfWorkAsync(() => boxes.DeleteAsync(EventBoxKind.Inbox, inbox.Name, incoming));
+        (await WithUnitOfWorkAsync(() => boxes.GetListAsync(new GetEventRecordListInput { Kind = EventBoxKind.Inbox, Box = inbox.Name })))
+            .Items.ShouldNotContain(x => x.Id == incoming);
+        await Should.ThrowAsync<UserFriendlyException>(() => WithUnitOfWorkAsync(() => boxes.RetryAsync("no-such-box", incoming)));
     }
 
     [Fact]

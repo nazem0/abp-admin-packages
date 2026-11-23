@@ -13,6 +13,7 @@
     <ProjectReference Include="..\AbpAdmin.Identity.Web\AbpAdmin.Identity.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.OpenIddict.Web\AbpAdmin.OpenIddict.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.BackgroundJobs.Web\AbpAdmin.BackgroundJobs.Web.csproj" />
+    <ProjectReference Include="..\AbpAdmin.EventBus.Web\AbpAdmin.EventBus.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.TenantManagement.Web\AbpAdmin.TenantManagement.Web.csproj" />
     <ProjectReference Include="..\AbpAdmin.EntityExplorer.Web\AbpAdmin.EntityExplorer.Web.csproj" />
   </ItemGroup>

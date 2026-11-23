@@ -18,7 +18,7 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
 #if NET11_0_OR_GREATER // EF Core 11 only; the sample also builds on net10.0 (ABP 10). Keep this guard when regenerating.
-    public override string LastMigrationId => "20261118130845_AddBookBestseller";
+    public override string LastMigrationId => "20261123114915_AddEventBoxes";
 #endif
 
     protected override void BuildModel(ModelBuilder modelBuilder)
@@ -614,6 +614,84 @@ partial class AbpAdminDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("TenantId", "Name");
 
                 b.ToTable("AbpBlobContainers");
+            });
+
+        modelBuilder.Entity("Volo.Abp.EntityFrameworkCore.DistributedEvents.IncomingEventRecord", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("CreationTime");
+
+                b.Property<byte[]>("EventData")
+                    .IsRequired()
+                    .HasColumnType("varbinary(max)");
+
+                b.Property<string>("EventName")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<string>("ExtraProperties")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("ExtraProperties");
+
+                b.Property<DateTime?>("HandledTime")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("MessageId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
+
+                b.Property<DateTime?>("NextRetryTime")
+                    .HasColumnType("datetime2");
+
+                b.Property<int>("RetryCount")
+                    .HasColumnType("int");
+
+                b.Property<int>("Status")
+                    .HasColumnType("int");
+
+                b.HasKey("Id");
+
+                b.HasIndex("MessageId");
+
+                b.HasIndex("Status", "CreationTime");
+
+                b.ToTable("AbpEventInbox");
+            });
+
+        modelBuilder.Entity("Volo.Abp.EntityFrameworkCore.DistributedEvents.OutgoingEventRecord", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<DateTime>("CreationTime")
+                    .HasColumnType("datetime2")
+                    .HasColumnName("CreationTime");
+
+                b.Property<byte[]>("EventData")
+                    .IsRequired()
+                    .HasColumnType("varbinary(max)");
+
+                b.Property<string>("EventName")
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnType("nvarchar(256)");
+
+                b.Property<string>("ExtraProperties")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("ExtraProperties");
+
+                b.HasKey("Id");
+
+                b.HasIndex("CreationTime");
+
+                b.ToTable("AbpEventOutbox");
             });
 
         modelBuilder.Entity("Volo.Abp.FeatureManagement.FeatureDefinitionRecord", b =>

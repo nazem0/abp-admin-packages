@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>AbpAdmin.EventBus</PackageId>
+    <Description>ABP Admin event outbox and inbox: the distributed event bus boxes stored with EF Core (waiting, retrying, discarded, processed events), handle again and delete.</Description>
+    <RootNamespace>AbpAdmin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore" Version="$(AbpVersion)" />
+    <ProjectReference Include="..\AbpAdmin.Core\AbpAdmin.Core.csproj" />
+  </ItemGroup>
+
+</Project>
