@@ -1,4 +1,5 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
+import { ICONS, IconLegendComponent, LegendItem } from '../shared/icon-legend.component';
 import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
 import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -342,7 +343,7 @@ export class TenantAdminComponent {
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'app-tenants-page',
-  imports: [PagerComponent, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -356,6 +357,7 @@ export class TenantAdminComponent {
           </button>
         }
       </header>
+      <app-icon-legend [items]="legend" />
 
       <section class="card mt" [class.off]="!enabled()">
         <label class="check">
@@ -465,6 +467,14 @@ export class TenantAdminComponent {
   `,
 })
 export class TenantsPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.database, labelKey: '::Tenants:Database', hintKey: '::Legend:Tenants:Database' },
+    { svg: ICONS.features, labelKey: '::Tenants:Features', hintKey: '::Legend:Tenants:Features' },
+    { svg: ICONS.admins, labelKey: '::Tenants:Admins', hintKey: '::Legend:Tenants:Admins' },
+    { svg: ICONS.history, labelKey: '::Common:ChangeHistory', hintKey: '::Legend:History' },
+    { svg: ICONS.edit, labelKey: '::Tenants:Rename', hintKey: '::Legend:Tenants:Rename' },
+    { svg: ICONS.delete, labelKey: '::Common:Delete', hintKey: '::Legend:Tenants:Delete' },
+  ];
   private readonly service = inject(TenantService);
   private readonly permissions = inject(PermissionService);
   private readonly toaster = inject(Toaster);

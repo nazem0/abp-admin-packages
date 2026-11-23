@@ -21,6 +21,11 @@ public class AbpAdminPermissionDefinitionProvider(IOptions<EntityExplorerOptions
         claimTypes.AddChild(AbpAdminPermissions.ClaimTypes.Delete, L("Permission:Delete"), MultiTenancySides.Host);
         group.AddPermission(AbpAdminPermissions.SecurityLogs.Default, L("Permission:SecurityLogs"));
         group.AddPermission(AbpAdminPermissions.IdentitySettings.Default, L("Permission:IdentitySettings"));
+        group.AddPermission(AbpAdminPermissions.Settings.Default, L("Permission:Settings"))
+            .AddChild(AbpAdminPermissions.Settings.Update, L("Permission:Edit"));
+        group.AddPermission(AbpAdminPermissions.Cache.Default, L("Permission:Cache"));
+        group.AddPermission(AbpAdminPermissions.EventBoxes.Default, L("Permission:EventBoxes"), MultiTenancySides.Host)
+            .AddChild(AbpAdminPermissions.EventBoxes.Manage, L("Permission:EventBoxes.Manage"), MultiTenancySides.Host);
 
         var apps = group.AddPermission(AbpAdminPermissions.Applications.Default, L("Permission:Applications"), MultiTenancySides.Host);
         apps.AddChild(AbpAdminPermissions.Applications.Create, L("Permission:Create"));

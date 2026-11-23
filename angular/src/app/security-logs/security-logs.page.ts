@@ -6,12 +6,13 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { GetSecurityLogListInput, SecurityLogDto, SecurityLogService } from '../proxy/services/security-logs';
 import { RANGES, RangeKey, browserName, rangeWindow, relative, stamp } from '../audit-logs/format';
 import { describeAction, isFailure } from './actions';
+import { ExportButtonComponent } from '../shared/export-button.component';
 
 
 /** Identity security log: every sign-in, failure, lockout, sign-out and credential change. */
 @Component({
   selector: 'app-security-logs-page',
-  imports: [PagerComponent, RouterLink, LocalizationPipe],
+  imports: [ExportButtonComponent, PagerComponent, RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -25,6 +26,7 @@ import { describeAction, isFailure } from './actions';
               <button role="radio" [attr.aria-checked]="range() === r.key" (click)="range.set(r.key); page.set(0)">{{ r.labelKey | abpLocalization }}</button>
             }
           </div>
+          <app-export-button [source]="exportCsv" fileName="security-logs.csv" />
           <button class="icon-btn" (click)="refresh()" [attr.aria-label]="'::Common:Refresh' | abpLocalization" [title]="'::Common:Refresh' | abpLocalization" [class.spin]="list.isLoading()">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>
           </button>
@@ -184,16 +186,18 @@ export class SecurityLogsPage {
     };
   });
 
+  private readonly filters = computed((): Omit<GetSecurityLogListInput, 'maxResultCount'> => ({
+    ...this.window(),
+    actionName: this.action() || undefined,
+    failedOnly: this.failedOnly() || undefined,
+    userName: this.userName() || undefined,
+    clientIpAddress: this.ip() || undefined,
+  }));
+  /** The list's filters, every page. */
+  protected readonly exportCsv = () => this.service.export({ ...this.filters(), maxResultCount: 1 }); // paging is ignored by the export
+
   protected readonly list = rxResource({
-    params: (): GetSecurityLogListInput => ({
-      ...this.window(),
-      actionName: this.action() || undefined,
-      failedOnly: this.failedOnly() || undefined,
-      userName: this.userName() || undefined,
-      clientIpAddress: this.ip() || undefined,
-      skipCount: this.page() * this.size(),
-      maxResultCount: this.size(),
-    }),
+    params: (): GetSecurityLogListInput => ({ ...this.filters(), skipCount: this.page() * this.size(), maxResultCount: this.size() }),
     stream: ({ params }) => this.service.getList(params),
   });
 

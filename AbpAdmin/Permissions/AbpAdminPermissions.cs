@@ -30,6 +30,26 @@ public static class AbpAdminPermissions
         public const string Default = GroupName + ".IdentitySettings";
     }
 
+    /// <summary>Every setting definition of every module, at the host (global) or tenant level.</summary>
+    public static class Settings
+    {
+        public const string Default = GroupName + ".Settings";
+        public const string Update = Default + ".Update";
+    }
+
+    /// <summary>Clear permission, setting and feature caches.</summary>
+    public static class Cache
+    {
+        public const string Default = GroupName + ".Cache";
+    }
+
+    /// <summary>The distributed event bus outbox/inbox tables: host only.</summary>
+    public static class EventBoxes
+    {
+        public const string Default = GroupName + ".EventBoxes";
+        public const string Manage = Default + ".Manage";
+    }
+
     public static class Applications
     {
         public const string Default = GroupName + ".Applications";

@@ -21,6 +21,12 @@ export const APP_ROUTES: Routes = [
     data: { requiredPolicy: 'AbpAdmin.BackgroundJobs' },
   },
   {
+    path: 'events',
+    loadComponent: () => import('./events/events.page').then(c => c.EventsPage),
+    canActivate: [authGuard, permissionGuard],
+    data: { requiredPolicy: 'AbpAdmin.EventBoxes' },
+  },
+  {
     path: 'organization-units',
     loadComponent: () => import('./identity/organization-units.page').then(c => c.OrganizationUnitsPage),
     canActivate: [authGuard, permissionGuard],
@@ -60,7 +66,7 @@ export const APP_ROUTES: Routes = [
     // /settings opens the first section the user may see; /settings/:section (identity, time-zone, email) a specific one.
     path: 'settings',
     canActivate: [authGuard, permissionGuard],
-    data: { requiredPolicy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention' },
+    data: { requiredPolicy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention || AbpAdmin.Settings' },
     children: [
       { path: '', loadComponent: () => import('./settings/settings.page').then(c => c.SettingsPage) },
       { path: ':section', loadComponent: () => import('./settings/settings.page').then(c => c.SettingsPage) },

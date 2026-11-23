@@ -37,14 +37,11 @@ public class UserTransferAppService(IdentityUserManager users, IIdentityUserRepo
     {
         var roleNames = (await roleRepository.GetListAsync()).ToDictionary(r => r.Id, r => r.Name);
         var list = await userRepository.GetListAsync(nameof(IdentityUser.UserName), int.MaxValue, 0, includeDetails: true);
-        var csv = new StringBuilder().AppendLine(string.Join(",", Columns));
-        foreach (var u in list)
+        return Csv.File("users.csv", Columns, list.Select(u => new[]
         {
-            var roles = string.Join(";", u.Roles.Select(r => roleNames.GetValueOrDefault(r.RoleId)).Where(n => n != null));
-            csv.AppendLine(Csv.Line([u.UserName, u.Email, u.Name, u.Surname, u.PhoneNumber, u.IsActive ? "true" : "false", roles]));
-        }
-        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray(); // BOM: Excel reads it as UTF-8
-        return new RemoteStreamContent(new MemoryStream(bytes), "users.csv", "text/csv");
+            u.UserName, u.Email, u.Name, u.Surname, u.PhoneNumber, u.IsActive ? "true" : "false",
+            string.Join(";", u.Roles.Select(r => roleNames.GetValueOrDefault(r.RoleId)).Where(n => n != null)),
+        }));
     }
 
     [Authorize(IdentityPermissions.Users.Create)]
@@ -118,6 +115,22 @@ public class UserTransferAppService(IdentityUserManager users, IIdentityUserRepo
 public static class Csv
 {
     public static string Line(IEnumerable<string?> fields) => string.Join(",", fields.Select(Escape));
+
+    /// <summary>The most rows one export returns; narrow the filters for more.</summary>
+    public const int MaxExportRows = 50_000;
+
+    /// <summary>A downloadable UTF-8 CSV file with a BOM, so Excel reads it as UTF-8.</summary>
+    public static IRemoteStreamContent File(string fileName, IEnumerable<string> header, IEnumerable<IEnumerable<string?>> rows)
+    {
+        var csv = new StringBuilder().AppendLine(Line(header));
+        foreach (var row in rows) csv.AppendLine(Line(row));
+        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return new RemoteStreamContent(new MemoryStream(bytes), fileName, "text/csv");
+    }
+
+    /// <summary>A time as shown on screen: in the configured time zone.</summary>
+    public static string Time(Volo.Abp.Timing.IClock clock, DateTime? time) =>
+        time.HasValue ? clock.ConvertToUserTime(time.Value).ToString("yyyy-MM-dd HH:mm:ss") : "";
 
     public static string Escape(string? field)
     {

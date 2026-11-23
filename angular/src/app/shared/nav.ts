@@ -27,6 +27,8 @@ export const NAV: NavItem[] = [
     icon: 'M7 11V7a5 5 0 0 1 10 0v4M5 11h14v10H5zM12 15v2' },
   { path: '/background-jobs', label: 'Background jobs', labelKey: '::Nav:BackgroundJobs', section: 'Monitoring', policy: 'AbpAdmin.BackgroundJobs', keywords: 'queue retry abandoned',
     icon: 'M12 7v5l3 2M21 12a9 9 0 1 1-3-6.7M21 4v4h-4' },
+  { path: '/events', label: 'Events', labelKey: '::Nav:Events', section: 'Monitoring', policy: 'AbpAdmin.EventBoxes', keywords: 'outbox inbox distributed event bus messages retry',
+    icon: 'M4 7h12M12 3l4 4-4 4M20 17H8M12 13l-4 4 4 4' },
 
   { path: '/users', label: 'Users', labelKey: '::Nav:Users', section: 'Identity', policy: 'AbpIdentity.Users', keywords: 'accounts people lock',
     icon: 'M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.2a6.5 6.5 0 0 1 3.5 5.8' },
@@ -49,7 +51,7 @@ export const NAV: NavItem[] = [
   { path: '/features', label: 'Features', labelKey: '::Nav:Features', section: 'System', policy: 'FeatureManagement.ManageHostFeatures', keywords: 'toggles limits',
     icon: 'M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4' },
   { path: '/settings', label: 'Settings', labelKey: '::Nav:Settings', section: 'System', keywords: 'email smtp time zone password lockout identity',
-    policy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention',
+    policy: 'SettingManagement.TimeZone || SettingManagement.Emailing || AbpAdmin.IdentitySettings || AbpAdmin.AuditLogs.ManageRetention || AbpAdmin.Settings',
     icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z',
     children: [
       { path: '/settings/identity', label: 'Identity & sign-in', labelKey: '::Nav:SettingsIdentity', section: 'Settings', policy: 'AbpAdmin.IdentitySettings',
@@ -60,6 +62,8 @@ export const NAV: NavItem[] = [
         keywords: 'smtp mail sender', icon: 'M3 6h18v12H3zM3 7l9 6 9-6' },
       { path: '/settings/audit-logs', label: 'Audit logs', labelKey: '::Nav:SettingsAuditLogs', section: 'Settings', policy: 'AbpAdmin.AuditLogs.ManageRetention',
         keywords: 'retention cleanup delete old logs', icon: 'M4 5h16M4 12h10M4 19h7M17 15l2 2 3-4' },
+      { path: '/settings/all', label: 'All settings', labelKey: '::Nav:SettingsAll', section: 'Settings', policy: 'AbpAdmin.Settings',
+        keywords: 'every setting module configuration value override', icon: 'M4 6h16M4 12h16M4 18h16' },
     ] },
 ];
 

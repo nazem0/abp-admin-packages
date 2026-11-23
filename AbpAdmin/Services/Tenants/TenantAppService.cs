@@ -207,7 +207,8 @@ public class TenantAppService(ITenantRepository repository, ITenantManager manag
 
     private async Task SetUpDatabaseAsync<TEto>(string tenantName, TEto eto) where TEto : class
     {
-        try { await eventBus.PublishAsync(eto); }
+        // Not through the outbox: the database is set up in this request, so a failure reaches the admin who saved the tenant.
+        try { await eventBus.PublishAsync(eto, useOutbox: false); }
         catch (Exception e)
         {
             Logger.LogError(e, "Setting up the database of tenant {Tenant} failed.", tenantName);

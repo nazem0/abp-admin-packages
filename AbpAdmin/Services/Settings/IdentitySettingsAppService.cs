@@ -75,7 +75,7 @@ public class IdentitySettingsAppService(ISettingManager settingManager, ISetting
                     Name = name,
                     DisplayName = def.DisplayName.Localize(StringLocalizerFactory),
                     Description = def.Description?.Localize(StringLocalizerFactory),
-                    Type = bool.TryParse(def.DefaultValue, out _) ? "bool" : int.TryParse(def.DefaultValue, out _) ? "number" : "text",
+                    Type = SettingValues.TypeOf(def),
                     // What applies when this level sets nothing: for a tenant, the host's value.
                     DefaultValue = CurrentTenant.IsAvailable ? await settingManager.GetOrNullGlobalAsync(name) ?? def.DefaultValue : def.DefaultValue,
                     Value = CurrentTenant.IsAvailable
@@ -95,10 +95,7 @@ public class IdentitySettingsAppService(ISettingManager settingManager, ISetting
             if (!Allowed.Contains(s.Name)) throw new UserFriendlyException($"Setting '{s.Name}' can't be changed here.");
             var def = await definitions.GetAsync(s.Name);
             if (!Editable(def)) throw new UserFriendlyException($"Setting '{s.Name}' can't be changed here.");
-            if (bool.TryParse(def.DefaultValue, out _) && !bool.TryParse(s.Value, out _))
-                throw new UserFriendlyException($"{s.Name} must be true or false.");
-            if (int.TryParse(def.DefaultValue, out _) && (!int.TryParse(s.Value, out var n) || n < 0))
-                throw new UserFriendlyException($"{s.Name} must be a whole number of 0 or more.");
+            SettingValues.Validate(def, s.Value);
             if (CurrentTenant.IsAvailable) await settingManager.SetForCurrentTenantAsync(s.Name, s.Value);
             else await settingManager.SetGlobalAsync(s.Name, s.Value);
         }
