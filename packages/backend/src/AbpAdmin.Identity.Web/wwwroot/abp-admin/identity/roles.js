@@ -15,6 +15,15 @@
       <div><h1>${L('AbpAdmin::Roles:Title')}</h1><p class="muted">${L('AbpAdmin::Roles:Subtitle')}</p></div>
       ${can('AbpIdentity.Roles.Create') ? html`<button class="btn primary" type="button" data-act="new">${icon(IC.plus)} ${L('AbpAdmin::Roles:NewRole')}</button>` : ''}
     </header>
+    ${AbpAdmin.iconLegend([
+      [IC.edit, 'AbpAdmin::Common:Edit', 'AbpAdmin::Legend:Roles:Edit'],
+      [IC.shield, 'AbpAdmin::Roles:Permissions', 'AbpAdmin::Legend:Roles:Permissions'],
+      ['M20 12 12 20 4 12V4h8zM8.5 8.5v.01', 'AbpAdmin::Claims:Title', 'AbpAdmin::Legend:Claims'],
+      ...(can('AbpAdmin.Cache') ? [['M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7', 'AbpAdmin::Cache:ClearRole', 'AbpAdmin::Legend:Roles:Cache']] : []),
+      ['M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3', 'AbpAdmin::Roles:MoveUsers', 'AbpAdmin::Legend:Roles:MoveUsers'],
+      ['M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5', 'AbpAdmin::Common:ChangeHistory', 'AbpAdmin::Legend:History'],
+      [IC.del, 'AbpAdmin::Common:Delete', 'AbpAdmin::Legend:Roles:Delete'],
+    ])}
     <section class="card stream">
       <div class="filters">
         <label class="search">
@@ -51,6 +60,7 @@
           ${can('AbpIdentity.Roles.Update') ? html`<button class="icon-btn" type="button" data-act="edit" data-id="${r.id}" title="${L('AbpAdmin::Common:Edit')}" aria-label="${L('AbpAdmin::Roles:EditAria', name)}">${icon(IC.edit)}</button>` : ''}
           ${can('AbpIdentity.Roles.ManagePermissions') ? html`<button class="icon-btn" type="button" data-act="perms" data-id="${r.id}" title="${L('AbpAdmin::Roles:Permissions')}" aria-label="${L('AbpAdmin::Roles:PermissionsOf', name)}">${icon(IC.shield)}</button>` : ''}
           <button class="icon-btn" type="button" data-act="claims" data-id="${r.id}" title="${L('AbpAdmin::Claims:Title')}" aria-label="${L('AbpAdmin::Claims:Of', name)}">${icon('M20 12 12 20 4 12V4h8zM8.5 8.5v.01')}</button>
+          ${can('AbpAdmin.Cache') ? html`<button class="icon-btn" type="button" data-act="clear-cache" data-id="${r.id}" title="${L('AbpAdmin::Cache:ClearRole')}" aria-label="${L('AbpAdmin::Cache:ClearFor', name)}">${icon('M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7')}</button>` : ''}
           ${can('AbpIdentity.Roles.Update') && can('AbpIdentity.Users.Update') ? html`<button class="icon-btn" type="button" data-act="move" data-id="${r.id}" title="${L('AbpAdmin::Roles:MoveUsers')}" aria-label="${L('AbpAdmin::Roles:MoveUsersOf', name)}">${icon('M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3')}</button>` : ''}
           ${changes ? html`<a class="icon-btn" href="${changes + AbpAdmin.query({ type: 'Volo.Abp.Identity.IdentityRole', id: r.id })}" title="${L('AbpAdmin::Common:ChangeHistory')}" aria-label="${L('AbpAdmin::Common:ChangeHistoryOf', name)}">${icon('M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5')}</a>` : ''}
           ${can('AbpIdentity.Roles.Delete') && !r.isStatic ? html`<button class="icon-btn" type="button" data-act="confirm-delete" data-id="${r.id}" title="${L('AbpAdmin::Common:Delete')}" aria-label="${L('AbpAdmin::Roles:DeleteAria', name)}">${icon(IC.del)}</button>` : ''}`}
@@ -147,6 +157,13 @@
   on(root, 'change', '[data-act=search]', (e, el) => search(el));
   root.addEventListener('search', e => { if (e.target.matches('[data-act=search]')) search(e.target); });
   on(root, 'click', '[data-act=reload]', load);
+  // The role's cached permission grants.
+  on(root, 'click', '[data-act=clear-cache]', async (e, b) => {
+    const r = byId(b.dataset.id);
+    if (!r) return;
+    try { await api.post(`/api/abp-admin/cache/${r.id}/clear-role`); toast.ok(L('AbpAdmin::Cache:Cleared', r.name)); }
+    catch (err) { toast.error(errorText(err)); }
+  });
   on(root, 'click', '[data-act=edit]', (e, b) => { const r = byId(b.dataset.id); if (r) openForm(r); });
   on(root, 'click', '[data-act=confirm-delete]', (e, b) => { state.confirming = b.dataset.id; drawList(); });
   on(root, 'click', '[data-act=cancel-delete]', () => { state.confirming = null; drawList(); });

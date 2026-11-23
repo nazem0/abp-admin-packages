@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, linkedSignal, model, output
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
-import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService, FeaturesPage, relative, SheetDirective, apiError, Toaster, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
+import { TenantAdminService, TenantDto, TenantInvitationDto, TenantService, FeaturesPage, relative, SheetDirective, apiError, Toaster, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize, ICONS, IconLegendComponent, LegendItem } from '@nazem0/abp-admin-ng-core';
 
 type TenantEdit = TenantDto | 'new';
 
@@ -335,7 +335,7 @@ export class TenantAdminComponent {
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'abp-tenants-page',
-  imports: [PagerComponent, RouterLink, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, SheetDirective, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, RouterLink, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -349,6 +349,7 @@ export class TenantAdminComponent {
           </button>
         }
       </header>
+      <app-icon-legend [items]="legend" />
 
       <section class="card mt" [class.off]="!enabled()">
         <label class="check">
@@ -458,6 +459,14 @@ export class TenantAdminComponent {
   `,
 })
 export class TenantsPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.database, labelKey: 'AbpAdmin::Tenants:Database', hintKey: 'AbpAdmin::Legend:Tenants:Database' },
+    { svg: ICONS.features, labelKey: 'AbpAdmin::Tenants:Features', hintKey: 'AbpAdmin::Legend:Tenants:Features' },
+    { svg: ICONS.admins, labelKey: 'AbpAdmin::Tenants:Admins', hintKey: 'AbpAdmin::Legend:Tenants:Admins' },
+    { svg: ICONS.history, labelKey: 'AbpAdmin::Common:ChangeHistory', hintKey: 'AbpAdmin::Legend:History' },
+    { svg: ICONS.edit, labelKey: 'AbpAdmin::Tenants:Rename', hintKey: 'AbpAdmin::Legend:Tenants:Rename' },
+    { svg: ICONS.delete, labelKey: 'AbpAdmin::Common:Delete', hintKey: 'AbpAdmin::Legend:Tenants:Delete' },
+  ];
   private readonly service = inject(TenantService);
   private readonly permissions = inject(PermissionService);
   private readonly toaster = inject(Toaster);

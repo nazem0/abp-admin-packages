@@ -21,6 +21,12 @@ NuGet: every `AbpAdmin.*` package.
   values, a tenant its own; encrypted values are never sent to the browser. `SettingBrowserAppService` in
   AbpAdmin.Core, permissions `AbpAdmin.Settings` and `AbpAdmin.Settings.Update` (run your migrator/seeder to grant
   them to admin).
+- **Clear caches in place** (Angular and Razor Pages): a clear-cache action on each Users row (in that user's tenant) and
+  Roles row, and **Clear caches** on the Overview (from the host: every tenant). It clears ABP's permission grant,
+  setting and feature value caches when a change made outside the admin doesn't apply. `CacheAppService` in
+  AbpAdmin.Identity, permission `AbpAdmin.Cache`.
+- **Icon key** under the heading of Users, Roles and Tenants: every row action icon with its name, and what it does
+  on hover.
 
 ### Changed
 
@@ -28,6 +34,8 @@ NuGet: every `AbpAdmin.*` package.
   (`AbpAdmin.Services`), with `Csv.File(...)` for downloads.
 - AbpAdmin.Core now depends on `Volo.Abp.SettingManagement.Domain` (Setting Management was already a requirement
   of Core's settings pages). `UpdateSettingDto` moved from AbpAdmin.Identity to AbpAdmin.Core (same namespace).
+- AbpAdmin.Identity now depends on `Volo.Abp.PermissionManagement.Domain` and `Volo.Abp.FeatureManagement.Domain`
+  (for the cache keys; both were already host requirements of Core).
 - **Debuggable, verifiable NuGet packages** (nuget.org Health checks): each DLL embeds its PDB with Source Link and the
   compiler flags, and CI builds are deterministic. You can step into ABP Admin's source while debugging.
 - ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.

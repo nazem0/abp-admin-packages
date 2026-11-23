@@ -76,6 +76,8 @@
       <header class="top">
         <div><h1>${greeting()}</h1><p class="muted">${L('AbpAdmin::Overview:Subtitle')}</p></div>
         <div class="top-actions">
+          ${can('AbpAdmin.Cache') ? html`<button class="btn" type="button" data-act="clear-caches" title="${L('AbpAdmin::Cache:ClearAllHint')}" ${state.clearing ? 'disabled' : ''}>
+            ${icon('M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7')} ${L('AbpAdmin::Cache:ClearAll')}</button>` : ''}
           <button class="icon-btn ${state.loading ? 'spin' : ''}" type="button" data-act="refresh" aria-label="${L('AbpAdmin::Common:Refresh')}" title="${L('AbpAdmin::Common:Refresh')}">
             ${icon('M20 11a8 8 0 10-2.3 5.7M20 4v7h-7')}</button>
         </div>
@@ -104,5 +106,14 @@
   }
 
   on(root, 'click', '[data-act=refresh]', load);
+  // Every cached permission, setting and feature value (from the host: in every tenant too).
+  on(root, 'click', '[data-act=clear-caches]', async () => {
+    state.clearing = true; draw();
+    try {
+      const r = await api.post('/api/abp-admin/cache/clear-all');
+      AbpAdmin.toast.ok(L('AbpAdmin::Cache:ClearedAll', String(r.users), String(r.roles), String(r.tenants)));
+    } catch (err) { AbpAdmin.toast.error(AbpAdmin.errorText(err)); }
+    state.clearing = false; draw();
+  });
   load();
 })();

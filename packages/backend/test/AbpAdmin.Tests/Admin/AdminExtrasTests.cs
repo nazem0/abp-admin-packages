@@ -8,6 +8,7 @@ using AbpAdmin.Services.AuditLogs;
 using AbpAdmin.Services.SecurityLogs;
 using AbpAdmin.Services.Settings;
 using Volo.Abp.SettingManagement;
+using AbpAdmin.Services.Caching;
 using AbpAdmin.Services.Identity;
 using AbpAdmin.Services.Tenants;
 using Shouldly;
@@ -83,6 +84,25 @@ public class AdminExtrasTests : AbpAdminTestBase
     {
         using var reader = new StreamReader((await file).GetStream(), new UTF8Encoding(false), detectEncodingFromByteOrderMarks: false);
         return await reader.ReadToEndAsync();
+    }
+
+    [Fact]
+    public async Task Cache_Clears_By_Scope()
+    {
+        var cache = GetRequiredService<CacheAppService>();
+        var everything = await cache.ClearAllAsync();
+        everything.Users.ShouldBeGreaterThan(0);
+        everything.Roles.ShouldBeGreaterThan(0);
+        everything.Keys.ShouldBeGreaterThan(0);
+
+        var admin = await WithUnitOfWorkAsync(() => GetRequiredService<Volo.Abp.Identity.IIdentityUserRepository>().FindByNormalizedUserNameAsync("ADMIN"));
+        var user = await cache.ClearUserAsync(admin!.Id, null);
+        user.Users.ShouldBe(1);
+        user.Roles.ShouldBe(1); // admin's role
+        var role = await WithUnitOfWorkAsync(() => GetRequiredService<Volo.Abp.Identity.IIdentityRoleRepository>().FindByNormalizedNameAsync("ADMIN"));
+        (await cache.ClearRoleAsync(role!.Id)).Roles.ShouldBe(1);
+
+        await Should.ThrowAsync<Volo.Abp.Domain.Entities.EntityNotFoundException>(() => cache.ClearUserAsync(Guid.NewGuid(), null));
     }
 
     [Fact]

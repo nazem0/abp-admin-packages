@@ -6,6 +6,8 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.SettingManagement;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.FeatureManagement;
 using static AbpAdmin.Permissions.AbpAdminPermissionGroup;
 using static AbpAdmin.Permissions.HostSupportStateChecker;
 
@@ -16,7 +18,9 @@ namespace AbpAdmin;
     typeof(AbpAdminCoreModule),
     typeof(AbpIdentityDomainModule),
     typeof(AbpIdentityApplicationContractsModule),
-    typeof(AbpSettingManagementDomainModule)
+    typeof(AbpSettingManagementDomainModule),
+    typeof(AbpPermissionManagementDomainModule),
+    typeof(AbpFeatureManagementDomainModule)
 )]
 public class AbpAdminIdentityModule : AbpModule
 {
@@ -33,6 +37,7 @@ public class IdentityPermissionDefinitionProvider : PermissionDefinitionProvider
         var group = context.GetAbpAdminGroup();
         group.AddPermission(AbpAdminPermissions.SecurityLogs.Default, L("Permission:SecurityLogs")).RequireHost(Has<IIdentitySecurityLogRepository>());
         group.AddPermission(AbpAdminPermissions.IdentitySettings.Default, L("Permission:IdentitySettings"));
+        group.AddPermission(AbpAdminPermissions.Cache.Default, L("Permission:Cache"));
 
         var ous = group.AddPermission(AbpAdminPermissions.OrganizationUnits.Default, L("Permission:OrganizationUnits"));
         ous.AddChild(AbpAdminPermissions.OrganizationUnits.ManageTree, L("Permission:OrganizationUnits.ManageTree"));

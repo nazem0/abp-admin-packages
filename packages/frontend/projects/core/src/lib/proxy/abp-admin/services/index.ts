@@ -1,5 +1,6 @@
 import * as AuditLogs from './audit-logs';
 import * as BackgroundJobs from './background-jobs';
+import * as Caching from './caching';
 import * as Dashboard from './dashboard';
 import * as Entities from './entities';
 import * as Identity from './identity';
@@ -7,4 +8,4 @@ import * as OpenIddict from './open-iddict';
 import * as SecurityLogs from './security-logs';
 import * as Settings from './settings';
 import * as Tenants from './tenants';
-export { AuditLogs, BackgroundJobs, Dashboard, Entities, Identity, OpenIddict, SecurityLogs, Settings, Tenants };
+export { AuditLogs, BackgroundJobs, Caching, Dashboard, Entities, Identity, OpenIddict, SecurityLogs, Settings, Tenants };
