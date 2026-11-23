@@ -138,11 +138,12 @@ whenever its schema changes). Don't put anything real in it.
 
 | Layer    | Tech |
 |----------|------|
-| Backend  | .NET 11, ABP 11 (single-layer), EF Core + SQL Server, OpenIddict |
-| Frontend | Angular 22 (signals, standalone), `@angular/aria`, pnpm |
-| Mapping  | Mapperly, including ABP 11 `IQueryProjector` query projection |
+| Backend  | .NET 11, ABP 11.0 (single-layer), EF Core + SQL Server, OpenIddict |
+| Frontend | Angular 22 (signals, standalone), `@abp/ng.core` 11.0, `@angular/aria`, pnpm |
+| Mapping  | Mapperly, including ABP 11 `IQueryProjector` query projection (the packages use their own projection base, so they also run on ABP 10) |
 
-> ABP 11 is currently a release candidate (`11.0.0-rc.2`); the project tracks it until 11.0 is stable.
+> This app runs on ABP 11.0 (stable). The packages built from it support both ABP 10 (.NET 10) and ABP 11 (.NET 11):
+> see [Supported platforms](#supported-platforms).
 
 ## Getting started
 

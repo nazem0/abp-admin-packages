@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@abp/ng.core':
-        specifier: ~11.0.0-rc.2
-        version: 11.0.0-rc.2
+        specifier: ~11.0.0
+        version: 11.0.0
       '@abp/ng.oauth':
-        specifier: ~11.0.0-rc.2
-        version: 11.0.0-rc.2(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))
+        specifier: ~11.0.0
+        version: 11.0.0(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))
       '@angular/aria':
         specifier: ~22.2.0
         version: 22.2.7(@angular/cdk@22.2.7(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/forms@22.2.6(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.6(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2))(@angular/platform-browser@22.2.6(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -55,8 +55,8 @@ importers:
         version: 0.15.1
     devDependencies:
       '@abp/ng.schematics':
-        specifier: ~11.0.0-rc.2
-        version: 11.0.0-rc.2(@types/node@20.19.43)(chokidar@5.0.0)(supports-color@8.1.1)
+        specifier: ~11.0.0
+        version: 11.0.0(@types/node@20.19.43)(chokidar@5.0.0)(supports-color@8.1.1)
       '@angular/build':
         specifier: ~22.2.0
         version: 22.2.7(@angular/compiler-cli@22.2.6(@angular/compiler@22.2.6)(typescript@6.0.3))(@angular/compiler@22.2.6)(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/localize@22.2.6(@angular/compiler-cli@22.2.6(@angular/compiler@22.2.6)(typescript@6.0.3))(@angular/compiler@22.2.6))(@angular/platform-browser@22.2.6(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@20.19.43)(less@4.9.1(supports-color@8.1.1))(ng-packagr@22.2.6(@angular/compiler-cli@22.2.6(@angular/compiler@22.2.6)(typescript@6.0.3))(supports-color@8.1.1)(tslib@2.9.1)(typescript@6.0.3))(postcss@8.5.32)(supports-color@8.1.1)(tslib@2.9.1)(typescript@6.0.3)(vitest@4.1.12(@types/node@20.19.43)(jsdom@27.4.0(supports-color@8.1.1))(vite@8.3.5(@types/node@20.19.43)(esbuild@0.28.2)(less@4.9.1(supports-color@8.1.1))(sass-embedded@1.104.1)(sass@1.108.2)))
@@ -90,17 +90,17 @@ importers:
 
 packages:
 
-  '@abp/ng.core@11.0.0-rc.2':
-    resolution: {integrity: sha512-zXEHb2IOZGabTTSFa4M9tjWewKQkV2mX16+rVnze5DXmQ975GoSeIfZtcgJ0+KqNgjzAhO7la7mKRp73FzeKIg==}
+  '@abp/ng.core@11.0.0':
+    resolution: {integrity: sha512-a/pv988jPejfkZf+PedPJ9yXIBd99obKj1p55A+m7lhDhBwm+pafdphhDAZbNKMa2qJCrKJ03+KKmfJevEMrug==}
 
-  '@abp/ng.oauth@11.0.0-rc.2':
-    resolution: {integrity: sha512-nhAkcV/Nn6G8EFCTsEfFKDxWCUQivM7oaI3oRZksLZGVN4bDsEiAoBGPctr4H/0ha3lhkTuxpXKGVU3C5KW00Q==}
+  '@abp/ng.oauth@11.0.0':
+    resolution: {integrity: sha512-5GJGVMPrzXWKk5U9GeJkl7s0WrHcIR4HsQe36LTbHjLZwRriKmTVdns14oNjItrrECYtoTKY/sHpydLYKumCFA==}
 
-  '@abp/ng.schematics@11.0.0-rc.2':
-    resolution: {integrity: sha512-9FFrj3dt0Sg86bRbGxKeodk8hloYUeTgOFmKNIeIPs7h7DW8+m1s2ZIjxux6Ihn1ZPRud+uLXx3rRgOmsqOl+g==}
+  '@abp/ng.schematics@11.0.0':
+    resolution: {integrity: sha512-V6giG6kZBAjMt+QHS7qkNAdYW0Htuey3Sp40m3ntQ+/HjxhLm2k7VNURQDUz1doN9PXh1mNZp05+PC3iM47Tzw==}
 
-  '@abp/utils@11.0.0-rc.2':
-    resolution: {integrity: sha512-73HTrDNJDmpc/R9uJHsK4OvCSkr0tFdaz0pUbyWHX5djyohe0z4ZBRXVlgeXPCrVCi7OrgM1/O9PRxD9Hp7lLQ==}
+  '@abp/utils@11.0.0':
+    resolution: {integrity: sha512-IL6l/2hLLZkgcsCy5hpVr1MGPEfzcCahceNODuO5PSgs8IyYibMISwArXOhrv7v8ivJReLtumYN5RsG4aAl00A==}
 
   '@acemir/cssom@0.9.32':
     resolution: {integrity: sha512-OijrAUu7rrJhSIoHNg6LMPS5e344nwUHA+1EFYYjrh64D+GmytUsfBQjci45TjT+rd5Spsp8B5xsZDT+TgyXXQ==}
@@ -3334,19 +3334,19 @@ packages:
 
 snapshots:
 
-  '@abp/ng.core@11.0.0-rc.2':
+  '@abp/ng.core@11.0.0':
     dependencies:
-      '@abp/utils': 11.0.0-rc.2
+      '@abp/utils': 11.0.0
       just-clone: 6.2.0
       just-compare: 2.3.0
       luxon: 3.7.2
       ts-toolbelt: 9.6.0
       tslib: 2.9.1
 
-  '@abp/ng.oauth@11.0.0-rc.2(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))':
+  '@abp/ng.oauth@11.0.0(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))':
     dependencies:
-      '@abp/ng.core': 11.0.0-rc.2
-      '@abp/utils': 11.0.0-rc.2
+      '@abp/ng.core': 11.0.0
+      '@abp/utils': 11.0.0
       angular-oauth2-oidc: 20.0.3(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.15.1))
       just-clone: 6.2.0
       just-compare: 2.3.0
@@ -3355,7 +3355,7 @@ snapshots:
       - '@angular/common'
       - '@angular/core'
 
-  '@abp/ng.schematics@11.0.0-rc.2(@types/node@20.19.43)(chokidar@5.0.0)(supports-color@8.1.1)':
+  '@abp/ng.schematics@11.0.0(@types/node@20.19.43)(chokidar@5.0.0)(supports-color@8.1.1)':
     dependencies:
       '@angular-devkit/core': 22.1.9(chokidar@5.0.0)
       '@angular-devkit/schematics': 22.1.9(chokidar@5.0.0)
@@ -3370,7 +3370,7 @@ snapshots:
       - chokidar
       - supports-color
 
-  '@abp/utils@11.0.0-rc.2':
+  '@abp/utils@11.0.0':
     dependencies:
       just-compare: 2.3.0
 
