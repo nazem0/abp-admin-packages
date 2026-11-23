@@ -8,6 +8,10 @@ using Volo.Abp.Localization;
 using Volo.Abp.Localization.ExceptionHandling;
 using Volo.Abp.Mapperly;
 using Volo.Abp.Modularity;
+using Volo.Abp.SettingManagement;
+using Volo.Abp.Authorization.Permissions;
+using AbpAdmin.Permissions;
+using static AbpAdmin.Permissions.AbpAdminPermissionGroup;
 using Volo.Abp.Validation.Localization;
 using Volo.Abp.VirtualFileSystem;
 
@@ -21,7 +25,8 @@ namespace AbpAdmin;
 [DependsOn(
     typeof(AbpDddApplicationModule),
     typeof(AbpMapperlyModule),
-    typeof(AbpAspNetCoreMvcModule)
+    typeof(AbpAspNetCoreMvcModule),
+    typeof(AbpSettingManagementDomainModule)
 )]
 public class AbpAdminCoreModule : AbpModule
 {
@@ -41,6 +46,13 @@ public class AbpAdminCoreModule : AbpModule
 
         Configure<AbpExceptionLocalizationOptions>(options => options.MapCodeNamespace("AbpAdmin", typeof(AbpAdminResource)));
     }
+}
+
+public class CorePermissionDefinitionProvider : PermissionDefinitionProvider
+{
+    public override void Define(IPermissionDefinitionContext context) =>
+        context.GetAbpAdminGroup().AddPermission(AbpAdminPermissions.Settings.Default, L("Permission:Settings"))
+            .AddChild(AbpAdminPermissions.Settings.Update, L("Permission:Edit"));
 }
 
 public static class AbpAdminRemoteService

@@ -2,6 +2,7 @@ import { authGuard, permissionGuard } from '@abp/ng.core';
 import { Routes } from '@angular/router';
 import { ABP_ADMIN_FEATURES, AbpAdminFeature, AbpAdminRegistry, SETTINGS_ICON } from '../shared/nav';
 import { AbpAdminLayoutComponent } from './abp-admin-layout.component';
+import { AllSettingsComponent } from '../settings/all-settings.component';
 
 /** What core brings on its own: the overview, ABP's host features, and the Settings page (time zone and email tabs). */
 export const abpAdminCore: AbpAdminFeature = {
@@ -19,6 +20,8 @@ export const abpAdminCore: AbpAdminFeature = {
       keywords: 'clock utc timezone', icon: 'M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
     { path: 'settings/email', label: 'Email', labelKey: 'AbpAdmin::Nav:SettingsEmail', section: 'Settings', policy: 'SettingManagement.Emailing',
       keywords: 'smtp mail sender', icon: 'M3 6h18v12H3zM3 7l9 6 9-6' },
+    { path: 'settings/all', label: 'All settings', labelKey: 'AbpAdmin::Nav:SettingsAll', section: 'Settings', policy: 'AbpAdmin.Settings',
+      keywords: 'every setting module configuration value override', icon: 'M4 6h16M4 12h16M4 18h16', component: AllSettingsComponent },
   ],
   routes: [
     { path: 'overview', loadComponent: () => import('../overview/overview.page').then(c => c.OverviewPage) },

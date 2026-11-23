@@ -16,12 +16,18 @@ NuGet: every `AbpAdmin.*` package.
 - **CSV export** of audit logs, entity changes and security logs (Angular and Razor Pages): a download button next to
   Refresh exports every row matching the page's current filters, up to 50,000 (`ExportAsync`,
   `ExportEntityChangesAsync`). Times are in the configured time zone.
+- **Settings › All settings** (Angular and Razor Pages): every setting of every module in one searchable list, with
+  its value at each level (default, `appsettings.json`, host, tenant) and which one applies. The host edits global
+  values, a tenant its own; encrypted values are never sent to the browser. `SettingBrowserAppService` in
+  AbpAdmin.Core, permissions `AbpAdmin.Settings` and `AbpAdmin.Settings.Update` (run your migrator/seeder to grant
+  them to admin).
 
 ### Changed
 
 - `Csv` (CSV helper) moved from `AbpAdmin.Identity` (`AbpAdmin.Services.Identity`) to `AbpAdmin.Core`
   (`AbpAdmin.Services`), with `Csv.File(...)` for downloads.
-
+- AbpAdmin.Core now depends on `Volo.Abp.SettingManagement.Domain` (Setting Management was already a requirement
+  of Core's settings pages). `UpdateSettingDto` moved from AbpAdmin.Identity to AbpAdmin.Core (same namespace).
 - **Debuggable, verifiable NuGet packages** (nuget.org Health checks): each DLL embeds its PDB with Source Link and the
   compiler flags, and CI builds are deterministic. You can step into ABP Admin's source while debugging.
 - ABP 11 moved from `11.0.0-rc.2` to `11.0.0`.

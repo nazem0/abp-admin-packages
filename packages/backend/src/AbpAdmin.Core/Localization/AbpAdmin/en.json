@@ -902,6 +902,24 @@
     "Settings:Identity:Group:SignIn": "Sign-in",
     "Settings:Identity:Group:User": "User",
     "Common:ExportCsv": "Export CSV",
-    "Common:ExportCsvHint": "Download every row matching the current filters as CSV (up to 50,000)"
+    "Common:ExportCsvHint": "Download every row matching the current filters as CSV (up to 50,000)",
+    "Settings:All:Title": "All settings",
+    "Settings:All:IntroHost": "Every setting of every module. A value set here applies to the host and to every tenant that doesn't set its own; leave it empty to fall back to appsettings.json or the default.",
+    "Settings:All:IntroTenant": "Every setting this tenant may override. Leave a value empty to use the host's.",
+    "Settings:All:Search": "Search by name or description",
+    "Settings:All:Module": "Module",
+    "Settings:All:AllModules": "All modules",
+    "Settings:All:OnlyChanged": "Only changed from default",
+    "Settings:All:LoadFailed": "Couldn't load the settings.",
+    "Settings:All:NoMatch": "No setting matches.",
+    "Settings:All:Default": "Default",
+    "Settings:All:Host": "Host",
+    "Settings:All:Tenant": "Tenant",
+    "Settings:All:Encrypted": "Encrypted",
+    "Settings:All:Inherit": "Inherit ({0})",
+    "Settings:All:Empty": "(empty)",
+    "Settings:All:Saved": "Settings saved.",
+    "Permission:Settings": "All settings",
+    "Nav:SettingsAll": "All settings"
   }
 }

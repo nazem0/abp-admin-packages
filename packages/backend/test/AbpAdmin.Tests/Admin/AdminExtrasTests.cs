@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using AbpAdmin.Services;
 using AbpAdmin.Services.AuditLogs;
 using AbpAdmin.Services.SecurityLogs;
+using AbpAdmin.Services.Settings;
+using Volo.Abp.SettingManagement;
 using AbpAdmin.Services.Identity;
 using AbpAdmin.Services.Tenants;
 using Shouldly;
@@ -31,6 +33,39 @@ public class AdminExtrasTests : AbpAdminTestBase
         parsed[0].ShouldBe(["h1", "h2"]);
         parsed[1].Select(Csv.Unescape).ShouldBe(["plain", "a,b", "say \"hi\"", "two\nlines", "+962 7", "=SUM(A1)", ""]);
         line.ShouldContain("'=SUM(A1)"); // formula guard in the file
+    }
+
+    private const string Length = "Abp.Identity.Password.RequiredLength";
+
+    [Fact]
+    public async Task Settings_Browser_Lists_Every_Module_And_Edits_Globally()
+    {
+        var browser = GetRequiredService<SettingBrowserAppService>();
+        var all = await browser.GetListAsync();
+        all.ShouldContain(s => s.Group == "Abp.Identity");
+        all.ShouldContain(s => s.Group == "Abp.Mailing");
+        var length = all.Single(s => s.Name == Length);
+        length.Type.ShouldBe("number");
+        length.IsEditable.ShouldBeTrue();
+        length.Value.ShouldBe(length.DefaultValue);
+
+        await browser.UpdateAsync([new UpdateSettingDto { Name = Length, Value = "9" }]);
+        length = (await browser.GetListAsync()).Single(s => s.Name == Length);
+        length.GlobalValue.ShouldBe("9");
+        length.Value.ShouldBe("9");
+
+        await Should.ThrowAsync<UserFriendlyException>(() => browser.UpdateAsync([new UpdateSettingDto { Name = Length, Value = "x" }]));
+        await Should.ThrowAsync<UserFriendlyException>(() => browser.UpdateAsync([new UpdateSettingDto { Name = "No.Such.Setting", Value = "1" }]));
+
+        await browser.UpdateAsync([new UpdateSettingDto { Name = Length, Value = "" }]); // back to the default
+        (await browser.GetListAsync()).Single(s => s.Name == Length).GlobalValue.ShouldBeNull();
+
+        // Encrypted values never leave the server, and the placeholder sent back changes nothing.
+        const string smtp = "Abp.Mailing.Smtp.Password";
+        await browser.UpdateAsync([new UpdateSettingDto { Name = smtp, Value = "s3cret" }]);
+        (await browser.GetListAsync()).Single(s => s.Name == smtp).GlobalValue.ShouldBe(SettingBrowserAppService.Hidden);
+        await browser.UpdateAsync([new UpdateSettingDto { Name = smtp, Value = SettingBrowserAppService.Hidden }]);
+        (await GetRequiredService<ISettingManager>().GetOrNullGlobalAsync(smtp)).ShouldBe("s3cret");
     }
 
     [Fact]
