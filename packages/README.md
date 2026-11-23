@@ -7,6 +7,10 @@ you want.
 
 What changed in each version: [CHANGELOG.md](CHANGELOG.md).
 
+**Supports ABP 10 (.NET 10) and ABP 11 (.NET 11)**: every NuGet package ships both builds. The Angular packages need
+Angular 22 and `@abp/ng.core` 11; ABP 10 MVC apps use the Razor Pages console. Coming next: localization overrides,
+two-factor sign-in, impersonation and session management ([roadmap](../README.md#roadmap)).
+
 ```
 packages/
   backend/

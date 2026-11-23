@@ -3,9 +3,10 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
-## Unreleased
+## 0.4.0 — 2026-11-23
 
-NuGet: every `AbpAdmin.*` package.
+NuGet: every `AbpAdmin.*` package (new: `AbpAdmin.EventBus`, `AbpAdmin.EventBus.Web`). npm: every
+`@nazem0/abp-admin-ng*` package (new: `@nazem0/abp-admin-ng-event-bus`), all at 0.4.0 since they depend on the new core.
 
 ### New
 

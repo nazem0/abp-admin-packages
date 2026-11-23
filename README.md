@@ -5,11 +5,24 @@
 An open-source, headless admin console for [ABP Framework](https://abp.io) applications.
 It gives the free ABP modules the admin screens they ship without: an **overview dashboard**,
 **audit, security and entity-change logs**, **users, roles, organization units and permissions**,
-**claim types**, **OpenIddict applications and scopes**, **background jobs**, **tenants** (with per-tenant
-databases), **features**, **identity, email, time-zone and audit-retention settings**, and an **entity explorer**
-to browse and edit your own entities, in English and Arabic.
+**claim types**, **OpenIddict applications and scopes**, **background jobs**, the **event outbox and inbox**,
+**tenants** (with per-tenant databases), **features**, **every setting of every module** (plus dedicated identity,
+email, time-zone and audit-retention pages), **cache clearing**, **CSV export** of the logs, and an **entity
+explorer** to browse and edit your own entities, in English and Arabic (right-to-left).
 
 > Community project. Not affiliated with or endorsed by Volosoft (the company behind ABP).
+
+## Supported platforms
+
+| | Supported |
+| --- | --- |
+| **ABP / .NET** (NuGet packages) | **ABP 10.7.x on .NET 10** and **ABP 11.0.x on .NET 11**: every package ships both builds and NuGet picks the one that matches your app |
+| **Angular UI** (npm packages) | Angular 22 with `@abp/ng.core` 11 (ABP 11 apps) |
+| **Razor Pages UI** (NuGet packages) | ABP MVC apps on ABP 10 or 11; plain JavaScript, no jQuery or SPA framework |
+| **Databases** | EF Core with any provider ABP supports (SQL Server and SQLite are tested); the event outbox/inbox page reads EF Core boxes only |
+| **Modules** | only ABP's free, open-source modules; each screen shows up when the module it administers is installed |
+| **Languages** | English and Arabic, right-to-left included; any other language through ABP's localization |
+| **This repository's app** | the reference app the packages come from: .NET 11, ABP 11, Angular 22, SQL Server |
 
 To add the console to your own ABP application, use the packages in [`packages/`](packages/README.md):
 NuGet for the backend, npm for an Angular UI, or NuGet for a Razor Pages UI with the same look, each split per
@@ -248,24 +261,28 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
 
 ## Roadmap
 
-- [x] Audit log dashboard, trace and entity history
-- [x] Entity change feed
-- [x] Time-zone and email settings
-- [x] Users, roles and permissions
-- [x] Host features
-- [x] Security logs, background jobs, overview dashboard
+Shipped:
+
+- [x] Overview dashboard, audit log dashboard, request trace, entity change feed and entity history
+- [x] Users, roles, permissions, organization units, claim types and user/role claims
+- [x] Identity & sign-in, email and time-zone settings; user lock/unlock
+- [x] Security logs and background jobs
 - [x] OpenIddict applications, scopes and client permissions
-- [x] Organization units
-- [x] Identity & sign-in settings, user lock/unlock
-- [x] Claim types and user/role claims
-- [ ] Session management (needs ABP session tracking enabled)
-- [x] Tenants, per-tenant databases, users across tenants, tenant-scoped console
-- [x] Localization of the admin UI (English, Arabic)
-- [x] Entity explorer, tenant features and invitations, audit log retention, pagination everywhere
-- [x] Entity explorer for the Razor Pages console
-- [x] All settings, event outbox/inbox monitor, cache tools, CSV export of logs
-- [ ] Localization overrides (edit any text per language)
-- [ ] Two-factor sign-in pages
+- [x] Host features; tenants with per-tenant databases, users across tenants, tenant features and invitations
+- [x] Entity explorer (Angular and Razor Pages), audit log retention, pagination everywhere
+- [x] English and Arabic (right-to-left)
+- [x] ABP 10 / .NET 10 next to ABP 11 / .NET 11 (packages)
+- [x] All settings browser, event outbox/inbox monitor, cache clearing, CSV export of logs, row icon key
+
+Upcoming:
+
+- [ ] **Localization overrides**: edit any localized text per language, stored in the database (what ABP's
+  commercial Language Management module does)
+- [ ] **Two-factor sign-in (MFA) for local login**: the free Account module has no two-factor pages, so this means
+  our own sign-in steps, codes and recovery codes
+- [ ] **Impersonation**: a host admin signs in as a user, or as a tenant's admin, to see exactly what they see, with
+  a clear way back and every step in the audit log
+- [ ] **Session management**: list and revoke a user's active sessions (needs session tracking at sign-in)
 
 ## Contributing
 

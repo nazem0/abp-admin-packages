@@ -1,6 +1,6 @@
 {
   "name": "@nazem0/abp-admin-ng-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "ABP Admin core for Angular: the shell (sidebar, Ctrl+K palette, toasts, theme), overview, settings and features pages, shared helpers and typed API clients.",
   "license": "MIT",
   "keywords": [
