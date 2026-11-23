@@ -106,6 +106,28 @@ The sample host exposes `Book` and `Author` (each tenant has its own library) pl
 
 ## Add it to an ABP application
 
+### Quick start: the installer
+
+From your solution folder:
+
+```bash
+dnx AbpAdmin.Cli                  # .NET 10+: runs the installer without installing it
+# or: dotnet tool install -g AbpAdmin.Cli, then: abp-admin
+```
+
+It detects your app's ABP and .NET versions, its API host (single-layer or layered `*.HttpApi.Host`), an MVC project
+for the Razor Pages console and an Angular app, then shows a menu: tick the features and the UI you want. It installs
+the **newest ABP Admin release that fits your stack** (one whose minimum ABP version is at or below yours, and for
+Angular one matching your `@abp/ng.core` and Angular majors), adds the modules to your module's `[DependsOn]`, runs
+`pnpm`/`yarn`/`npm` for Angular, and prints what's left: the Angular route and running your DbMigrator.
+
+```bash
+abp-admin --dry-run                                   # show the plan, change nothing
+abp-admin --features identity,audit-logging --ui razor --yes   # no questions (CI, scripts)
+```
+
+The rest of this section is what the installer does, for doing it by hand.
+
 The packages are public: NuGet packages on **nuget.org**, Angular packages on **npmjs.com** (scope `@nazem0`).
 No feed setup or token is needed.
 

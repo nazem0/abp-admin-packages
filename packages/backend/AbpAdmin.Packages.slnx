@@ -5,6 +5,7 @@
     <Project Path="src/AbpAdmin.Identity/AbpAdmin.Identity.csproj" />
     <Project Path="src/AbpAdmin.OpenIddict/AbpAdmin.OpenIddict.csproj" />
     <Project Path="src/AbpAdmin.BackgroundJobs/AbpAdmin.BackgroundJobs.csproj" />
+    <Project Path="src/AbpAdmin.Cli/AbpAdmin.Cli.csproj" />
     <Project Path="src/AbpAdmin.EventBus/AbpAdmin.EventBus.csproj" />
     <Project Path="src/AbpAdmin.TenantManagement/AbpAdmin.TenantManagement.csproj" />
     <Project Path="src/AbpAdmin.EntityExplorer/AbpAdmin.EntityExplorer.csproj" />

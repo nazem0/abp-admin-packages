@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\samples\AbpAdmin.Host\AbpAdmin.Host.csproj" />
+    <ProjectReference Include="..\..\src\AbpAdmin.Cli\AbpAdmin.Cli.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.TestBase" Version="$(AbpVersion)" />
-    <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="$(AbpVersion)" />
-    <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="$(AbpVersion)" />
+    <PackageReference Include="Volo.Abp.TestBase" Version="$(AbpHostVersion)" />
+    <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="$(AbpHostVersion)" />
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="$(AbpHostVersion)" />
   </ItemGroup>
 
 

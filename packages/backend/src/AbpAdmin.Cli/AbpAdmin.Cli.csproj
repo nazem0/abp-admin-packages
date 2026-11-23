@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- A tool, not a library: one build that runs on .NET 10 and any newer runtime (the ABP packages' dual targets don't apply). -->
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <RollForward>Major</RollForward>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>abp-admin</ToolCommandName>
+    <PackageId>AbpAdmin.Cli</PackageId>
+    <!-- Versioned on its own: it always installs the newest ABP Admin packages that fit the app, whatever their version. -->
+    <Version>0.1.0</Version>
+    <Description>Adds ABP Admin to an ABP application: detects its .NET and ABP versions and its UIs, lets you pick features from a menu, installs the newest matching NuGet and npm packages and wires the modules. Run it with `dnx AbpAdmin.Cli` or `dotnet tool install -g AbpAdmin.Cli` then `abp-admin`.</Description>
+    <PackageTags>abp;abp-framework;admin;dotnet-tool;installer</PackageTags>
+    <RootNamespace>AbpAdmin.Cli</RootNamespace>
+  </PropertyGroup>
+
+</Project>
