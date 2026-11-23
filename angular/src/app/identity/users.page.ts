@@ -1,4 +1,5 @@
 import { ConfigStateService, LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
+import { ICONS, IconLegendComponent, LegendItem } from '../shared/icon-legend.component';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { RouterLink } from '@angular/router';
@@ -23,7 +24,7 @@ import { EntityRef } from '../entity-changes/entity-history.component';
 
 @Component({
   selector: 'app-users-page',
-  imports: [PagerComponent, UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, RouterLink, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, RouterLink, LocalizationPipe],
   // Identity, lockout and permission calls made from this page (dialogs included) go to the row's tenant.
   providers: provideTenantScope(IdentityUserService, UserLockoutService, PermissionsService, IdentityClaimsService, UserTransferService),
   template: `
@@ -87,6 +88,7 @@ import { EntityRef } from '../entity-changes/entity-history.component';
             <b>{{ '::Users:NoUsers' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Users:NoMatch' | abpLocalization: filter()) : ('::Users:CreateFirst' | abpLocalization) }}</span>
           </div>
         } @else {
+          <app-icon-legend [items]="legend" />
           <table class="table" [class.loading]="list.isLoading()">
             <thead><tr><th>{{ '::Users:Col:User' | abpLocalization }}</th>@if (multi()) { <th>{{ '::Users:Tenant' | abpLocalization }}</th> }<th class="hide-sm">{{ '::Users:Email' | abpLocalization }}</th><th class="hide-sm">{{ '::Users:Phone' | abpLocalization }}</th><th>{{ '::Common:Status' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>
@@ -185,6 +187,17 @@ import { EntityRef } from '../entity-changes/entity-history.component';
   `,
 })
 export class UsersPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.edit, labelKey: '::Common:Edit', hintKey: '::Legend:Users:Edit' },
+    { svg: ICONS.lock, labelKey: '::Users:LockFor24h', hintKey: '::Legend:Users:Lock' },
+    { svg: ICONS.unlock, labelKey: '::Users:Unlock', hintKey: '::Legend:Users:Unlock' },
+    { svg: ICONS.signIns, labelKey: '::Users:SignInHistory', hintKey: '::Legend:Users:SignIns' },
+    { svg: ICONS.claims, labelKey: '::Claims:Title', hintKey: '::Legend:Claims' },
+    { svg: ICONS.cache, labelKey: '::Cache:ClearUser', hintKey: '::Legend:Users:Cache' },
+    { svg: ICONS.history, labelKey: '::Common:ChangeHistory', hintKey: '::Legend:History' },
+    { svg: ICONS.permissions, labelKey: '::Users:Permissions', hintKey: '::Legend:Users:Permissions' },
+    { svg: ICONS.delete, labelKey: '::Common:Delete', hintKey: '::Legend:Users:Delete' },
+  ];
   private readonly service = inject(IdentityUserService);
   private readonly permissions = inject(PermissionService);
   private readonly lockout = inject(UserLockoutService);

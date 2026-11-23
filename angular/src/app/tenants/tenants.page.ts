@@ -1,4 +1,5 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
+import { ICONS, IconLegendComponent, LegendItem } from '../shared/icon-legend.component';
 import { Component, computed, effect, inject, input, linkedSignal, model, output, signal } from '@angular/core';
 import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -342,7 +343,7 @@ export class TenantAdminComponent {
 /** Tenants: create, rename, enable/disable and delete tenants, and switch multi-tenancy itself on or off. */
 @Component({
   selector: 'app-tenants-page',
-  imports: [PagerComponent, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, TenantFormComponent, TenantDatabaseComponent, TenantAdminComponent, FeaturesPage, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -382,6 +383,7 @@ export class TenantAdminComponent {
         } @else if (!rows().length) {
           <div class="state empty"><b>{{ '::Tenants:Empty' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Tenants:NoMatch' | abpLocalization: filter()) : ('::Tenants:CreateFirst' | abpLocalization) }}</span></div>
         } @else {
+          <app-icon-legend [items]="legend" />
           <table class="table">
             <thead><tr><th>{{ '::Tenants:Tenant' | abpLocalization }}</th><th>{{ '::Common:Status' | abpLocalization }}</th><th>{{ '::Tenants:Database' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>
@@ -465,6 +467,14 @@ export class TenantAdminComponent {
   `,
 })
 export class TenantsPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.database, labelKey: '::Tenants:Database', hintKey: '::Legend:Tenants:Database' },
+    { svg: ICONS.features, labelKey: '::Tenants:Features', hintKey: '::Legend:Tenants:Features' },
+    { svg: ICONS.admins, labelKey: '::Tenants:Admins', hintKey: '::Legend:Tenants:Admins' },
+    { svg: ICONS.history, labelKey: '::Common:ChangeHistory', hintKey: '::Legend:History' },
+    { svg: ICONS.edit, labelKey: '::Tenants:Rename', hintKey: '::Legend:Tenants:Rename' },
+    { svg: ICONS.delete, labelKey: '::Common:Delete', hintKey: '::Legend:Tenants:Delete' },
+  ];
   private readonly service = inject(TenantService);
   private readonly permissions = inject(PermissionService);
   private readonly toaster = inject(Toaster);

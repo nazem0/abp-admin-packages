@@ -1,4 +1,5 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
+import { ICONS, IconLegendComponent, LegendItem } from '../shared/icon-legend.component';
 import { Component, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { PagerComponent, keepPageInRange, savedPageSize } from '../shared/pager.component';
 import { Toaster } from '../shared/toast';
@@ -79,7 +80,7 @@ export class RoleFormComponent {
 
 @Component({
   selector: 'app-roles-page',
-  imports: [PagerComponent, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, SheetDirective, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, HistorySheetComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -111,6 +112,7 @@ export class RoleFormComponent {
         } @else if (!rows().length) {
           <div class="state empty"><b>{{ '::Roles:NoRoles' | abpLocalization }}</b><span class="muted">{{ filter() ? ('::Roles:NoMatch' | abpLocalization: filter()) : ('::Roles:CreateFirst' | abpLocalization) }}</span></div>
         } @else {
+          <app-icon-legend [items]="legend" />
           <table class="table">
             <thead><tr><th>{{ '::Roles:Col:Role' | abpLocalization }}</th><th>{{ '::Roles:Col:Flags' | abpLocalization }}</th><th class="hide-sm">{{ '::Common:Created' | abpLocalization }}</th><th><span class="sr-only">{{ '::Common:Actions' | abpLocalization }}</span></th></tr></thead>
             <tbody>
@@ -207,6 +209,15 @@ export class RoleFormComponent {
   `,
 })
 export class RolesPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.edit, labelKey: '::Common:Edit', hintKey: '::Legend:Roles:Edit' },
+    { svg: ICONS.permissions, labelKey: '::Roles:Permissions', hintKey: '::Legend:Roles:Permissions' },
+    { svg: ICONS.claims, labelKey: '::Claims:Title', hintKey: '::Legend:Claims' },
+    { svg: ICONS.cache, labelKey: '::Cache:ClearRole', hintKey: '::Legend:Roles:Cache' },
+    { svg: ICONS.moveUsers, labelKey: '::Roles:MoveUsers', hintKey: '::Legend:Roles:MoveUsers' },
+    { svg: ICONS.history, labelKey: '::Common:ChangeHistory', hintKey: '::Legend:History' },
+    { svg: ICONS.delete, labelKey: '::Common:Delete', hintKey: '::Legend:Roles:Delete' },
+  ];
   private readonly service = inject(IdentityRoleService);
   protected readonly toaster = inject(Toaster);
   private readonly cache = inject(CacheService);
