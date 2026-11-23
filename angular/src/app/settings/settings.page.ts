@@ -9,6 +9,7 @@ import { TimeZoneSettingsService } from '../proxy/volo/abp/setting-management';
 import { EmailSettingsComponent } from './email-settings.component';
 import { IdentitySettingsComponent } from './identity-settings.component';
 import { AuditLogSettingsComponent } from './audit-log-settings.component';
+import { AllSettingsComponent } from './all-settings.component';
 
 /** ABP's value for "no explicit zone": every viewer sees their own browser zone. */
 const DEFAULT = 'Unspecified';
@@ -31,7 +32,7 @@ function toZone(name: string, value: string): Zone {
 
 @Component({
   selector: 'app-settings-page',
-  imports: [EmailSettingsComponent, IdentitySettingsComponent, AuditLogSettingsComponent, RouterLink, LocalizationPipe],
+  imports: [AllSettingsComponent, EmailSettingsComponent, IdentitySettingsComponent, AuditLogSettingsComponent, RouterLink, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -48,6 +49,7 @@ function toZone(name: string, value: string): Zone {
         }
       </nav>
 
+      @if (active()?.path === '/settings/all') { <app-all-settings /> }
       @if (active()?.path === '/settings/identity') { <app-identity-settings /> }
       @if (active()?.path === '/settings/audit-logs') { <app-audit-log-settings /> }
 

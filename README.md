@@ -66,6 +66,13 @@ whenever its schema changes). Don't put anything real in it.
   an event to the HTTP request that caused it (correlation id).
 - **Background jobs** — the persisted ABP job queue: waiting, retrying and abandoned jobs with their
   arguments and schedule; run now (re-queue) or delete.
+- **Event outbox & inbox** — every distributed event bus box stored with EF Core
+  (`UseDbContext<T>()`): events waiting to be sent, and received events waiting, retrying, discarded or
+  processed, with their payload; handle an inbox event again, or delete one.
+- **Cache tools** — clear the permission, setting and feature caches for one user, one role, or
+  everything (every tenant, from the host), when a change made outside the admin doesn't apply.
+- **CSV export** — audit logs, entity changes and security logs download as CSV with the page's
+  current filters (up to 50,000 rows).
 - **Audit log retention** — keep audit logs for a number of days (Settings › Audit logs); an hourly
   worker deletes older ones, or run the cleanup on demand. Off until a retention is set.
 - **Users** — search, create, edit (profile, password, roles, active/lockout), delete, lock/unlock,
@@ -99,6 +106,9 @@ whenever its schema changes). Don't put anything real in it.
   features; children lock while their parent toggle is off; reset to defaults.
 - **Identity & sign-in settings** — password policy, lockout, email/phone confirmation,
   self-registration and local login, rendered from ABP's own setting definitions.
+- **All settings** — every setting of every module in one searchable list, with its value at each
+  level (default, `appsettings.json`, host, tenant) and which one applies; edit the host's or the
+  tenant's value. Encrypted values are never sent to the browser.
 - **Email settings** — SMTP sender, server, SSL and credentials, plus a "send test email" form.
 - **Time-zone settings** — pick the zone (or keep each user's browser zone) used for every time,
   day boundary and chart; backed by ABP's `Abp.Timing.TimeZone` setting with a UTC clock.
@@ -252,6 +262,9 @@ Always-present DTO members carry `[Required]` so the generated TypeScript types 
 - [x] Localization of the admin UI (English, Arabic)
 - [x] Entity explorer, tenant features and invitations, audit log retention, pagination everywhere
 - [x] Entity explorer for the Razor Pages console
+- [x] All settings, event outbox/inbox monitor, cache tools, CSV export of logs
+- [ ] Localization overrides (edit any text per language)
+- [ ] Two-factor sign-in pages
 
 ## Contributing
 

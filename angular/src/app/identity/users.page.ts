@@ -10,6 +10,7 @@ import { TenantService, TenantUserService } from '../proxy/services/tenants';
 import { PermissionsService } from '../proxy/volo/abp/permission-management';
 import { TenantScope, provideTenantScope } from '../shared/tenant-scope';
 import { Toaster } from '../shared/toast';
+import { download } from '../shared/export-button.component';
 import { relative } from '../audit-logs/format';
 import { PermissionsEditorComponent, PermissionTarget } from '../permissions/permissions-editor.component';
 import { apiError } from '../shared/api-error';
@@ -258,9 +259,7 @@ export class UsersPage {
       this.transfer.export().subscribe({
         next: blob => {
           this.transferring.set(false);
-          const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'users.csv' });
-          a.click();
-          URL.revokeObjectURL(a.href);
+          download(blob, 'users.csv');
         },
         error: e => { this.transferring.set(false); this.toaster.error(apiError(e)); },
       });

@@ -8,6 +8,7 @@ import { EntityChangeType } from '../proxy/volo/abp/auditing';
 import { AuditLogDetailComponent } from '../audit-logs/audit-log-detail.component';
 import { RANGES, RangeKey, changeLabelKey, changeTone, clock, dayLabel, rangeWindow, shortType } from '../audit-logs/format';
 import { EntityHistoryComponent, EntityRef } from './entity-history.component';
+import { ExportButtonComponent } from '../shared/export-button.component';
 import { EntityTypePickerComponent, SYSTEM_ENTITY_TYPES } from './entity-type-picker.component';
 
 const HIDE_SYSTEM_KEY = 'abp-admin.entity-changes.hide-system';
@@ -22,7 +23,7 @@ const KINDS = [
 
 @Component({
   selector: 'app-entity-changes-page',
-  imports: [PagerComponent, EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
+  imports: [ExportButtonComponent, PagerComponent, EntityHistoryComponent, AuditLogDetailComponent, EntityTypePickerComponent, LocalizationPipe],
   templateUrl: './entity-changes.page.html',
   styleUrl: './entity-changes.page.scss',
 })
@@ -78,6 +79,9 @@ export class EntityChangesPage {
       this.service.getEntityChanges({ ...params, changeType: k.type, maxResultCount: 1 }).pipe(map(r => r.totalCount))))
       .pipe(map(totals => Object.fromEntries(KINDS.map((k, i) => [k.type, totals[i]])) as Record<EntityChangeType, number>)),
   });
+
+  /** The list's filters, every page. */
+  protected readonly exportCsv = () => this.service.exportEntityChanges({ ...this.base(), changeType: this.changeType() ?? undefined });
 
   protected readonly changes = rxResource({
     params: (): GetEntityChangeListInput => ({

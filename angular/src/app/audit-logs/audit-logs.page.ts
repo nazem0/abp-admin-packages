@@ -5,6 +5,7 @@ import { LocalizationPipe, LocalizationService } from '@abp/ng.core';
 import { AuditLogDto, AuditLogService, GetAuditLogListInput } from '../proxy/services/audit-logs';
 import { AuditLogDetailComponent } from './audit-log-detail.component';
 import { AuditStatsComponent, StatsPick } from './audit-stats.component';
+import { ExportButtonComponent } from '../shared/export-button.component';
 import { RANGES, RangeKey, clock, dayLabel, duration, failed, methodTone, relative, splitUrl, statusTone, rangeWindow } from './format';
 
 type Outcome = 'all' | 'ok' | 'failed';
@@ -12,7 +13,7 @@ type Outcome = 'all' | 'ok' | 'failed';
 
 @Component({
   selector: 'app-audit-logs-page',
-  imports: [PagerComponent, AuditStatsComponent, AuditLogDetailComponent, LocalizationPipe],
+  imports: [ExportButtonComponent, PagerComponent, AuditStatsComponent, AuditLogDetailComponent, LocalizationPipe],
   templateUrl: './audit-logs.page.html',
   styleUrl: './audit-logs.page.scss',
 })
@@ -66,6 +67,9 @@ export class AuditLogsPage {
     skipCount: this.page() * this.size(),
     maxResultCount: this.size(),
   }));
+
+  /** The list's filters, every page. */
+  protected readonly exportCsv = () => this.service.export(this.query());
 
   protected readonly logs = rxResource({
     params: () => this.query(),

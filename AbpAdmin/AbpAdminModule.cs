@@ -67,6 +67,8 @@ using AbpAdmin.Services.Entities;
 using Volo.Abp.Studio.Client.AspNetCore;
 
 using Microsoft.Extensions.Hosting;
+using Volo.Abp.EntityFrameworkCore.DistributedEvents;
+using Volo.Abp.TenantManagement;
 
 namespace AbpAdmin;
 
@@ -186,8 +188,10 @@ public class AbpAdminModule : AbpModule
 
         Configure<AbpAuditingOptions>(options =>
         {
-            // Record property-level changes for every entity, so the audit log UI can show diffs.
-            options.EntityHistorySelectors.AddAllEntities();
+            // Record property-level changes for every entity, so the audit log UI can show diffs,
+            // except the event outbox/inbox rows: bus bookkeeping, written for every distributed event.
+            options.EntityHistorySelectors.Add(new NamedTypeSelector("AllButEventBoxes",
+                type => type != typeof(OutgoingEventRecord) && type != typeof(IncomingEventRecord)));
         });
 
         // Entity Explorer: only these are exposed (each gets AbpAdmin.Entities.<Name>[.Create/.Update/.Delete]).
@@ -212,6 +216,18 @@ public class AbpAdminModule : AbpModule
 
         // Host admins with Tenants.ManageUsers keep their user-management permissions inside a tenant (Users page).
         Configure<AbpPermissionOptions>(options => options.ValueProviders.Add<HostUserInTenantPermissionValueProvider>());
+
+        // Transactional outbox and inbox for distributed events (AbpEventOutbox / AbpEventInbox tables), shown on the Events page.
+        Configure<Volo.Abp.EventBus.Distributed.AbpDistributedEventBusOptions>(options =>
+        {
+            options.Outboxes.Configure(box => box.UseDbContext<AbpAdminDbContext>());
+            options.Inboxes.Configure(box =>
+            {
+                box.UseDbContext<AbpAdminDbContext>();
+                // A tenant's database is set up in the request that saves the tenant (TenantDatabaseMigrationHandler), not later.
+                box.EventSelector = type => type != typeof(TenantCreatedEto) && type != typeof(TenantConnectionStringUpdatedEto);
+            });
+        });
 
         ConfigureStudio(hostingEnvironment);
         ConfigureAuthentication(context);

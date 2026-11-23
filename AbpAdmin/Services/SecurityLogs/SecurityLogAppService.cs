@@ -2,7 +2,9 @@ using AbpAdmin.Localization;
 using AbpAdmin.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Riok.Mapperly.Abstractions;
+using AbpAdmin.Services.Identity;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
@@ -36,6 +38,21 @@ public class SecurityLogAppService : ReadOnlyAppService<IdentitySecurityLog, Sec
 
     protected override IQueryable<IdentitySecurityLog> ApplyDefaultSorting(IQueryable<IdentitySecurityLog> query) =>
         query.OrderByDescending(x => x.CreationTime);
+
+    /// <summary>The filtered list (ignoring paging) as CSV, newest first, up to <see cref="Csv.MaxExportRows"/> rows.</summary>
+    [Microsoft.AspNetCore.Mvc.HttpGet]
+    public virtual async Task<IRemoteStreamContent> ExportAsync(GetSecurityLogListInput input)
+    {
+        await CheckGetListPolicyAsync();
+        var rows = await AsyncExecuter.ToListAsync(ApplyDefaultSorting(await CreateFilteredQueryAsync(input)).Take(Csv.MaxExportRows));
+        return Csv.File("security-logs.csv",
+            ["Time", "Action", "UserName", "Tenant", "Identity", "ClientId", "ClientIp", "Browser", "CorrelationId", "Application"],
+            rows.Select(x => new[]
+            {
+                Csv.Time(Clock, x.CreationTime), x.Action, x.UserName, x.TenantName, x.Identity, x.ClientId, x.ClientIpAddress,
+                x.BrowserInfo, x.CorrelationId, x.ApplicationName,
+            }));
+    }
 
     /// <summary>Event counts per action in the window; drives the summary tiles and the action filter.</summary>
     public virtual async Task<List<SecurityLogActionCountDto>> GetActionCountsAsync(DateTime? startTime, DateTime? endTime)

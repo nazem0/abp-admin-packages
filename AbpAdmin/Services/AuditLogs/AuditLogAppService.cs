@@ -6,7 +6,9 @@ using System.Text.RegularExpressions;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using AbpAdmin.Services.Identity;
 using Volo.Abp.AuditLogging;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 
 namespace AbpAdmin.Services.AuditLogs;
@@ -47,21 +49,54 @@ public class AuditLogAppService : ReadOnlyAppService<AuditLog, AuditLogDto, Guid
     protected override IQueryable<AuditLog> ApplyDefaultSorting(IQueryable<AuditLog> query) =>
         query.OrderByDescending(x => x.ExecutionTime);
 
+    /// <summary>The filtered list (ignoring paging) as CSV, newest first, up to <see cref="Csv.MaxExportRows"/> rows.</summary>
+    [Microsoft.AspNetCore.Mvc.HttpGet]
+    public virtual async Task<IRemoteStreamContent> ExportAsync(GetAuditLogListInput input)
+    {
+        await CheckGetListPolicyAsync();
+        var rows = await AsyncExecuter.ToListAsync(ApplyDefaultSorting(await CreateFilteredQueryAsync(input)).Take(Csv.MaxExportRows)
+            .Select(x => new
+            {
+                x.ExecutionTime, x.UserName, x.TenantName, x.HttpMethod, x.Url, x.HttpStatusCode, x.ExecutionDuration,
+                x.ClientIpAddress, x.CorrelationId, x.ApplicationName, Failed = x.Exceptions != null && x.Exceptions != "",
+            }));
+        return Csv.File("audit-logs.csv",
+            ["Time", "UserName", "Tenant", "HttpMethod", "Url", "StatusCode", "DurationMs", "ClientIp", "CorrelationId", "Application", "Exception"],
+            rows.Select(x => new[]
+            {
+                Csv.Time(Clock, x.ExecutionTime), x.UserName, x.TenantName, x.HttpMethod, x.Url, x.HttpStatusCode?.ToString(),
+                x.ExecutionDuration.ToString(), x.ClientIpAddress, x.CorrelationId, x.ApplicationName, x.Failed ? "true" : "false",
+            }));
+    }
+
     /// <summary>Entity changes across all requests, newest first: the "what happened to my data" feed.</summary>
     public async Task<PagedResultDto<EntityChangeListItemDto>> GetEntityChangesAsync(GetEntityChangeListInput input)
     {
-        var query = FilterChanges(await EntityChangesAsync(), input)
+        var query = await EntityChangeQueryAsync(input);
+        var totalCount = await AsyncExecuter.CountAsync(query);
+        return new PagedResultDto<EntityChangeListItemDto>(totalCount, await WithRequestsAsync(query.Skip(input.SkipCount).Take(input.MaxResultCount)));
+    }
+
+    /// <summary>The filtered entity changes (ignoring paging) as CSV, one row per change, up to <see cref="Csv.MaxExportRows"/> rows.</summary>
+    [Microsoft.AspNetCore.Mvc.HttpGet]
+    public virtual async Task<IRemoteStreamContent> ExportEntityChangesAsync(GetEntityChangeListInput input)
+    {
+        var rows = await WithRequestsAsync((await EntityChangeQueryAsync(input)).Take(Csv.MaxExportRows));
+        return Csv.File("entity-changes.csv",
+            ["Time", "ChangeType", "EntityType", "EntityId", "UserName", "HttpMethod", "Url", "Changes"],
+            rows.Select(x => new[]
+            {
+                Csv.Time(Clock, x.ChangeTime), x.ChangeType.ToString(), x.EntityTypeFullName, x.EntityId, x.UserName, x.HttpMethod, x.Url,
+                string.Join("; ", x.PropertyChanges.Select(p => $"{p.PropertyName}: {p.OriginalValue ?? "null"} → {p.NewValue ?? "null"}")),
+            }));
+    }
+
+    private async Task<IQueryable<EntityChange>> EntityChangeQueryAsync(GetEntityChangeListInput input) =>
+        FilterChanges(await EntityChangesAsync(), input)
             .WhereIf(input.AuditLogId.HasValue, c => c.AuditLogId == input.AuditLogId)
             .WhereIf(input.EntityTypeFullNames is { Count: > 0 }, c => input.EntityTypeFullNames!.Contains(c.EntityTypeFullName))
-            .WhereIf(input.ExcludedEntityTypeFullNames is { Count: > 0 }, c => !input.ExcludedEntityTypeFullNames!.Contains(c.EntityTypeFullName));
-
-        var totalCount = await AsyncExecuter.CountAsync(query);
-        var page = query
-            .OrderBy(input.Sorting.IsNullOrWhiteSpace() ? nameof(EntityChange.ChangeTime) + " desc" : input.Sorting)
-            .Skip(input.SkipCount).Take(input.MaxResultCount);
-
-        return new PagedResultDto<EntityChangeListItemDto>(totalCount, await WithRequestsAsync(page));
-    }
+            .WhereIf(input.ExcludedEntityTypeFullNames is { Count: > 0 }, c => !input.ExcludedEntityTypeFullNames!.Contains(c.EntityTypeFullName))
+            .OrderBy(input.Sorting.IsNullOrWhiteSpace() ? nameof(EntityChange.ChangeTime) + " desc" : input.Sorting);
 
     /// <summary>Full change history of a single entity, oldest first.</summary>
     // ponytail: unbounded per entity; page it if a single entity ever collects thousands of changes.

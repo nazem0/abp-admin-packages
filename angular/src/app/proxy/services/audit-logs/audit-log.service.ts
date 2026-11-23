@@ -12,6 +12,30 @@ export class AuditLogService {
   
 
   
+  export = (input: GetAuditLogListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'GET',
+      responseType: 'blob',
+      headers: { Accept: 'application/octet-stream' },
+      url: '/api/app/audit-log/export',
+      params: { startTime: input.startTime, endTime: input.endTime, url: input.url, userName: input.userName, httpMethod: input.httpMethod, httpStatusCode: input.httpStatusCode, minExecutionDuration: input.minExecutionDuration, maxExecutionDuration: input.maxExecutionDuration, hasException: input.hasException, correlationId: input.correlationId, clientIpAddress: input.clientIpAddress, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+    },
+      { apiName: this.apiName,...config });
+  
+
+  
+  exportEntityChanges = (input: GetEntityChangeListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, Blob>({
+      method: 'GET',
+      responseType: 'blob',
+      headers: { Accept: 'application/octet-stream' },
+      url: '/api/app/audit-log/export-entity-changes',
+      params: { auditLogId: input.auditLogId, entityTypeFullNames: input.entityTypeFullNames, excludedEntityTypeFullNames: input.excludedEntityTypeFullNames, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount, startTime: input.startTime, endTime: input.endTime, changeType: input.changeType, entityId: input.entityId },
+    },
+      { apiName: this.apiName,...config });
+  
+
+  
   get = (id: string, config?: Partial<Rest.Config>) =>
     this.restService.request<any, AuditLogDto>({
       method: 'GET',
