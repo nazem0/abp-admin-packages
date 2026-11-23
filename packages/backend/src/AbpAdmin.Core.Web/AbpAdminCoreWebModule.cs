@@ -39,6 +39,8 @@ public class AbpAdminCoreWebModule : AbpModule
                 "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z", "clock utc timezone") { Order = 10 });
             options.Settings.Add(new AbpAdminWebSettingsSection("email", "AbpAdmin::Nav:SettingsEmail", "SettingManagement.Emailing",
                 "M3 6h18v12H3zM3 7l9 6 9-6", "smtp mail sender") { Order = 20 });
+            options.Settings.Add(new AbpAdminWebSettingsSection("all", "AbpAdmin::Nav:SettingsAll", "AbpAdmin.Settings",
+                "M4 6h16M4 12h16M4 18h16", "every setting module configuration value override") { Order = 1000 });
         });
     }
 }

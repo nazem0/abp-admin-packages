@@ -250,7 +250,127 @@
     load();
   }
 
+  // ---------- all settings (port of all-settings.component.ts) ----------
+  function allSettings() {
+    const canEdit = can('AbpAdmin.Settings.Update');
+    const tenant = !!AbpAdmin.config.currentTenant?.id;
+    const st = { data: [], q: '', group: '', changed: false, edits: new Map(), saving: false };
+    const own = s => (tenant ? s.tenantValue : s.globalValue) ?? '';
+    const show = v => (v == null || v === '' ? L('AbpAdmin::Settings:All:Empty') : v);
+    const inherited = s => show((tenant ? s.globalValue : null) ?? s.configurationValue ?? s.defaultValue);
+    const source = s => (s.tenantValue != null ? 'tenant' : s.globalValue != null ? 'global' : s.configurationValue != null ? 'config' : 'default');
+    const value = s => (st.edits.has(s.name) ? st.edits.get(s.name) : own(s));
+    const shown = () => {
+      const q = st.q.trim().toLowerCase();
+      return st.data.filter(s => (!st.group || s.group === st.group) && (!st.changed || source(s) !== 'default')
+        && (!q || `${s.name} ${s.displayName} ${s.description ?? ''}`.toLowerCase().includes(q)));
+    };
+
+    function shell() {
+      render(host, html`<section class="card all" aria-labelledby="all-h">
+        <header>
+          <div>
+            <h2 id="all-h">${L('AbpAdmin::Settings:All:Title')}</h2>
+            <p class="muted">${L(tenant ? 'AbpAdmin::Settings:All:IntroTenant' : 'AbpAdmin::Settings:All:IntroHost')}</p>
+          </div>
+          ${canEdit ? html`<div class="acts" data-part="acts"></div>` : ''}
+        </header>
+        <div class="filters">
+          <label class="search">${icon(SEARCH)}
+            <input class="input" type="search" data-f="q" placeholder="${L('AbpAdmin::Settings:All:Search')}" aria-label="${L('AbpAdmin::Settings:All:Search')}" /></label>
+          <select class="input" data-f="group" aria-label="${L('AbpAdmin::Settings:All:Module')}"></select>
+          <label class="check"><input type="checkbox" data-f="changed" /> ${L('AbpAdmin::Settings:All:OnlyChanged')}</label>
+        </div>
+        <div data-part="list">${skeleton}</div>
+      </section>`);
+    }
+
+    function drawActs() {
+      const el = part(host, 'acts');
+      if (!el) return;
+      const n = st.edits.size;
+      render(el, html`${n ? html`<span class="muted small">${L('AbpAdmin::Settings:Unsaved', String(n))}</span>` : ''}
+        <button class="btn" type="button" data-act="reset" ${!n || st.saving ? 'disabled' : ''}>${L('AbpAdmin::Common:Reset')}</button>
+        <button class="btn primary" type="button" data-act="save" ${!n || st.saving ? 'disabled' : ''}>${L(st.saving ? 'AbpAdmin::Common:Saving' : 'AbpAdmin::Common:Save')}</button>`);
+    }
+
+    function row(s) {
+      const editable = canEdit && s.isEditable, src = source(s), id = 'set-' + s.name;
+      const lvl = (key, label, v) => html`<span class="lvl ${src === key ? 'on' : ''}">${label}: ${v}</span>`;
+      return html`<li class="${st.edits.has(s.name) ? 'changed' : ''}">
+        <div class="what">
+          <label for="${id}"><b>${s.displayName}</b></label>
+          <code class="mono">${s.name}</code>
+          ${s.description && s.description !== s.displayName ? html`<small class="muted">${s.description}</small>` : ''}
+          <span class="levels">
+            ${lvl('default', L('AbpAdmin::Settings:All:Default'), show(s.defaultValue))}
+            ${s.configurationValue != null ? lvl('config', 'appsettings', s.configurationValue) : ''}
+            ${s.globalValue != null ? lvl('global', L('AbpAdmin::Settings:All:Host'), s.globalValue) : ''}
+            ${s.tenantValue != null ? lvl('tenant', L('AbpAdmin::Settings:All:Tenant'), s.tenantValue) : ''}
+            ${s.isEncrypted ? html`<span class="lvl">${L('AbpAdmin::Settings:All:Encrypted')}</span>` : ''}
+          </span>
+        </div>
+        <div class="val">
+          ${s.type === 'bool'
+            ? html`<select class="input" id="${id}" data-name="${s.name}" ${editable ? '' : 'disabled'}>
+                ${[['', L('AbpAdmin::Settings:All:Inherit', inherited(s))], ['true', 'true'], ['false', 'false']].map(([v, t]) =>
+                  html`<option value="${v}" ${value(s) === v ? 'selected' : ''}>${t}</option>`)}
+              </select>`
+            : html`<input class="input" id="${id}" data-name="${s.name}" type="${s.isEncrypted ? 'password' : s.type === 'number' ? 'number' : 'text'}" min="0"
+                value="${value(s)}" placeholder="${inherited(s)}" ${editable ? '' : 'disabled'} />`}
+        </div>
+      </li>`;
+    }
+
+    function drawList() {
+      const rows = shown();
+      render(part(host, 'list'), rows.length ? html`<ul class="list">${rows.map(row)}</ul>`
+        : html`<div class="state empty"><span class="muted">${L('AbpAdmin::Settings:All:NoMatch')}</span></div>`);
+    }
+
+    async function load() {
+      st.edits.clear(); drawActs();
+      render(part(host, 'list'), skeleton);
+      try {
+        st.data = await api.get('/api/abp-admin/setting-browser');
+        const groups = [...new Set(st.data.map(s => s.group))].sort();
+        render(host.querySelector('[data-f=group]'), html`<option value="">${L('AbpAdmin::Settings:All:AllModules')}</option>
+          ${groups.map(g => html`<option value="${g}" ${st.group === g ? 'selected' : ''}>${g}</option>`)}`);
+        drawList();
+      } catch {
+        render(part(host, 'list'), html`<div class="state err">${L('AbpAdmin::Settings:All:LoadFailed')} <button class="btn" type="button" data-act="retry">${L('AbpAdmin::Common:Retry')}</button></div>`);
+      }
+    }
+
+    // Typing marks the row and the counter without redrawing the list (keeps focus).
+    function edit(el) {
+      const s = st.data.find(x => x.name === el.dataset.name);
+      if (!s) return;
+      if (el.value === own(s)) st.edits.delete(s.name); else st.edits.set(s.name, el.value);
+      el.closest('li').classList.toggle('changed', st.edits.has(s.name));
+      drawActs();
+    }
+
+    on(host, 'input', '[data-f=q]', (e, el) => { st.q = el.value; drawList(); });
+    on(host, 'change', '[data-f=group]', (e, el) => { st.group = el.value; drawList(); });
+    on(host, 'change', '[data-f=changed]', (e, el) => { st.changed = el.checked; drawList(); });
+    on(host, 'input', '.val input[data-name]', (e, el) => edit(el));
+    on(host, 'change', '.val select[data-name]', (e, el) => edit(el));
+    on(host, 'click', '[data-act=retry]', load);
+    on(host, 'click', '[data-act=reset]', () => { st.edits.clear(); drawActs(); drawList(); });
+    on(host, 'click', '[data-act=save]', async () => {
+      st.saving = true; drawActs();
+      try {
+        await api.put('/api/abp-admin/setting-browser', [...st.edits].map(([name, value]) => ({ name, value })));
+        AbpAdmin.toast.ok(L('AbpAdmin::Settings:All:Saved'));
+        st.saving = false; load();
+      } catch (err) { st.saving = false; drawActs(); AbpAdmin.toast.error(errorText(err)); }
+    });
+    shell(); drawActs(); load();
+  }
+
   const tab = page.dataset.tab;
   if (tab === 'time-zone') timeZone();
   else if (tab === 'email') email();
+  else if (tab === 'all') allSettings();
 })();

@@ -25,6 +25,13 @@ public static class AbpAdminPermissions
         public const string Default = GroupName + ".SecurityLogs";
     }
 
+    /// <summary>Every setting definition of every module, at the host (global) or tenant level.</summary>
+    public static class Settings
+    {
+        public const string Default = GroupName + ".Settings";
+        public const string Update = Default + ".Update";
+    }
+
     public static class IdentitySettings
     {
         public const string Default = GroupName + ".IdentitySettings";

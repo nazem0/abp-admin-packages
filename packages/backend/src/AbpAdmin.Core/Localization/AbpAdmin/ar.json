@@ -902,6 +902,24 @@
     "Settings:Identity:Group:SignIn": "تسجيل الدخول",
     "Settings:Identity:Group:User": "المستخدم",
     "Common:ExportCsv": "تصدير CSV",
-    "Common:ExportCsvHint": "تنزيل كل الصفوف المطابقة للمرشحات الحالية بصيغة CSV (حتى 50,000 صف)"
+    "Common:ExportCsvHint": "تنزيل كل الصفوف المطابقة للمرشحات الحالية بصيغة CSV (حتى 50,000 صف)",
+    "Settings:All:Title": "كل الإعدادات",
+    "Settings:All:IntroHost": "كل إعدادات كل الوحدات. القيمة المحددة هنا تسري على المضيف وعلى كل مستأجر لم يحدد قيمته الخاصة؛ اتركها فارغة للرجوع إلى appsettings.json أو القيمة الافتراضية.",
+    "Settings:All:IntroTenant": "كل الإعدادات التي يمكن لهذا المستأجر تجاوزها. اترك القيمة فارغة لاستخدام قيمة المضيف.",
+    "Settings:All:Search": "ابحث بالاسم أو الوصف",
+    "Settings:All:Module": "الوحدة",
+    "Settings:All:AllModules": "كل الوحدات",
+    "Settings:All:OnlyChanged": "المعدّلة عن الافتراضي فقط",
+    "Settings:All:LoadFailed": "تعذر تحميل الإعدادات.",
+    "Settings:All:NoMatch": "لا يوجد إعداد مطابق.",
+    "Settings:All:Default": "الافتراضي",
+    "Settings:All:Host": "المضيف",
+    "Settings:All:Tenant": "المستأجر",
+    "Settings:All:Encrypted": "مشفّر",
+    "Settings:All:Inherit": "موروث ({0})",
+    "Settings:All:Empty": "(فارغ)",
+    "Settings:All:Saved": "تم حفظ الإعدادات.",
+    "Permission:Settings": "كل الإعدادات",
+    "Nav:SettingsAll": "كل الإعدادات"
   }
 }

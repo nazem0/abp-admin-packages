@@ -58,3 +58,25 @@
 #abp-settings .grid-host { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 14px; }
 #abp-settings .body.form { display: grid; gap: 18px; }
 #abp-settings [hidden] { display: none !important; }
+
+/* All settings (port of all-settings.component.ts). */
+#abp-settings .all header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px 22px 6px; }
+#abp-settings .all header p { margin: 4px 0 0; max-width: 640px; line-height: 1.5; }
+#abp-settings .all .acts { display: flex; align-items: center; gap: 8px; }
+#abp-settings .all .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 22px; }
+#abp-settings .all .filters select { width: auto; }
+#abp-settings .all .check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+#abp-settings .all .list { list-style: none; margin: 0; padding: 4px 12px 14px; max-height: none; overflow: visible; } /* not the time-zone picker list */
+#abp-settings .all .list li { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 16px; align-items: center; padding: 10px; border-radius: 9px; }
+#abp-settings .all .list li + li { border-top: 1px dashed var(--border); }
+#abp-settings .all .list li.changed { background: var(--warn-soft); }
+@media (max-width: 720px) { #abp-settings .all .list li { grid-template-columns: minmax(0, 1fr); } }
+#abp-settings .all .what { display: grid; gap: 2px; min-width: 0; }
+#abp-settings .all .what b { font-weight: 550; font-size: 13.5px; }
+#abp-settings .all .what code { font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
+#abp-settings .all .what small { font-size: 12px; }
+#abp-settings .all .levels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+#abp-settings .all .lvl { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); overflow-wrap: anywhere; }
+#abp-settings .all .lvl.on { background: var(--accent-soft); color: var(--accent); font-weight: 550; }
+#abp-settings .all .val .input { width: 100%; }
+#abp-settings .all .state.empty { display: block; text-align: center; padding: 24px; }
