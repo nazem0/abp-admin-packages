@@ -19,6 +19,14 @@
       </div>
       ${can('AbpAdmin.Tenants.Create') ? html`<button class="btn primary" data-act="new">${icon('M12 5v14M5 12h14')} ${L('AbpAdmin::Tenants:New')}</button>` : ''}
     </header>
+    ${AbpAdmin.iconLegend([
+      ['M5 5.5v13c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-13M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5M19 5.5c0 1.4-3.1 2.5-7 2.5S5 6.9 5 5.5 8.1 3 12 3s7 1.1 7 2.5z', 'AbpAdmin::Tenants:Database', 'AbpAdmin::Legend:Tenants:Database'],
+      ['M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4', 'AbpAdmin::Tenants:Features', 'AbpAdmin::Legend:Tenants:Features'],
+      ['M2.5 20a6.5 6.5 0 0 1 13 0M17 8h5M19.5 5.5v5M12.5 8a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z', 'AbpAdmin::Tenants:Admins', 'AbpAdmin::Legend:Tenants:Admins'],
+      ['M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5', 'AbpAdmin::Common:ChangeHistory', 'AbpAdmin::Legend:History'],
+      ['M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4', 'AbpAdmin::Tenants:Rename', 'AbpAdmin::Legend:Tenants:Rename'],
+      ['M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3', 'AbpAdmin::Common:Delete', 'AbpAdmin::Legend:Tenants:Delete'],
+    ])}
     <section class="card mt" id="tn-mode"></section>
     <section class="card stream">
       <div class="filters">

@@ -106,6 +106,13 @@
   /** The "Export CSV" icon button of a list header; the page handles `data-act="export"`. */
   const exportButton = () => html`<button class="icon-btn" type="button" data-act="export" title="${L('AbpAdmin::Common:ExportCsvHint')}" aria-label="${L('AbpAdmin::Common:ExportCsv')}">${icon('M12 4v11M7 10l5 5 5-5M5 20h14')}</button>`;
 
+  /**
+   * An always-visible key to a list's row action icons: [[svgPath, labelKey, hintKey], ...]. Icon + name, the longer
+   * explanation on hover. Placed under the page heading (port of icon-legend.component.ts).
+   */
+  const iconLegend = items => html`<ul class="icon-legend" aria-label="${L('AbpAdmin::Legend:Title')}">
+    ${items.map(([d, label, hint]) => html`<li title="${L(hint)}">${icon(d)}${L(label)}</li>`)}</ul>`;
+
   /** Human message of any error (ApiError messages come localized from ABP). */
   const errorText = e => (e instanceof ApiError ? e.message : L('AbpAdmin::Common:SomethingWentWrong'));
 
@@ -375,6 +382,6 @@
 
   window.AbpAdmin = {
     config, html, raw, render, icon, on, L, can, currentUser, locale, api, ApiError, errorText, query, toast, sheet, theme,
-    params, setParams, pageUrl, fmt, setting, pager, onPager, pageSize, pastEnd, download, exportButton,
+    params, setParams, pageUrl, fmt, setting, pager, onPager, pageSize, pastEnd, download, exportButton, iconLegend,
   };
 })();

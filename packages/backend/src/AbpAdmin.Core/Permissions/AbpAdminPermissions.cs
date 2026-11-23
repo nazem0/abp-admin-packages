@@ -32,6 +32,12 @@ public static class AbpAdminPermissions
         public const string Update = Default + ".Update";
     }
 
+    /// <summary>Clear permission, setting and feature caches (AbpAdmin.Identity).</summary>
+    public static class Cache
+    {
+        public const string Default = GroupName + ".Cache";
+    }
+
     public static class IdentitySettings
     {
         public const string Default = GroupName + ".IdentitySettings";

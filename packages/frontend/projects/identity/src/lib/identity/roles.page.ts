@@ -1,6 +1,6 @@
 import { LocalizationPipe, LocalizationService, PermissionService } from '@abp/ng.core';
 import { Component, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
-import { Toaster, IdentityRoleDto, IdentityRoleService, relative, PermissionsEditorComponent, PermissionTarget, SheetDirective, apiError, RoleUsersService, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
+import { Toaster, IdentityRoleDto, IdentityRoleService, relative, PermissionsEditorComponent, PermissionTarget, SheetDirective, apiError, RoleUsersService, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize, ICONS, IconLegendComponent, LegendItem, CacheService } from '@nazem0/abp-admin-ng-core';
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
@@ -70,7 +70,7 @@ export class RoleFormComponent {
 
 @Component({
   selector: 'abp-roles-page',
-  imports: [PagerComponent, RouterLink, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, SheetDirective, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, RouterLink, RoleFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, SheetDirective, LocalizationPipe],
   template: `
     <div class="page">
       <header class="top">
@@ -84,6 +84,7 @@ export class RoleFormComponent {
           </button>
         }
       </header>
+      <app-icon-legend [items]="legend" />
 
       <section class="card stream">
         <div class="filters">
@@ -134,6 +135,10 @@ export class RoleFormComponent {
                       <button class="icon-btn" [title]="'AbpAdmin::Claims:Title' | abpLocalization" [attr.aria-label]="'AbpAdmin::Claims:Of' | abpLocalization: r.name ?? ''"
                               (click)="claims.set({ kind: 'role', id: r.id!, title: r.name! })">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpAdmin.Cache')) {
+                        <button class="icon-btn" [title]="'AbpAdmin::Cache:ClearRole' | abpLocalization" [attr.aria-label]="'AbpAdmin::Cache:ClearFor' | abpLocalization: r.name ?? ''" (click)="clearCache(r)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7" /></svg></button>
+                      }
                       @if (can('AbpIdentity.Roles.Update') && can('AbpIdentity.Users.Update')) {
                         <button class="icon-btn" [title]="'AbpAdmin::Roles:MoveUsers' | abpLocalization" [attr.aria-label]="'AbpAdmin::Roles:MoveUsersOf' | abpLocalization: r.name ?? ''" (click)="moving.set(r)">
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 11-4.7M16 14h6M19 11l3 3-3 3" /></svg></button>
@@ -193,8 +198,18 @@ export class RoleFormComponent {
   `,
 })
 export class RolesPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.edit, labelKey: 'AbpAdmin::Common:Edit', hintKey: 'AbpAdmin::Legend:Roles:Edit' },
+    { svg: ICONS.permissions, labelKey: 'AbpAdmin::Roles:Permissions', hintKey: 'AbpAdmin::Legend:Roles:Permissions' },
+    { svg: ICONS.claims, labelKey: 'AbpAdmin::Claims:Title', hintKey: 'AbpAdmin::Legend:Claims' },
+    { svg: ICONS.cache, labelKey: 'AbpAdmin::Cache:ClearRole', hintKey: 'AbpAdmin::Legend:Roles:Cache' },
+    { svg: ICONS.moveUsers, labelKey: 'AbpAdmin::Roles:MoveUsers', hintKey: 'AbpAdmin::Legend:Roles:MoveUsers' },
+    { svg: ICONS.history, labelKey: 'AbpAdmin::Common:ChangeHistory', hintKey: 'AbpAdmin::Legend:History' },
+    { svg: ICONS.delete, labelKey: 'AbpAdmin::Common:Delete', hintKey: 'AbpAdmin::Legend:Roles:Delete' },
+  ];
   private readonly service = inject(IdentityRoleService);
   protected readonly toaster = inject(Toaster);
+  private readonly cache = inject(CacheService);
   protected readonly l = inject(LocalizationService);
   readonly new = input<string>();
   private readonly permissions = inject(PermissionService);
@@ -225,6 +240,14 @@ export class RolesPage {
 
   constructor() {
     effect(() => { if (this.new() === '1' && this.can('AbpIdentity.Roles.Create')) this.editing.set('new'); });
+  }
+
+  /** The role's cached permission grants. */
+  protected clearCache(r: IdentityRoleDto) {
+    this.cache.clearRole(r.id!).subscribe({
+      next: () => this.toaster.ok(this.l.instant('AbpAdmin::Cache:Cleared', r.name ?? '')),
+      error: e => this.toaster.error(apiError(e)),
+    });
   }
 
   protected can(policy: string) {

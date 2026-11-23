@@ -3,14 +3,14 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
-import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize, download } from '@nazem0/abp-admin-ng-core';
+import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry, PagerComponent, keepPageInRange, savedPageSize, download, ICONS, IconLegendComponent, LegendItem, CacheService } from '@nazem0/abp-admin-ng-core';
 import { UserEdit, UserFormComponent } from './user-form.component';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
 
 
 @Component({
   selector: 'abp-users-page',
-  imports: [PagerComponent, UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, RouterLink, LocalizationPipe],
+  imports: [IconLegendComponent, PagerComponent, UserFormComponent, PermissionsEditorComponent, ClaimsEditorComponent, RouterLink, LocalizationPipe],
   // Identity, lockout and permission calls made from this page (dialogs included) go to the row's tenant.
   providers: provideTenantScope(IdentityUserService, UserLockoutService, PermissionsService, IdentityClaimsService, UserTransferService),
   template: `
@@ -35,6 +35,7 @@ import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
         }
         </span>
       </header>
+      <app-icon-legend [items]="legend" />
 
       @if (imported(); as r) {
         <section class="card import" role="status">
@@ -123,6 +124,10 @@ import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
                       <button class="icon-btn" [title]="'AbpAdmin::Claims:Title' | abpLocalization" [attr.aria-label]="'AbpAdmin::Claims:Of' | abpLocalization: u.userName ?? ''"
                               (click)="act(u.tenantId, () => claims.set({ kind: 'user', id: u.id!, title: u.userName! }))">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12 12 20 4 12V4h8z" /><circle cx="8.5" cy="8.5" r="1.5" /></svg></button>
+                      @if (can('AbpAdmin.Cache')) {
+                        <button class="icon-btn" [title]="'AbpAdmin::Cache:ClearUser' | abpLocalization" [attr.aria-label]="'AbpAdmin::Cache:ClearFor' | abpLocalization: u.userName ?? ''" (click)="clearCache(u)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7" /></svg></button>
+                      }
                       @if (historyPage && can('AbpAdmin.AuditLogs') && (!multi() || !u.tenantId)) {
                         <a class="icon-btn" [title]="'AbpAdmin::Common:ChangeHistory' | abpLocalization" [attr.aria-label]="'AbpAdmin::Common:ChangeHistoryOf' | abpLocalization: u.userName ?? ''"
                            [routerLink]="historyPage" [queryParams]="{ type: 'Volo.Abp.Identity.IdentityUser', id: u.id }">
@@ -167,10 +172,22 @@ import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
   `,
 })
 export class UsersPage {
+  protected readonly legend: LegendItem[] = [
+    { svg: ICONS.edit, labelKey: 'AbpAdmin::Common:Edit', hintKey: 'AbpAdmin::Legend:Users:Edit' },
+    { svg: ICONS.lock, labelKey: 'AbpAdmin::Users:LockFor24h', hintKey: 'AbpAdmin::Legend:Users:Lock' },
+    { svg: ICONS.unlock, labelKey: 'AbpAdmin::Users:Unlock', hintKey: 'AbpAdmin::Legend:Users:Unlock' },
+    { svg: ICONS.signIns, labelKey: 'AbpAdmin::Users:SignInHistory', hintKey: 'AbpAdmin::Legend:Users:SignIns' },
+    { svg: ICONS.claims, labelKey: 'AbpAdmin::Claims:Title', hintKey: 'AbpAdmin::Legend:Claims' },
+    { svg: ICONS.cache, labelKey: 'AbpAdmin::Cache:ClearUser', hintKey: 'AbpAdmin::Legend:Users:Cache' },
+    { svg: ICONS.history, labelKey: 'AbpAdmin::Common:ChangeHistory', hintKey: 'AbpAdmin::Legend:History' },
+    { svg: ICONS.permissions, labelKey: 'AbpAdmin::Users:Permissions', hintKey: 'AbpAdmin::Legend:Users:Permissions' },
+    { svg: ICONS.delete, labelKey: 'AbpAdmin::Common:Delete', hintKey: 'AbpAdmin::Legend:Users:Delete' },
+  ];
   private readonly service = inject(IdentityUserService);
   private readonly permissions = inject(PermissionService);
   private readonly lockout = inject(UserLockoutService);
   protected readonly toaster = inject(Toaster);
+  private readonly cache = inject(CacheService);
   protected readonly l = inject(LocalizationService);
   private readonly config = inject(ConfigStateService);
   protected readonly me = this.config.getOne('currentUser')?.id;
@@ -278,6 +295,14 @@ export class UsersPage {
     const until = new Date(Date.now() + 24 * 3600_000).toISOString();
     this.lockout.lock(u.id!, { until }).subscribe({
       next: () => { this.toaster.ok(this.l.instant('AbpAdmin::Users:LockedFor24h', u.userName ?? '')); this.list.reload(); },
+      error: e => this.toaster.error(apiError(e)),
+    });
+  }
+
+  /** The user's cached permissions and settings (and their roles'), in the user's tenant. */
+  protected clearCache(u: IdentityUserDto) {
+    this.cache.clearUser(u.id!, u.tenantId as string).subscribe({ // a null tenant (host user) is not sent
+      next: () => this.toaster.ok(this.l.instant('AbpAdmin::Cache:Cleared', u.userName ?? '')),
       error: e => this.toaster.error(apiError(e)),
     });
   }

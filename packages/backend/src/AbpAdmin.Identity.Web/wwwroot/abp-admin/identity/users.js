@@ -24,6 +24,17 @@
         ${can('AbpIdentity.Users.Create') ? html`<button class="btn primary" type="button" data-act="new">${icon(IC.plus)} ${L('AbpAdmin::Users:NewUser')}</button>` : ''}
       </span>
     </header>
+    ${AbpAdmin.iconLegend([
+      [IC.edit, 'AbpAdmin::Common:Edit', 'AbpAdmin::Legend:Users:Edit'],
+      [IC.lock, 'AbpAdmin::Users:LockFor24h', 'AbpAdmin::Legend:Users:Lock'],
+      [IC.unlock, 'AbpAdmin::Users:Unlock', 'AbpAdmin::Legend:Users:Unlock'],
+      [IC.history, 'AbpAdmin::Users:SignInHistory', 'AbpAdmin::Legend:Users:SignIns'],
+      ['M20 12 12 20 4 12V4h8zM8.5 8.5v.01', 'AbpAdmin::Claims:Title', 'AbpAdmin::Legend:Claims'],
+      ...(can('AbpAdmin.Cache') ? [['M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7', 'AbpAdmin::Cache:ClearUser', 'AbpAdmin::Legend:Users:Cache']] : []),
+      ['M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5', 'AbpAdmin::Common:ChangeHistory', 'AbpAdmin::Legend:History'],
+      [IC.shield, 'AbpAdmin::Users:Permissions', 'AbpAdmin::Legend:Users:Permissions'],
+      [IC.del, 'AbpAdmin::Common:Delete', 'AbpAdmin::Legend:Users:Delete'],
+    ])}
     <section class="card import" id="u-import" role="status" hidden></section>
     <section class="card stream">
       <div class="filters">
@@ -88,6 +99,7 @@
             : u.id !== currentUser.id ? html`<button class="icon-btn" type="button" data-act="lock" data-id="${u.id}" title="${L('AbpAdmin::Users:LockFor24h')}" aria-label="${L('AbpAdmin::Users:LockAria', name)}">${icon(IC.lock)}</button>` : '') : ''}
           ${history ? html`<a class="icon-btn" href="${history + AbpAdmin.query({ user: u.userName })}" title="${L('AbpAdmin::Users:SignInHistory')}" aria-label="${L('AbpAdmin::Users:SignInHistoryOf', name)}">${icon(IC.history)}</a>` : ''}
           <button class="icon-btn" type="button" data-act="claims" data-id="${u.id}" title="${L('AbpAdmin::Claims:Title')}" aria-label="${L('AbpAdmin::Claims:Of', name)}">${icon('M20 12 12 20 4 12V4h8zM8.5 8.5v.01')}</button>
+          ${can('AbpAdmin.Cache') ? html`<button class="icon-btn" type="button" data-act="clear-cache" data-id="${u.id}" title="${L('AbpAdmin::Cache:ClearUser')}" aria-label="${L('AbpAdmin::Cache:ClearFor', name)}">${icon('M20 20H9l-5-5 10-10 7 7-8 8M9 9l7 7')}</button>` : ''}
           ${changes ? html`<a class="icon-btn" href="${changes + AbpAdmin.query({ type: 'Volo.Abp.Identity.IdentityUser', id: u.id })}" title="${L('AbpAdmin::Common:ChangeHistory')}" aria-label="${L('AbpAdmin::Common:ChangeHistoryOf', name)}">${icon('M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5')}</a>` : ''}
           ${can('AbpIdentity.Users.ManagePermissions') ? html`<button class="icon-btn" type="button" data-act="perms" data-id="${u.id}" title="${L('AbpAdmin::Users:Permissions')}" aria-label="${L('AbpAdmin::Users:PermissionsOf', name)}">${icon(IC.shield)}</button>` : ''}
           ${can('AbpIdentity.Users.Delete') ? html`<button class="icon-btn" type="button" data-act="confirm-delete" data-id="${u.id}" title="${L('AbpAdmin::Common:Delete')}" aria-label="${L('AbpAdmin::Users:DeleteAria', name)}">${icon(IC.del)}</button>` : ''}`}
@@ -273,6 +285,13 @@
   root.addEventListener('search', e => { if (e.target.matches('[data-act=search]')) search(e.target); });
   on(root, 'change', '[data-act=tenant]', (e, el) => { state.tenant = el.value; state.page = 0; load(); });
   on(root, 'click', '[data-act=reload]', load);
+  // The user's cached permissions and settings (and their roles'), in the user's tenant.
+  on(root, 'click', '[data-act=clear-cache]', async (e, b) => {
+    const u = byId(b.dataset.id);
+    if (!u) return;
+    try { await api.post(`/api/abp-admin/cache/${u.id}/clear-user` + AbpAdmin.query({ tenant: u.tenantId ?? undefined })); toast.ok(L('AbpAdmin::Cache:Cleared', u.userName)); }
+    catch (err) { toast.error(errorText(err)); }
+  });
   AbpAdmin.onPager(root, (page, size) => { state.page = page; state.size = size; load(); });
   on(root, 'click', '[data-act=edit]', (e, b) => { const u = byId(b.dataset.id); if (u) openForm(u, tenantOf(u)); });
   on(root, 'click', '[data-act=lock]', (e, b) => { const u = byId(b.dataset.id); if (u) lockAction(u, 'lock'); });
