@@ -3,7 +3,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
-import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize } from '@nazem0/abp-admin-ng-core';
+import { IdentityUserDto, IdentityUserService, IdentityClaimsService, UserImportResultDto, UserLockoutService, UserTransferService, TenantService, TenantUserService, PermissionsService, TenantScope, provideTenantScope, Toaster, relative, PermissionsEditorComponent, PermissionTarget, apiError, AbpAdminRegistry , PagerComponent, keepPageInRange, savedPageSize, download } from '@nazem0/abp-admin-ng-core';
 import { UserEdit, UserFormComponent } from './user-form.component';
 import { ClaimsEditorComponent, ClaimsTarget } from './claims-editor.component';
 
@@ -246,9 +246,7 @@ export class UsersPage {
       this.transfer.export().subscribe({
         next: blob => {
           this.transferring.set(false);
-          const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'users.csv' });
-          a.click();
-          URL.revokeObjectURL(a.href);
+          download(blob, 'users.csv');
         },
         error: e => { this.transferring.set(false); this.toaster.error(apiError(e)); },
       });

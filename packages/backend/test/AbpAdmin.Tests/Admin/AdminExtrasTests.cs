@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AbpAdmin.Services;
 using AbpAdmin.Services.AuditLogs;
+using AbpAdmin.Services.SecurityLogs;
 using AbpAdmin.Services.Identity;
 using AbpAdmin.Services.Tenants;
 using Shouldly;
@@ -29,6 +31,23 @@ public class AdminExtrasTests : AbpAdminTestBase
         parsed[0].ShouldBe(["h1", "h2"]);
         parsed[1].Select(Csv.Unescape).ShouldBe(["plain", "a,b", "say \"hi\"", "two\nlines", "+962 7", "=SUM(A1)", ""]);
         line.ShouldContain("'=SUM(A1)"); // formula guard in the file
+    }
+
+    [Fact]
+    public async Task Lists_Export_As_Csv()
+    {
+        (await Text(GetRequiredService<AuditLogAppService>().ExportAsync(new GetAuditLogListInput())))
+            .ShouldStartWith("﻿Time,UserName,Tenant,HttpMethod,Url,StatusCode");
+        (await Text(GetRequiredService<AuditLogAppService>().ExportEntityChangesAsync(new GetEntityChangeListInput())))
+            .ShouldStartWith("﻿Time,ChangeType,EntityType,EntityId");
+        (await Text(GetRequiredService<SecurityLogAppService>().ExportAsync(new GetSecurityLogListInput())))
+            .ShouldStartWith("﻿Time,Action,UserName");
+    }
+
+    private static async Task<string> Text(Task<IRemoteStreamContent> file)
+    {
+        using var reader = new StreamReader((await file).GetStream(), new UTF8Encoding(false), detectEncodingFromByteOrderMarks: false);
+        return await reader.ReadToEndAsync();
     }
 
     [Fact]

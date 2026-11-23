@@ -10,6 +10,7 @@
           <button role="radio" [attr.aria-checked]="range() === r.key" (click)="set(range, r.key)">{{ r.labelKey | abpLocalization }}</button>
         }
       </div>
+      <app-export-button [source]="exportCsv" fileName="audit-logs.csv" />
       <button class="icon-btn" (click)="refresh()" [attr.aria-label]="'AbpAdmin::Common:Refresh' | abpLocalization" [title]="'AbpAdmin::Common:Refresh' | abpLocalization"
               [class.spin]="logs.isLoading() || stats.isLoading()">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg>

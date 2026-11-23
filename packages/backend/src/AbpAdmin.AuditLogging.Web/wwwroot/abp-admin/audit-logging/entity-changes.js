@@ -169,6 +169,7 @@
       <div class="seg" role="radiogroup" aria-label="${L('AbpAdmin::EntityChanges:TimeRange')}">
         ${fmt.RANGES.map(r => html`<button role="radio" type="button" aria-checked="${String(state.range === r.key)}" data-range="${r.key}">${L(r.labelKey)}</button>`)}
       </div>
+      ${AbpAdmin.exportButton()}
       <button class="icon-btn ${state.loading ? 'spin' : ''}" type="button" data-act="refresh" aria-label="${L('AbpAdmin::Common:Refresh')}" title="${L('AbpAdmin::Common:Refresh')}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" /></svg></button>`);
   }
@@ -320,6 +321,8 @@
     drawActions(); reloadAll();
   });
   on(root, 'click', '[data-act=refresh]', () => { state.win = fmt.rangeWindow(state.range); reloadAll(); });
+  on(root, 'click', '[data-act=export]', () => AbpAdmin.download('/api/abp-admin/audit-log/export-entity-changes',
+    { ...base(), changeType: state.changeType ?? undefined }, 'entity-changes.csv'));
   on(root, 'click', '[data-kind]', (e, el) => {
     const type = +el.dataset.kind;
     state.changeType = state.changeType === type ? null : type; state.page = 0;

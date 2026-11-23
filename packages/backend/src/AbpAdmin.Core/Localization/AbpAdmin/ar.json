@@ -900,6 +900,8 @@
     "Settings:Identity:Group:Password": "كلمة المرور",
     "Settings:Identity:Group:Lockout": "قفل الحساب",
     "Settings:Identity:Group:SignIn": "تسجيل الدخول",
-    "Settings:Identity:Group:User": "المستخدم"
+    "Settings:Identity:Group:User": "المستخدم",
+    "Common:ExportCsv": "تصدير CSV",
+    "Common:ExportCsvHint": "تنزيل كل الصفوف المطابقة للمرشحات الحالية بصيغة CSV (حتى 50,000 صف)"
   }
 }

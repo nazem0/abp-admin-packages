@@ -900,6 +900,8 @@
     "Settings:Identity:Group:Password": "Password",
     "Settings:Identity:Group:Lockout": "Lockout",
     "Settings:Identity:Group:SignIn": "Sign-in",
-    "Settings:Identity:Group:User": "User"
+    "Settings:Identity:Group:User": "User",
+    "Common:ExportCsv": "Export CSV",
+    "Common:ExportCsvHint": "Download every row matching the current filters as CSV (up to 50,000)"
   }
 }
