@@ -55,6 +55,8 @@ public class AbpAdminTestModule : AbpModule
         {
             options.IsJobExecutionEnabled = false;
         });
+        // No outbox sender / inbox processor: tests see the event boxes as they left them.
+        Configure<Volo.Abp.BackgroundWorkers.AbpBackgroundWorkerOptions>(options => options.IsEnabled = false);
 
         context.Services.AddAlwaysAllowAuthorization();
         context.Services.AddAlwaysDisableUnitOfWorkTransaction();

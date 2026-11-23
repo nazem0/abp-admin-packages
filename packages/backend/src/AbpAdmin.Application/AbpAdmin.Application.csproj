@@ -12,6 +12,7 @@
     <ProjectReference Include="..\AbpAdmin.Identity\AbpAdmin.Identity.csproj" />
     <ProjectReference Include="..\AbpAdmin.OpenIddict\AbpAdmin.OpenIddict.csproj" />
     <ProjectReference Include="..\AbpAdmin.BackgroundJobs\AbpAdmin.BackgroundJobs.csproj" />
+    <ProjectReference Include="..\AbpAdmin.EventBus\AbpAdmin.EventBus.csproj" />
     <ProjectReference Include="..\AbpAdmin.TenantManagement\AbpAdmin.TenantManagement.csproj" />
     <ProjectReference Include="..\AbpAdmin.EntityExplorer\AbpAdmin.EntityExplorer.csproj" />
   </ItemGroup>

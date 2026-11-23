@@ -37,6 +37,9 @@
       "@nazem0/abp-admin-ng-background-jobs": [
         "./dist/background-jobs"
       ],
+      "@nazem0/abp-admin-ng-event-bus": [
+        "./dist/event-bus"
+      ],
       "@nazem0/abp-admin-ng-tenant-management": [
         "./dist/tenant-management"
       ],

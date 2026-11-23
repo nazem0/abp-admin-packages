@@ -63,7 +63,7 @@ public class AbpAdminWebOptions
     public bool Has(string path) => Nav.Any(n => string.Equals(n.Path, path, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>ABP Admin's own pages in the Angular sidebar's order; ties within a section follow it, whatever order modules load in.</summary>
-    private static readonly string[] KnownPages = ["Overview", "AuditLogs", "EntityChanges", "SecurityLogs", "BackgroundJobs",
+    private static readonly string[] KnownPages = ["Overview", "AuditLogs", "EntityChanges", "SecurityLogs", "BackgroundJobs", "Events",
         "Users", "Roles", "OrganizationUnits", "Applications", "Scopes", "Tenants", "Features", "Settings"];
 
     /// <summary>Sidebar order: by section, then <see cref="AbpAdminWebNavItem.Order"/>, then ABP Admin's page order, then registration order.</summary>

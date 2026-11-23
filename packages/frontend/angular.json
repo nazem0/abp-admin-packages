@@ -207,6 +207,29 @@
         }
       }
     },
+    "event-bus": {
+      "projectType": "library",
+      "root": "projects/event-bus",
+      "sourceRoot": "projects/event-bus/src",
+      "prefix": "abp",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "projects/event-bus/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/event-bus/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/event-bus/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
     "tenant-management": {
       "projectType": "library",
       "root": "projects/tenant-management",

@@ -27,6 +27,7 @@ export * from './lib/proxy/abp-admin/services/background-jobs';
 export * from './lib/proxy/abp-admin/services/caching';
 export * from './lib/proxy/abp-admin/services/dashboard';
 export * from './lib/proxy/abp-admin/services/entities';
+export * from './lib/proxy/abp-admin/services/event-bus';
 export * from './lib/proxy/abp-admin/services/identity';
 export * from './lib/proxy/abp-admin/services/open-iddict';
 export * from './lib/proxy/abp-admin/services/security-logs';
