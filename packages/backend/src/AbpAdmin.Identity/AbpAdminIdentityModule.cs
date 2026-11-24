@@ -6,8 +6,6 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
 using Volo.Abp.SettingManagement;
-using Volo.Abp.PermissionManagement;
-using Volo.Abp.FeatureManagement;
 using static AbpAdmin.Permissions.AbpAdminPermissionGroup;
 using static AbpAdmin.Permissions.HostSupportStateChecker;
 
@@ -18,9 +16,9 @@ namespace AbpAdmin;
     typeof(AbpAdminCoreModule),
     typeof(AbpIdentityDomainModule),
     typeof(AbpIdentityApplicationContractsModule),
-    typeof(AbpSettingManagementDomainModule),
-    typeof(AbpPermissionManagementDomainModule),
-    typeof(AbpFeatureManagementDomainModule)
+    typeof(AbpSettingManagementDomainModule)
+    // Permission/Feature Management: only their cache item types are used (cache page). Their Domain modules aren't
+    // depended on: they save static definitions to the database at startup and fail in apps without those EF modules.
 )]
 public class AbpAdminIdentityModule : AbpModule
 {
