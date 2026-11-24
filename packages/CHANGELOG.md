@@ -3,6 +3,17 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
+## 0.4.3 — 2026-11-24
+
+NuGet: every `AbpAdmin.*` package. npm: none (unchanged).
+
+### Fixed
+
+- **Razor console failed with `No policy found: FeatureManagement.ManageHostFeatures`** in apps without Feature
+  Management: the sidebar checked every entry's permission, and ASP.NET Core throws for a policy nobody defines. A
+  permission that isn't defined (its module isn't installed) now counts as not granted, so the entry is hidden; the
+  Features page returns 403 there instead of throwing.
+
 ## 0.4.2 — 2026-11-24
 
 NuGet: every `AbpAdmin.*` package. npm: none (unchanged).

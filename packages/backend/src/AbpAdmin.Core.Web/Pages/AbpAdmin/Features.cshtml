@@ -1,5 +1,11 @@
 @page
-@attribute [Authorize("FeatureManagement.ManageHostFeatures")]
+@inject IAuthorizationService Authorization
+@inject IAuthorizationPolicyProvider Policies
+@functions {
+    // Not [Authorize(...)]: that throws "No policy found" in apps without Feature Management; this returns 403 there.
+    public async Task<Microsoft.AspNetCore.Mvc.IActionResult> OnGetAsync() =>
+        await Authorization.IsGrantedAnyAsync(Policies, "FeatureManagement.ManageHostFeatures") ? Page() : Forbid();
+}
 @{
     Layout = "_AbpAdminLayout";
     ViewData["Title"] = "AbpAdmin::Nav:Features";

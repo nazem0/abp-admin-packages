@@ -82,12 +82,13 @@ public class AbpAdminWebOptions
 
 public static class AbpAdminPolicyExtensions
 {
-    /// <summary>Empty = granted; "a || b" = any of them.</summary>
-    public static async Task<bool> IsGrantedAnyAsync(this IAuthorizationService authorization, string? policy)
+    /// <summary>Empty = granted; "a || b" = any of them. A policy nobody defines (its module isn't installed, e.g.
+    /// FeatureManagement.ManageHostFeatures without Feature Management) counts as not granted instead of throwing.</summary>
+    public static async Task<bool> IsGrantedAnyAsync(this IAuthorizationService authorization, IAuthorizationPolicyProvider policies, string? policy)
     {
         if (string.IsNullOrWhiteSpace(policy)) return true;
         foreach (var p in policy.Split("||", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-            if (await authorization.IsGrantedAsync(p)) return true; // ABP: checks the current user
+            if (await policies.GetPolicyAsync(p) is not null && await authorization.IsGrantedAsync(p)) return true; // ABP: checks the current user
         return false;
     }
 }

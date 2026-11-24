@@ -33,4 +33,11 @@ public class RazorPagesTests : AbpAdminTestBase
         body.ShouldContain("window.abpAdminConfig");          // browser config
         body.ShouldContain($"id=\"{rootId}\"");               // the page itself
     }
+
+    [Fact]
+    public async Task Nav_Entry_With_An_Undefined_Permission_Is_Hidden()
+    {
+        var body = await GetResponseAsStringAsync("/AbpAdmin/Overview");
+        body.ShouldNotContain("/AbpAdmin/NotInstalled");
+    }
 }
