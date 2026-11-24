@@ -50,6 +50,9 @@ public class AbpAdminTestModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        // A nav entry whose permission nobody defines, like Features in an app without Feature Management.
+        Configure<AbpAdmin.Web.AbpAdminWebOptions>(options =>
+            options.Nav.Add(new AbpAdmin.Web.AbpAdminWebNavItem("NotInstalled", "AbpAdmin::Nav:NotInstalled", "System", "NotInstalled.Default", "M0 0")));
 
         Configure<AbpBackgroundJobOptions>(options =>
         {

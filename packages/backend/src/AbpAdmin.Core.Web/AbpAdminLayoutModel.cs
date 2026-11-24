@@ -25,6 +25,7 @@ public class AbpAdminLayoutModel
 public class AbpAdminLayoutBuilder(
     IOptions<AbpAdminWebOptions> options,
     IAuthorizationService authorization,
+    IAuthorizationPolicyProvider policies,
     IAbpApplicationConfigurationAppService appConfiguration,
     IAntiforgery antiforgery,
     IHttpContextAccessor http) : ITransientDependency
@@ -39,7 +40,7 @@ public class AbpAdminLayoutBuilder(
 
         var settings = new List<AbpAdminWebSettingsSection>();
         foreach (var s in o.OrderedSettings())
-            if (await authorization.IsGrantedAnyAsync(s.Policy)) settings.Add(s);
+            if (await authorization.IsGrantedAnyAsync(policies, s.Policy)) settings.Add(s);
 
         var groups = new List<AbpAdminNavGroup>();
         var pages = new List<string>();
@@ -47,7 +48,7 @@ public class AbpAdminLayoutBuilder(
         foreach (var n in o.OrderedNav())
         {
             var isSettings = n.Path == "Settings";
-            if (isSettings ? settings.Count == 0 : !await authorization.IsGrantedAnyAsync(n.Policy)) continue;
+            if (isSettings ? settings.Count == 0 : !await authorization.IsGrantedAnyAsync(policies, n.Policy)) continue;
             var url = AbpAdminWebOptions.Url(n.Path);
             var children = isSettings
                 ? settings.Select(s => new AbpAdminNavLink(new AbpAdminWebNavItem($"Settings/{s.Path}", s.LabelKey, "Settings", s.Policy, s.Icon, s.Keywords), $"{url}/{s.Path}", IsActive($"{url}/{s.Path}"), [])).ToList()
@@ -59,7 +60,7 @@ public class AbpAdminLayoutBuilder(
             foreach (var c in children) commands.Add(Command(c.Item.Path, c.Item.LabelKey, "Settings", c.Item.Icon, c.Item.Keywords, c.Url));
         }
         foreach (var a in o.Actions)
-            if (await authorization.IsGrantedAnyAsync(a.Policy))
+            if (await authorization.IsGrantedAnyAsync(policies, a.Policy))
                 commands.Add(new { id = a.Id, labelKey = a.LabelKey, hintKey = a.HintKey, icon = a.Icon ?? "M12 5v14M5 12h14", keywords = a.Keywords, url = AbpAdminWebOptions.Url(a.Url) });
 
         var configuration = await appConfiguration.GetAsync(new ApplicationConfigurationRequestOptions { IncludeLocalizationResources = true });
