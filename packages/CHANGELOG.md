@@ -3,6 +3,17 @@
 NuGet (`AbpAdmin.*`) and npm (`@nazem0/abp-admin-ng*`) packages share version numbers. A release that only changes
 some packages publishes only those, so a package can stay on an earlier version (e.g. npm core 0.3.0 next to 0.3.1).
 
+## 0.4.2 — 2026-11-24
+
+NuGet: every `AbpAdmin.*` package. npm: none (unchanged).
+
+### Fixed
+
+- **Apps without Feature Management failed at startup** (`Cannot resolve parameter IFeatureGroupDefinitionRecordRepository`
+  while activating `StaticFeatureSaver`): `AbpAdmin.Identity` depended on ABP's FeatureManagement and PermissionManagement
+  Domain modules, which save static definitions to the database and need those modules' EF Core packages. It now only
+  uses their cache item types and no longer depends on the modules.
+
 ## 0.4.1 — 2026-11-23
 
 NuGet: every `AbpAdmin.*` package. npm: none (unchanged). New: `AbpAdmin.Cli` 0.1.0.
